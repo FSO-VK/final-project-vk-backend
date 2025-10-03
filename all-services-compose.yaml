@@ -1,0 +1,28 @@
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus_data: {}
+  grafana-storage: {}
+
+services:
+
+  main_service:
+    build:
+      context: ./
+      dockerfile: ./build/services/app/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8081:8081"
+    restart: unless-stopped
+    volumes:
+      - ./configs/:/build/configs
+      - ${HOST_TLS_CERTIFICATE_DIR}:/build/tls:ro
+    depends_on:
+      db_postgresql:
+        condition: service_started
+        restart: true
+    networks:
+      - monitoring
