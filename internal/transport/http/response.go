@@ -13,9 +13,7 @@ import (
 // ErrResponseIsNil is returned when a response object is unexpectedly nil.
 var ErrResponseIsNil = errors.New("response is nil")
 
-// WriteJSON writes the given api.Response of type T as a JSON-encoded HTTP response.
-// It sets the "Content-Type" header to "application/json".
-// Returns an error if the response is nil or if encoding fails.
+// WriteJSON writes encoded JSON response to the ResponseWriter.
 func WriteJSON[T any](w http.ResponseWriter, response *api.Response[T]) error {
 	w.Header().Set("Content-Type", "application/json")
 
