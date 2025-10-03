@@ -9,5 +9,6 @@ require (
 
 require (
 	github.com/gorilla/mux v1.8.1
-	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
+	golang.org/x/crypto v0.42.0
+	golang.org/x/sys v0.36.0 // indirect
 )
