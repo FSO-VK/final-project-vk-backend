@@ -41,21 +41,30 @@ jobs:
         with:
           go-version: '1.25.x'
 
-      - name: Install dependencies
+      - name: Ensure make exists (install only if missing)
         run: |
-          apt-get update -y
-          apt-get install -y make curl
+          if ! command -v make >/dev/null 2>&1; then
+            echo "make not found — installing"
+            sudo apt-get update -y
+            sudo apt-get install -y make
+          else
+            echo "make found: $(which make)"
+          fi
 
-      - name: Install golangci-lint v2.4.0
+      - name: Install golangci-lint v2.4.0 (official CI installer)
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
-          mkdir -p $(go env GOPATH)/bin
+          BIN_DIR="${GITHUB_WORKSPACE}/.bin"
+          mkdir -p "${BIN_DIR}"
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh \
-            | sh -s -- -b $(go env GOPATH)/bin v2.4.0
-          $(go env GOPATH)/bin/golangci-lint --version
+            | sh -s -- -b "${BIN_DIR}" v2.4.0
+          # expose bin dir to following steps
+          echo "${BIN_DIR}" >> $GITHUB_PATH
+          # quick check
+          "${BIN_DIR}/golangci-lint" --version
 
       - name: Run lint via Makefile
-        env:
-          PATH: ${{ env.PATH }}:$(go env GOPATH)/bin
         run: make lint
 
   set-vars:
