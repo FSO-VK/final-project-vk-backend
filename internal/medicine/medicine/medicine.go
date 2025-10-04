@@ -20,9 +20,9 @@ func NewMedicine(
 	expires time.Time,
 ) *Medicine {
 	return &Medicine{
-		Name:         name,
-		Items:        items,
-		ItemsUnit:    itemsUnit,
-		Expires:      expires,
+		Name:      name,
+		Items:     items,
+		ItemsUnit: itemsUnit,
+		Expires:   expires,
 	}
 }

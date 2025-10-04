@@ -12,6 +12,12 @@ type MedicineServiceProvider struct {
 	medicineRepo medicine.MedicineRepository
 }
 
+func NewMedicineServiceProvider(medicineRepo medicine.MedicineRepository) *MedicineServiceProvider {
+	return &MedicineServiceProvider{
+		medicineRepo: medicineRepo,
+	}
+}
+
 func (s *MedicineServiceProvider) AddMedicine(
 	ctx context.Context,
 	req *AddMedicineRequest,
@@ -51,12 +57,19 @@ func (s *MedicineServiceProvider) UpdateMedicine(
 		return nil, fmt.Errorf("failed to parse expiration: %w", err)
 	}
 
+	id := req.ID
+	oldMedicine, err := s.medicineRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get medicine: %w", err)
+	}
+
 	medicine := medicine.NewMedicine(
 		req.Name,
 		req.Items,
 		req.ItemsUnit,
 		expiration,
 	)
+	medicine.ID = oldMedicine.ID
 
 	updatedMedicine, err := s.medicineRepo.Update(ctx, medicine)
 	if err != nil {
@@ -93,7 +106,7 @@ func (s *MedicineServiceProvider) GetMedicineList(
 		return nil, fmt.Errorf("failed to get medicine list: %w", err)
 	}
 
-	var listItems []*MedicineListItem
+	listItems := make([]*MedicineListItem, 0)
 	for _, medicine := range medicines {
 		listItems = append(listItems, &MedicineListItem{
 			ID:        medicine.ID,

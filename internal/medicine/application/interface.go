@@ -6,7 +6,10 @@ type MedicineService interface {
 	AddMedicine(ctx context.Context, req *AddMedicineRequest) (*AddMedicineResponse, error)
 	UpdateMedicine(ctx context.Context, req *UpdateMedicineRequest) (*UpdateMedicineResponse, error)
 	DeleteMedicine(ctx context.Context, req *DeleteMedicineRequest) (*DeleteMedicineResponse, error)
-	GetMedicineList(ctx context.Context, req *GetMedicineListRequest) (*GetMedicineListResponse, error)
+	GetMedicineList(
+		ctx context.Context,
+		req *GetMedicineListRequest,
+	) (*GetMedicineListResponse, error)
 }
 
 type AddMedicineRequest struct {
@@ -31,18 +34,21 @@ type UpdateMedicineRequest struct {
 }
 
 type UpdateMedicineResponse struct {
-	ID uint
+	ID           uint
+	Name         string
+	CategoriesID []uint
+	Items        uint
+	ItemsUnit    string
+	Expires      string
 }
 
 type DeleteMedicineRequest struct {
 	ID uint
 }
 
-type DeleteMedicineResponse struct {
-}
+type DeleteMedicineResponse struct{}
 
-type GetMedicineListRequest struct {
-}
+type GetMedicineListRequest struct{}
 
 type MedicineListItem struct {
 	ID        uint
