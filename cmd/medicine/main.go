@@ -17,6 +17,7 @@ func main() {
 			PadLevelText:           true,
 		},
 	)
+	l.SetReportCaller(true)
 	l.SetLevel(logrus.DebugLevel)
 	logger := logrus.NewEntry(l)
 

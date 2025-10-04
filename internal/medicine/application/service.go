@@ -24,7 +24,7 @@ func (s *MedicineServiceProvider) AddMedicine(
 ) (*AddMedicineResponse, error) {
 	// TODO: add validator
 
-	expiration, err := time.Parse(time.RFC3339, req.Expires)
+	expiration, err := time.Parse(time.DateOnly, req.Expires)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse expiration: %w", err)
 	}
@@ -52,7 +52,7 @@ func (s *MedicineServiceProvider) UpdateMedicine(
 ) (*UpdateMedicineResponse, error) {
 	// TODO: add validator
 
-	expiration, err := time.Parse(time.RFC3339, req.Expires)
+	expiration, err := time.Parse(time.DateOnly, req.Expires)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse expiration: %w", err)
 	}
@@ -113,7 +113,7 @@ func (s *MedicineServiceProvider) GetMedicineList(
 			Name:      medicine.Name,
 			Items:     medicine.Items,
 			ItemsUnit: medicine.ItemsUnit,
-			Expires:   medicine.Expires.Format(time.RFC3339),
+			Expires:   medicine.Expires.Format(time.DateOnly),
 		})
 	}
 
