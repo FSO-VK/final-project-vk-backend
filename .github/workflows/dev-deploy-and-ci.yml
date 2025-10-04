@@ -1,9 +1,5 @@
 name: CI — lint, build-check, test, publish-on-dev
 
-# Триггеры:
-# - push в master/dev -> автоматический запуск
-# - pull_request targeting master/dev -> автоматический запуск (no publish)
-# - workflow_dispatch -> ручной запуск (можно указать branch но будет без публикации)
 on:
   push:
     branches:
@@ -22,19 +18,19 @@ on:
 
 env:
   GO_VERSION: '1.25.x'
-  IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/FSO-auth
+  # ХАРДКОДИМ owner/name в нижнем регистре — по Docker-правилам.
+  IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/fso-auth
 
 permissions:
   contents: read
-  packages: write   # нужно для пуша в GHCR
+  packages: write
 
 jobs:
   lint:
     name: Lint (make lint)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -44,14 +40,11 @@ jobs:
       - name: Ensure make exists (install only if missing)
         run: |
           if ! command -v make >/dev/null 2>&1; then
-            echo "make not found — installing"
             sudo apt-get update -y
             sudo apt-get install -y make
-          else
-            echo "make found: $(which make)"
           fi
 
-      - name: Install golangci-lint v2.4.0 (official CI installer)
+      - name: Install golangci-lint v2.4.0 into ./.bin
         env:
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
@@ -75,14 +68,11 @@ jobs:
       - name: Determine branch name
         id: branch
         run: |
-          # Для разных событий branch может быть в другом поле
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "branch=${{ github.head_ref }}" >> "$GITHUB_OUTPUT"
           elif [ -n "${{ github.event.inputs.ref }}" ]; then
-            # manual override via workflow_dispatch
             echo "branch=${{ github.event.inputs.ref }}" >> "$GITHUB_OUTPUT"
           else
-            # push events: strip refs/heads/
             REF="${GITHUB_REF#refs/heads/}"
             echo "branch=${REF}" >> "$GITHUB_OUTPUT"
           fi
@@ -92,56 +82,52 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, set-vars]
     steps:
-      - name: Checkout (full)
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
+      - name: Set up Docker Buildx (keeps option for multi-arch)
         uses: docker/setup-buildx-action@v3
 
-      - name: Normalize image repo and branch (lowercase, safe tag)
-        id: normalize
+      - name: Prepare image variables (simple, hardcoded repo; clean branch -> lowercase & replace / -> -)
+        id: prepare
         run: |
-          # read raw branch
-          BRANCH_RAW="${{ needs.set-vars.outputs.branch }}"
-          # normalize: lowercase, replace slashes with dash, replace any non allowed char with dash
-          BRANCH_CLEAN=$(printf '%s' "$BRANCH_RAW" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g' | sed 's/[^a-z0-9._-]/-/g')
-          # normalize image repo (lowercase)
-          IMAGE_REPO_LC=$(printf '%s' "${{ env.IMAGE_REPO }}" | tr '[:upper:]' '[:lower:]')
-          echo "BRANCH=${BRANCH_CLEAN}" >> $GITHUB_ENV
-          echo "IMAGE_REPO=${IMAGE_REPO_LC}" >> $GITHUB_ENV
-          echo "Normalized image: ${IMAGE_REPO_LC}:${BRANCH_CLEAN}"
+          RAW_BRANCH="${{ needs.set-vars.outputs.branch }}"
+          # fallback if empty (rare)
+          if [ -z "$RAW_BRANCH" ]; then
+            RAW_BRANCH="${{ github.ref_name || 'unknown' }}"
+          fi
+          BRANCH="$(printf '%s' "$RAW_BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g')"
+          echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
+          echo "IMAGE_REPO=${{ env.IMAGE_REPO }}" >> $GITHUB_ENV
+          echo "Prepared IMAGE_REPO=${{ env.IMAGE_REPO }} BRANCH=${BRANCH}"
 
       - name: Build image (local test, no push)
-        id: build
+        env:
+          IMAGE_REPO: ${{ env.IMAGE_REPO }}
+          BRANCH: ${{ env.BRANCH }}
         run: |
-          BRANCH="${BRANCH:-${{ needs.set-vars.outputs.branch }}}"
-          IMAGE_TAG="${IMAGE_REPO}:${BRANCH}"
-          echo "Building image ${IMAGE_TAG} (no push)"
-          docker build -f ./build/services/app/Dockerfile -t "${IMAGE_TAG}" .
+          # final tag
+          TAG="${IMAGE_REPO}:${BRANCH}"
+          echo "Building image ${TAG} (no push)"
+          docker build -f ./build/services/app/Dockerfile -t "${TAG}" .
 
   test:
     name: Tests & coverage
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Checkout (full)
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Setup Go
+      - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Install system deps (if needed)
-        run: |
-          sudo apt-get update
+        run: sudo apt-get update -y
 
       - name: Run tests with coverage
         run: |
@@ -158,44 +144,41 @@ jobs:
     name: Publish image (conditional)
     runs-on: ubuntu-latest
     needs: test
-    if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/dev')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
     steps:
-      - name: Checkout (full)
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Normalize image repo and branch (lowercase, safe tag) for publish
+      - name: Prepare image variables for publish
         run: |
-          BRANCH_RAW="${{ needs.set-vars.outputs.branch }}"
-          BRANCH_CLEAN=$(printf '%s' "$BRANCH_RAW" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g' | sed 's/[^a-z0-9._-]/-/g')
-          IMAGE_REPO_LC=$(printf '%s' "${{ env.IMAGE_REPO }}" | tr '[:upper:]' '[:lower:]')
-          echo "BRANCH=${BRANCH_CLEAN}" >> $GITHUB_ENV
-          echo "IMAGE_REPO=${IMAGE_REPO_LC}" >> $GITHUB_ENV
-          echo "Publishing image will be: ${IMAGE_REPO_LC}:${BRANCH_CLEAN}"
+          RAW_BRANCH="${{ needs.set-vars.outputs.branch }}"
+          if [ -z "$RAW_BRANCH" ]; then
+            RAW_BRANCH="${{ github.ref_name || 'dev' }}"
+          fi
+          BRANCH="$(printf '%s' "$RAW_BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g')"
+          IMAGE_REPO="${{ env.IMAGE_REPO }}"
+          echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
+          echo "IMAGE_REPO=${IMAGE_REPO}" >> $GITHUB_ENV
+          echo "Publishing ${IMAGE_REPO}:${BRANCH}"
 
       - name: Login to GHCR
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          # Prefer GHCR_PAT secret if present, otherwise GITHUB_TOKEN may be used
           password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Build and push image (tagged with branch)
         env:
-          BRANCH: ${{ env.BRANCH }}
           IMAGE_REPO: ${{ env.IMAGE_REPO }}
+          BRANCH: ${{ env.BRANCH }}
         run: |
-          IMAGE_TAG="${IMAGE_REPO}:${BRANCH}"
-          echo "Buildx build+push -> ${IMAGE_TAG}"
+          TAG="${IMAGE_REPO}:${BRANCH}"
+          echo "Buildx build+push -> ${TAG}"
           docker buildx build --push --platform linux/amd64,linux/arm64 \
-            --tag "${IMAGE_TAG}" \
+            --tag "${TAG}" \
             -f ./build/services/app/Dockerfile .
