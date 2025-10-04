@@ -1,22 +1,22 @@
 name: CI — lint, build-check, test, publish-on-dev
 
 # Триггеры:
-# - push в main/dev -> автоматический запуск
-# - pull_request targeting main/dev -> автоматический запуск (no publish)
+# - push в master/dev -> автоматический запуск
+# - pull_request targeting master/dev -> автоматический запуск (no publish)
 # - workflow_dispatch -> ручной запуск (можно указать branch но будет без публикации)
 on:
   push:
     branches:
-      - main
+      - master
       - dev
   pull_request:
     branches:
-      - main
+      - master
       - dev
   workflow_dispatch:
     inputs:
       ref:
-        description: "Branch to run against (example: feature/x or dev or main)"
+        description: "Branch to run against (example: feature/x or dev or master)"
         required: false
         default: ""
 

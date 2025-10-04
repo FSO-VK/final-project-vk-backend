@@ -1,12 +1,12 @@
-name: Deploy — manual publish image (main)
+name: Deploy — manual publish image (master)
 
 on:
   workflow_dispatch:
     inputs:
       target:
-        description: "target branch to publish (main or dev)"
+        description: "target branch to publish (master or dev)"
         required: true
-        default: "main"
+        default: "master"
 
 env:
   IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/FSO-auth
