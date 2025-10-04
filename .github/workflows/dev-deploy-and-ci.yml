@@ -21,7 +21,7 @@ on:
         default: ""
 
 env:
-  GO_VERSION: '1.23.x'
+  GO_VERSION: '1.25.x'
   IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/FSO-auth
 
 permissions:
@@ -30,17 +30,22 @@ permissions:
 
 jobs:
   lint:
-    name: Lint (golangci-lint)
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          version: v1.59.0
-          args: --timeout=5m
+          go-version: '1.23.x'
+
+      - name: Install golangci-lint
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.0
+
+      - name: Run lint via Makefile
+        run: make lint
 
   set-vars:
     name: Set branch variables

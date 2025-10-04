@@ -10,7 +10,7 @@ on:
 
 env:
   IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/FSO-auth
-  GO_VERSION: '1.23.x'
+  GO_VERSION: '1.25.x'
 
 permissions:
   contents: read
