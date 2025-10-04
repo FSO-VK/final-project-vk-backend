@@ -22,7 +22,7 @@ on:
 
 env:
   GO_VERSION: '1.25.x'
-  IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/FSO-auth
+  IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/fso-auth
 
 permissions:
   contents: read
