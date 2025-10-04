@@ -30,22 +30,27 @@ permissions:
 
 jobs:
   lint:
-    name: Lint
+    name: Lint (make lint)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v4
         with:
           go-version: '1.23.x'
 
-      - name: Install golangci-lint
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.4.0
+      - name: Install golangci-lint v2.4.0
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh \
+            | sh -s -- -b $(go env GOPATH)/bin v2.4.0
+          golangci-lint --version
 
       - name: Run lint via Makefile
         run: make lint
+        env:
+          PATH: ${{ env.PATH }}:$(go env GOPATH)/bin
 
   set-vars:
     name: Set branch variables
