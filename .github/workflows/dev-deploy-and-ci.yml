@@ -19,7 +19,7 @@ on:
 env:
   GO_VERSION: '1.25.x'
   # ХАРДКОДИМ owner/name в нижнем регистре — по Docker-правилам.
-  IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/fso-auth
+  IMAGE_REPO: ghcr.io/fso-vk/fso-auth
 
 permissions:
   contents: read
