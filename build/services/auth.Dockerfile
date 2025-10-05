@@ -1,21 +1,21 @@
-FROM golang:1.25-alpine AS builder
+FROM golang:1.25.14-alpine3.22 AS builder
 
 WORKDIR /build
 
-RUN apk update && apk add --no-cache curl tar 
+COPY go.mod go.sum ./
 
-ADD go.mod .
+RUN go mod download && go mod verify
 
 COPY . .
 
-#RUN go build -o app ./cmd/app/main.go
+RUN go build ./cmd/auth/main.go
 
-FROM alpine:latest
+FROM alpine:3.22
 
-#WORKDIR /app
+WORKDIR /auth
 
-# COPY --from=builder /build/app .
+COPY --from=builder /build/main .
 
-# ENTRYPOINT ["./app"]
+ENTRYPOINT ["./main"]
 
-EXPOSE 8000
+EXPOSE 8080
