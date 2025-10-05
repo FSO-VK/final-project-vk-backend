@@ -8,4 +8,3 @@ lint:
 
 test:
 	gotestsum --format pkgname -- -race -coverprofile=coverage.out ./...
-	rm coverage.out
