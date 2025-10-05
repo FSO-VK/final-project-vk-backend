@@ -89,6 +89,9 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@latest
+
       - name: Run tests via Makefile
         run: make test
 
