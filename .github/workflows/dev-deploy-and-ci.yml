@@ -89,15 +89,8 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Run tests
-        run: go test -v ./... -coverprofile=coverage.out
-
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: coverage.out
+      - name: Run tests via Makefile
+        run: make test
 
   publish:
     name: Publish image (conditional)
