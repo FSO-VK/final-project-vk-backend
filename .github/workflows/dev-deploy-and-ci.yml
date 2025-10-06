@@ -69,10 +69,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build image (hardcoded branch name)
-        env:
-          TARGET: ${{ github.event.inputs.target }}
+      - name: Build image
         run: |
+          # Для workflow_dispatch используем input, для push - название ветки
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TARGET="${{ github.event.inputs.target }}"
+          else
+            TARGET="${{ github.ref_name }}"
+          fi
+          
           TAG="${{ env.IMAGE_REPO }}:${TARGET}"
           echo "Building image ${TAG} using build/services/auth.Dockerfile"
           docker buildx build --load \
@@ -116,9 +121,13 @@ jobs:
           password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Build and push image
-        env:
-          TARGET: ${{ github.event.inputs.target }}
         run: |
+          # Для workflow_dispatch используем input, для push - название ветки
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TARGET="${{ github.event.inputs.target }}"
+          else
+            TARGET="${{ github.ref_name }}"
+          fi
           TAG="${{ env.IMAGE_REPO }}:${TARGET}"
           echo "Buildx build+push -> ${TAG}"
           docker buildx build --push --platform linux/amd64,linux/arm64 \
