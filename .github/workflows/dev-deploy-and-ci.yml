@@ -70,8 +70,10 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build image (hardcoded branch name)
+        env:
+          TARGET: ${{ github.event.inputs.target }}
         run: |
-          TAG="${{ env.IMAGE_REPO }}:FSO-VK"
+          TAG="${{ env.IMAGE_REPO }}:${TARGET}"
           echo "Building image ${TAG} using build/services/auth.Dockerfile"
           docker buildx build --load \
             --tag "${TAG}" \
@@ -114,8 +116,10 @@ jobs:
           password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Build and push image
+        env:
+          TARGET: ${{ github.event.inputs.target }}
         run: |
-          TAG="${{ env.IMAGE_REPO }}:FSO-VK"
+          TAG="${{ env.IMAGE_REPO }}:${TARGET}"
           echo "Buildx build+push -> ${TAG}"
           docker buildx build --push --platform linux/amd64,linux/arm64 \
             --tag "${TAG}" \
