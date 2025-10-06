@@ -44,4 +44,4 @@ jobs:
           echo "Publishing ${IMAGE_TAG}"
           docker buildx build --push --platform linux/amd64,linux/arm64 \
             --tag "${IMAGE_TAG}" \
-            -f ./build/services/app/Dockerfile .
+            -f ./build/services/app/auth.Dockerfile .
