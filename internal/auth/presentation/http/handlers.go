@@ -36,7 +36,7 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	UserID string `json:"userID"`
+	UserID string `json:"userId"`
 }
 
 func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
@@ -46,7 +46,7 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 		h.logger.Errorf("Failed to read request body: %v", err)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusBadRequest,
 			Body:       struct{}{},
 			Error:      api.MsgNoBody,
@@ -61,7 +61,7 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 		h.logger.Errorf("Failed to read request body: %v", err)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusBadRequest,
 			Body:       struct{}{},
 			Error:      api.MsgNoBody,
@@ -80,7 +80,7 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 		h.logger.WithError(err).Error("Failed to login by email")
 
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-		httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      MsgWrongCredentials,
@@ -104,7 +104,7 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.SetCookie(c)
 
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	httph.FastHTTPWriteJSON(ctx, &api.Response[*LoginResponse]{
+	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*LoginResponse]{
 		StatusCode: fasthttp.StatusOK,
 		Body:       response,
 		Error:      "",
@@ -116,7 +116,7 @@ func (h *AuthHandlers) Logout(ctx *fasthttp.RequestCtx) {
 
 	if len(sessionID) == 0 {
 		ctx.SetStatusCode(fasthttp.StatusOK)
-		httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusOK,
 			Body:       struct{}{},
 			Error:      "",
@@ -134,7 +134,7 @@ func (h *AuthHandlers) Logout(ctx *fasthttp.RequestCtx) {
 		h.logger.WithError(err).Error("Failed to logout")
 
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-		httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      MsgLogoutFailed,
@@ -144,7 +144,7 @@ func (h *AuthHandlers) Logout(ctx *fasthttp.RequestCtx) {
 	}
 
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 		StatusCode: fasthttp.StatusOK,
 		Body:       struct{}{},
 		Error:      "",
@@ -152,11 +152,11 @@ func (h *AuthHandlers) Logout(ctx *fasthttp.RequestCtx) {
 }
 
 type CheckAuthResponse struct {
-	UserID string `json:"userID"`
+	UserID string `json:"userId"`
 }
 
 type CheckAuthResponseFail struct {
-	SessionID string `json:"sessionID"`
+	SessionID string `json:"sessionId"`
 }
 
 func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
@@ -167,7 +167,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 
 		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 
-		httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponseFail]{
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponseFail]{
 			StatusCode: fasthttp.StatusUnauthorized,
 			Body: &CheckAuthResponseFail{
 				SessionID: "",
@@ -187,7 +187,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 		h.logger.WithError(err).Error("Failed to check auth")
 
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-		httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponseFail]{
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponseFail]{
 			StatusCode: fasthttp.StatusInternalServerError,
 			Body: &CheckAuthResponseFail{
 				SessionID: serviceRequest.SessionID,
@@ -203,7 +203,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 
 		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 
-		httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponseFail]{
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponseFail]{
 			StatusCode: fasthttp.StatusUnauthorized,
 			Body: &CheckAuthResponseFail{
 				SessionID: serviceRequest.SessionID,
@@ -223,7 +223,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 	c.SetHTTPOnly(true)
 
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponse]{
+	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponse]{
 		StatusCode: fasthttp.StatusOK,
 		Body: &CheckAuthResponse{
 			UserID: serviceResponse.SessionID,

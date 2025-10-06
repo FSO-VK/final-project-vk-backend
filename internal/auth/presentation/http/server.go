@@ -17,6 +17,7 @@ func NewServerHTTP(addr string, router *Router, logger fasthttp.Logger) *ServerH
 			Logger:  logger,
 			Handler: router.GetRouter(),
 		},
+		logger: logger,
 	}
 }
 

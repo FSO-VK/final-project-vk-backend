@@ -19,7 +19,7 @@ var (
 	ErrSessionRevoked        = errors.New("session already revoked")
 )
 
-var SessionDuration = 24 * time.Hour
+const SessionDuration = 24 * time.Hour
 
 type Session struct {
 	ID           uuid.UUID

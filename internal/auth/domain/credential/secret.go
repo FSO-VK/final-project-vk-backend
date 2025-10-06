@@ -2,7 +2,7 @@ package credential
 
 import (
 	"errors"
-	"fmt"
+	"strconv"
 	"unicode"
 )
 
@@ -26,7 +26,7 @@ const (
 
 var (
 	ErrPasswordShort = errors.New(
-		"password length is less than " + fmt.Sprint(MinPasswordLength),
+		"password length is less than " + strconv.Itoa(MinPasswordLength),
 	)
 	ErrPasswordNoUpper  = errors.New("password must contain at least 1 uppercase letter")
 	ErrPasswordNoLower  = errors.New("password must contain at least 1 lowercase letter")
@@ -38,6 +38,7 @@ type SecretPassword struct {
 	passwordHash string
 }
 
+//nolint:cyclop
 func NewSecretPassword(
 	plainPassword string,
 	hasher PasswordHasher,

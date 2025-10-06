@@ -60,7 +60,7 @@ func (r *Router) withMethod(
 
 func (r *Router) handlerMethodNotAllowed(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(fasthttp.StatusMethodNotAllowed)
-	httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 		StatusCode: fasthttp.StatusMethodNotAllowed,
 		Body:       struct{}{},
 		Error:      api.MsgMethodNotAllowed,
@@ -69,7 +69,7 @@ func (r *Router) handlerMethodNotAllowed(ctx *fasthttp.RequestCtx) {
 
 func (r *Router) handlerNotFound(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(fasthttp.StatusNotFound)
-	httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 		StatusCode: fasthttp.StatusNotFound,
 		Body:       struct{}{},
 		Error:      api.MsgNotFound,
