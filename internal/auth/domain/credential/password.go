@@ -14,7 +14,9 @@ const (
 )
 
 var (
-	ErrPasswordShort    = errors.New("password length is less than " + fmt.Sprint(MinPasswordLength))
+	ErrPasswordShort = errors.New(
+		"password length is less than " + fmt.Sprint(MinPasswordLength),
+	)
 	ErrPasswordNoUpper  = errors.New("password must contain at least 1 uppercase letter")
 	ErrPasswordNoLower  = errors.New("password must contain at least 1 lowercase letter")
 	ErrPasswordNoNumber = errors.New("password must contain at least 1 number")

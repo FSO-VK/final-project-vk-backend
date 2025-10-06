@@ -7,9 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	ErrNoCredentialFound = errors.New("no credential found")
-)
+var ErrNoCredentialFound = errors.New("no credential found")
 
 type CredentialRepository interface {
 	Create(ctx context.Context, credential *Credential) error

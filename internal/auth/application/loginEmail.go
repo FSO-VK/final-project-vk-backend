@@ -11,22 +11,20 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 )
 
-var (
-	ErrInvalidCredentials = fmt.Errorf("invalid credentials")
-)
+var ErrInvalidCredentials = fmt.Errorf("invalid credentials")
 
 type LoginByEmail interface {
-	Execute(ctx context.Context, login *LoginEmailCommand) (*LoginEmailResult, error)
+	Execute(ctx context.Context, login *LoginByEmailCommand) (*LoginByEmailResult, error)
 }
 
-// LoginEmailCommand represents the command to login by email.
-type LoginEmailCommand struct {
+// LoginByEmailCommand represents the command to login by email.
+type LoginByEmailCommand struct {
 	Email    string
 	Password string
 }
 
-// LoginEmailResult represents the result of a login by email operation.
-type LoginEmailResult struct {
+// LoginByEmailResult represents the result of a login by email operation.
+type LoginByEmailResult struct {
 	UserID    string
 	Token     string
 	ExpiresAt time.Time
@@ -55,8 +53,8 @@ func NewLoginByEmailService(
 
 func (s *LoginByEmailService) Execute(
 	ctx context.Context,
-	loginCmd *LoginEmailCommand,
-) (*LoginEmailResult, error) {
+	loginCmd *LoginByEmailCommand,
+) (*LoginByEmailResult, error) {
 	err := s.valid.ValidateStruct(loginCmd)
 	if err != nil {
 		return nil, fmt.Errorf("invalid login command: %w", err)
@@ -81,7 +79,7 @@ func (s *LoginByEmailService) Execute(
 		return nil, fmt.Errorf("failed to create session: %w", err)
 	}
 
-	return &LoginEmailResult{
+	return &LoginByEmailResult{
 		UserID:    cred.ID.String(),
 		Token:     sess.ID.String(),
 		ExpiresAt: sess.ExpiresAt,

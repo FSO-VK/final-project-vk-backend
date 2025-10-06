@@ -16,12 +16,12 @@ type CheckAuth interface {
 
 // CheckAuthCommand represents the command to check authentication.
 type CheckAuthCommand struct {
-	Token string
+	SessionID string
 }
 
 // CheckAuthResult represents the result of a check authentication operation.
 type CheckAuthResult struct {
-	Token           string
+	SessionID       string
 	IsAuthenticated bool
 	ExpiresAt       time.Time
 }
@@ -50,7 +50,7 @@ func (s *CheckAuthService) Execute(
 		return nil, fmt.Errorf("invalid check auth command: %w", err)
 	}
 
-	sessionId, err := uuid.Parse(checkAuthCommand.Token)
+	sessionId, err := uuid.Parse(checkAuthCommand.SessionID)
 	if err != nil {
 		return nil, fmt.Errorf("parse session id to uuid: %w", err)
 	}
@@ -62,7 +62,7 @@ func (s *CheckAuthService) Execute(
 
 	if session.IsExpired() || session.IsRevoked() {
 		return &CheckAuthResult{
-			Token:           session.ID.String(),
+			SessionID:       session.ID.String(),
 			IsAuthenticated: false,
 			ExpiresAt:       session.ExpiresAt,
 		}, nil
@@ -79,7 +79,7 @@ func (s *CheckAuthService) Execute(
 	}
 
 	return &CheckAuthResult{
-		Token:           session.ID.String(),
+		SessionID:       session.ID.String(),
 		IsAuthenticated: true,
 		ExpiresAt:       session.ExpiresAt,
 	}, nil

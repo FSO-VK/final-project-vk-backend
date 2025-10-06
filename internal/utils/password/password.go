@@ -9,7 +9,7 @@ type PasswordHasher interface {
 	Compare(password, hashedPassword string) bool
 }
 
-type PasswordHasherProvider struct {}
+type PasswordHasherProvider struct{}
 
 func NewPasswordHasherProvider() *PasswordHasherProvider {
 	return &PasswordHasherProvider{}

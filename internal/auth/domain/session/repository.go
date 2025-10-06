@@ -7,9 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	ErrNoSessionFound = errors.New("no session found")
-)
+var ErrNoSessionFound = errors.New("no session found")
 
 type SessionRepository interface {
 	Create(ctx context.Context, session *Session) error
