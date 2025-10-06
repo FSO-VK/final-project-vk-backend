@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,7 +12,10 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 )
 
-var ErrInvalidCredentials = fmt.Errorf("invalid credentials")
+var (
+	ErrInvalidCredentials  = errors.New("invalid credentials")
+	ErrNotEmailCredentials = errors.New("credentials type is not email")
+)
 
 type LoginByEmail interface {
 	Execute(ctx context.Context, login *LoginByEmailCommand) (*LoginByEmailResult, error)
@@ -65,9 +69,13 @@ func (s *LoginByEmailService) Execute(
 		return nil, fmt.Errorf("failed to find credential by email: %w", err)
 	}
 
+	if !cred.IsTypeEmail() {
+		return nil, ErrNotEmailCredentials
+	}
+
 	isCorrectPassword := s.passwordHasher.Compare(
 		loginCmd.Password,
-		cred.Secret,
+		cred.Secret.GetSecret(),
 	)
 	if !isCorrectPassword {
 		return nil, ErrInvalidCredentials

@@ -6,6 +6,17 @@ import (
 	"unicode"
 )
 
+// Secret is an interface of Value Object.
+type Secret interface {
+	GetSecret() string
+}
+
+// PasswordHasher is an domain interface.
+type PasswordHasher interface {
+	Encrypt(password string) (string, error)
+	Compare(plainPassword, hashedPassword string) bool
+}
+
 const (
 	MinPasswordLength = 8
 	HasUpper          = true
@@ -22,17 +33,21 @@ var (
 	ErrPasswordNoNumber = errors.New("password must contain at least 1 number")
 )
 
-type Password struct {
-	value string
+// SecretPassword is an implementation of Value Object Secret.
+type SecretPassword struct {
+	passwordHash string
 }
 
-func NewPassword(value string) (*Password, error) {
-	if len(value) < MinPasswordLength {
+func NewSecretPassword(
+	plainPassword string,
+	hasher PasswordHasher,
+) (*SecretPassword, error) {
+	if len(plainPassword) < MinPasswordLength {
 		return nil, ErrPasswordShort
 	}
 
 	var isUpper, isLower, isNumber bool
-	for _, char := range value {
+	for _, char := range plainPassword {
 		if unicode.IsUpper(char) {
 			isUpper = true
 		} else if unicode.IsLower(char) {
@@ -56,25 +71,15 @@ func NewPassword(value string) (*Password, error) {
 		return nil, err
 	}
 
-	return &Password{
-		value: value,
+	hashedPassword, err := hasher.Encrypt(plainPassword)
+	if err != nil {
+		return nil, err
+	}
+	return &SecretPassword{
+		passwordHash: hashedPassword,
 	}, nil
 }
 
-func (p *Password) String() string {
-	return p.value
-}
-
-type HashedPassword struct {
-	value string
-}
-
-func NewHashedPassword(value string) *HashedPassword {
-	return &HashedPassword{
-		value: value,
-	}
-}
-
-func (hp *HashedPassword) String() string {
-	return hp.value
+func (s *SecretPassword) GetSecret() string {
+	return s.passwordHash
 }

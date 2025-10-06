@@ -14,7 +14,7 @@ func NewServerHTTP(addr string, router *Router, logger fasthttp.Logger) *ServerH
 	return &ServerHTTP{
 		addr: addr,
 		srv: &fasthttp.Server{
-			Logger: logger,
+			Logger:  logger,
 			Handler: router.GetRouter(),
 		},
 	}
