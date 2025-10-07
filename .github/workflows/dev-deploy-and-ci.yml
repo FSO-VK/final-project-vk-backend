@@ -71,11 +71,15 @@ jobs:
 
       - name: Build image
         run: |
-          # Для workflow_dispatch используем input, для push - название ветки
+          # Определяем тег один раз для всех случаев
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TARGET="${{ github.event.inputs.target }}"
+            TARGET="handmade"
+          elif [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            TARGET="master"
+          elif [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+            TARGET="dev"
           else
-            TARGET="${{ github.ref_name }}"
+            TARGET="pr-test"
           fi
           
           TAG="${{ env.IMAGE_REPO }}:${TARGET}"
@@ -122,13 +126,8 @@ jobs:
 
       - name: Build and push image
         run: |
-          # Для workflow_dispatch используем input, для push - название ветки
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TARGET="${{ github.event.inputs.target }}"
-          else
-            TARGET="${{ github.ref_name }}"
-          fi
-          TAG="${{ env.IMAGE_REPO }}:${TARGET}"
+          # В publish всегда используем тег dev
+          TAG="${{ env.IMAGE_REPO }}:dev"
           echo "Buildx build+push -> ${TAG}"
           docker buildx build --push --platform linux/amd64,linux/arm64 \
             --tag "${TAG}" \
