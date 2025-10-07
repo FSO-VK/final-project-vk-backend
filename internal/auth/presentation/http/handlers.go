@@ -3,6 +3,8 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/application"
 	httph "github.com/FSO-VK/final-project-vk-backend/internal/transport/http"
@@ -93,15 +95,24 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 		UserID: serviceResult.UserID,
 	}
 
-	c := fasthttp.AcquireCookie()
-	defer fasthttp.ReleaseCookie(c)
+	err = setSessionCookie(
+		ctx,
+		SessionCookieKey,
+		serviceResult.SessionID,
+		serviceResult.ExpiresAt,
+	)
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to set session cookie")
 
-	c.SetKey(SessionCookieKey)
-	c.SetValue(serviceResult.Token)
-	c.SetExpire(serviceResult.ExpiresAt)
-	c.SetHTTPOnly(true)
+		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+			StatusCode: fasthttp.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgSetCookieFail,
+		})
 
-	ctx.Response.Header.SetCookie(c)
+		return
+	}
 
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*LoginResponse]{
@@ -182,7 +193,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 		SessionID: string(sessionID),
 	}
 
-	serviceResponse, err := h.app.CheckAuth.Execute(ctx, serviceRequest)
+	serviceResult, err := h.app.CheckAuth.Execute(ctx, serviceRequest)
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to check auth")
 
@@ -198,7 +209,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if !serviceResponse.IsAuthenticated {
+	if !serviceResult.IsAuthenticated {
 		h.logger.Errorf("User is not authenticated")
 
 		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
@@ -214,20 +225,56 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	c := fasthttp.AcquireCookie()
-	defer fasthttp.ReleaseCookie(c)
+	err = setSessionCookie(
+		ctx,
+		SessionCookieKey,
+		serviceResult.SessionID,
+		serviceResult.ExpiresAt,
+	)
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to set session cookie")
 
-	c.SetKey(SessionCookieKey)
-	c.SetValue(serviceResponse.SessionID)
-	c.SetExpire(serviceResponse.ExpiresAt)
-	c.SetHTTPOnly(true)
+		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+			StatusCode: fasthttp.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgSetCookieFail,
+		})
+
+		return
+	}
 
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponse]{
 		StatusCode: fasthttp.StatusOK,
 		Body: &CheckAuthResponse{
-			UserID: serviceResponse.SessionID,
+			UserID: serviceResult.SessionID,
 		},
 		Error: "",
 	})
+}
+
+var ErrNoCookie = errors.New("cookie is nil")
+
+func setSessionCookie(
+	ctx *fasthttp.RequestCtx,
+	seesionID string,
+	value string,
+	expiration time.Time,
+) error {
+	c := fasthttp.AcquireCookie()
+	defer fasthttp.ReleaseCookie(c)
+
+	if c == nil {
+		return ErrNoCookie
+	}
+
+	c.SetKey(seesionID)
+	c.SetValue(value)
+	c.SetExpire(expiration)
+	c.SetHTTPOnly(true)
+	c.SetSecure(true)
+
+	ctx.Response.Header.SetCookie(c)
+	return nil
 }

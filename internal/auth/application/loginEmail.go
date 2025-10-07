@@ -30,7 +30,7 @@ type LoginByEmailCommand struct {
 // LoginByEmailResult represents the result of a login by email operation.
 type LoginByEmailResult struct {
 	UserID    string
-	Token     string
+	SessionID string
 	ExpiresAt time.Time
 }
 
@@ -89,7 +89,7 @@ func (s *LoginByEmailService) Execute(
 
 	return &LoginByEmailResult{
 		UserID:    cred.ID.String(),
-		Token:     sess.ID.String(),
+		SessionID: sess.ID.String(),
 		ExpiresAt: sess.ExpiresAt,
 	}, nil
 }
