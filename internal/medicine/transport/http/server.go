@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -9,17 +10,37 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type ServerConfig struct {
+	Host string
+	Port string
+}
+
+// Unexported global variable.
+//
+//nolint:gochecknoglobals
+var defaultServerConfig = &ServerConfig{
+	Host: "",
+	Port: "8080",
+}
+
+func (s *ServerConfig) Address() string {
+	return fmt.Sprintf("%s:%s", s.Host, s.Port)
+}
+
 type HTTPServer struct {
-	addr   string
+	config *ServerConfig
 	srv    *http.Server
 	logger *logrus.Entry
 }
 
-func NewHTTPServer(addr string, l *logrus.Entry) *HTTPServer {
+func NewHTTPServer(conf *ServerConfig, l *logrus.Entry) *HTTPServer {
+	if conf == nil {
+		conf = defaultServerConfig
+	}
 	return &HTTPServer{
-		addr: addr,
+		config: conf,
 		srv: &http.Server{
-			Addr:              addr,
+			Addr:              conf.Address(),
 			Handler:           nil,
 			ReadHeaderTimeout: 5 * time.Second,
 		},
@@ -36,6 +57,6 @@ func (s *HTTPServer) Shutdown(ctx context.Context) error {
 }
 
 func (s *HTTPServer) ListenAndServe() error {
-	s.logger.Infof("Server started on %s", s.addr)
+	s.logger.Infof("Server started on %s", s.config.Address())
 	return s.srv.ListenAndServe()
 }

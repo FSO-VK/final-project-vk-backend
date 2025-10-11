@@ -2,12 +2,15 @@ package main
 
 import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/medicine/application"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medicine/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medicine/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medicine/transport/http"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
+	// TODO: configure logger via config file
 	l := logrus.New()
 	l.SetFormatter(
 		&logrus.TextFormatter{
@@ -21,6 +24,12 @@ func main() {
 	l.SetLevel(logrus.DebugLevel)
 	logger := logrus.NewEntry(l)
 
+	var conf config.Config
+	err := configuration.KoanfLoad("config/medication-conf.yaml", &conf)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
 	medicineRepo := memory.NewMedicineStorage()
 
 	medicineService := application.NewMedicineServiceProvider(medicineRepo)
@@ -28,7 +37,7 @@ func main() {
 	medicineHandlers := http.NewHandlers(medicineService, logger)
 	router := http.Router(medicineHandlers)
 
-	server := http.NewHTTPServer(":8080", logger)
+	server := http.NewHTTPServer(&conf.Server, logger)
 	server.Router(router)
 
 	_ = server.ListenAndServe()
