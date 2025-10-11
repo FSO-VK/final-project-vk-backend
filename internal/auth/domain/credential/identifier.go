@@ -21,7 +21,6 @@ type IdentifierEmail struct {
 	email string
 }
 
-//nolint:cyclop
 func NewIdentifier(
 	IdentifierType Credential,
 	plainIdentifier string,
