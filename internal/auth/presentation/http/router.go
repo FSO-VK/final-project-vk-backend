@@ -38,6 +38,8 @@ func (r *Router) router(ctx *fasthttp.RequestCtx) {
 		r.withMethod(r.handlers.Logout, MethodPost)(ctx)
 	case "api/v1/auth/check":
 		r.withMethod(r.handlers.CheckAuth, MethodGet)(ctx)
+	case "api/v1/auth/user":
+		r.withMethod(r.handlers.Registration, MethodPost)(ctx)
 	default:
 		r.handlerNotFound(ctx)
 	}

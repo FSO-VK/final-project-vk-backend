@@ -4,4 +4,5 @@ type AuthApplication struct {
 	CheckAuth    CheckAuth
 	LoginByEmail LoginByEmail
 	Logout       Logout
+	Registration Registration
 }
