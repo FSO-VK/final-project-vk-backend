@@ -18,7 +18,6 @@ var (
 	ErrInvalidPassword = errors.New("invalid password")
 )
 
-
 type Registration interface {
 	Execute(ctx context.Context, login *RegistrationCommand) (*RegistrationResult, error)
 }
@@ -71,11 +70,11 @@ func (s *RegistrationService) Execute(
 	Type := credential.CredentialType(registrationCmd.RegistrationType)
 
 	for {
-		ID = uuid.New()
 		_, err1 := s.credentialRepo.FindByID(ctx, ID)
 		if err1 != nil {
 			break
 		}
+		ID = uuid.New()
 	}
 	Password, err := credential.NewSecretPassword(registrationCmd.Password, s.passwordHasher)
 	if err != nil {

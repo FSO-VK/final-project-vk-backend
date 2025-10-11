@@ -46,9 +46,11 @@ func NewIdentifier(
 	}, nil
 }
 
-// by RFC 5322
 func isValidEmail(email string) bool {
-	pattern := `^[a-zA-Z0-9.!#$%&'*+/=?^_` + "`" + `{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`
+	// by RFC 5322
+	pattern := `^[a-zA-Z0-9.!#$%&'*+/=?^_` + "`" + `{|}~-]+@` + // local part
+		`[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?` + // domain label
+		`(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$` // optional subdomains
 
 	matched, _ := regexp.MatchString(pattern, email)
 	return matched

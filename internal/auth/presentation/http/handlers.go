@@ -279,11 +279,10 @@ func setSessionCookie(
 	return nil
 }
 
-
 type RegistrationRequest struct {
-	RegistrationType     string `json:"type"`
-	Identifier    string `json:"identifier"`
-	Password string `json:"password"`
+	RegistrationType string `json:"type"`
+	Identifier       string `json:"identifier"`
+	Password         string `json:"password"`
 }
 
 type RegistrationResponse struct {
@@ -323,8 +322,8 @@ func (h *AuthHandlers) Registration(ctx *fasthttp.RequestCtx) {
 
 	serviceRequest := &application.RegistrationCommand{
 		RegistrationType: req.RegistrationType,
-		Identifier:    req.Identifier,
-		Password: req.Password,
+		Identifier:       req.Identifier,
+		Password:         req.Password,
 	}
 
 	serviceResult, err := h.app.Registration.Execute(ctx, serviceRequest)

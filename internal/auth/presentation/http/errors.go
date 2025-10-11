@@ -7,6 +7,6 @@ const (
 	MsgLogoutFailed     api.ErrorType = "Logout failed"
 	MsgUnauthorized     api.ErrorType = "Session does not exist"
 	MsgSetCookieFail    api.ErrorType = "Unable to set cookie"
-	MsgInvalidEmail api.ErrorType = "Invalid email"
-	MsgInvalidPassword   api.ErrorType = "Invalid password"
+	MsgInvalidEmail     api.ErrorType = "Invalid email"
+	MsgInvalidPassword  api.ErrorType = "Invalid password"
 )
