@@ -22,6 +22,7 @@ func NewServerHTTP(addr string, router *Router, logger fasthttp.Logger) *ServerH
 }
 
 func (s *ServerHTTP) ListenAndServe() error {
+	s.logger.Printf("Server started on %s", s.addr)
 	return s.srv.ListenAndServe(s.addr)
 }
 
