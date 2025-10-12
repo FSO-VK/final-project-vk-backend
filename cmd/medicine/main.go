@@ -24,8 +24,13 @@ func main() {
 	l.SetLevel(logrus.DebugLevel)
 	logger := logrus.NewEntry(l)
 
+	confPath, err := configuration.ReadConfigPathFlag("config/medication-conf.yaml")
+	if err != nil {
+		logger.Fatal(err)
+	}
+
 	var conf config.Config
-	err := configuration.KoanfLoad("config/medication-conf.yaml", &conf)
+	err = configuration.KoanfLoad(confPath, &conf)
 	if err != nil {
 		logger.Fatal(err)
 	}

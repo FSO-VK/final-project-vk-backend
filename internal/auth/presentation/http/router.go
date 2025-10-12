@@ -1,6 +1,8 @@
 package http
 
 import (
+	"strings"
+
 	httph "github.com/FSO-VK/final-project-vk-backend/internal/transport/http"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
 	"github.com/valyala/fasthttp"
@@ -31,16 +33,25 @@ func (r *Router) GetRouter() fasthttp.RequestHandler {
 }
 
 func (r *Router) router(ctx *fasthttp.RequestCtx) {
-	switch string(ctx.Path()) {
-	case "api/v1/auth/login":
-		r.withMethod(r.handlers.Login, MethodPost)(ctx)
-	case "api/v1/auth/logout":
-		r.withMethod(r.handlers.Logout, MethodPost)(ctx)
-	case "api/v1/auth/check":
-		r.withMethod(r.handlers.CheckAuth, MethodGet)(ctx)
-	case "api/v1/auth/user":
-		r.withMethod(r.handlers.RegistrationByEmail, MethodPost)(ctx)
-	default:
+	if string(ctx.Path()) == "/api/v1/auth/session" {
+		switch strings.ToUpper(string(ctx.Method())) {
+		case string(MethodPost):
+			r.withMethod(r.handlers.Login, MethodPost)(ctx)
+		case string(MethodGet):
+			r.withMethod(r.handlers.CheckAuth, MethodGet)(ctx)
+		case string(MethodDelete):
+			r.withMethod(r.handlers.Logout, MethodDelete)(ctx)
+		default:
+			r.handlerMethodNotAllowed(ctx)
+		}
+	} else if string(ctx.Path()) == "/api/v1/auth/user" {
+		switch strings.ToUpper(string(ctx.Method())) {
+		case string(MethodPost):
+			r.withMethod(r.handlers.RegistrationByEmail, MethodPost)(ctx)
+		default:
+			r.handlerMethodNotAllowed(ctx)
+		}
+	} else {
 		r.handlerNotFound(ctx)
 	}
 }

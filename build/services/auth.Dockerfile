@@ -18,4 +18,6 @@ COPY --from=builder /build/main /build/config/ ./
 
 ENTRYPOINT ["./main"]
 
+CMD ["--file", "./auth-conf.yaml"]
+
 EXPOSE 8000

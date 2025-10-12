@@ -65,7 +65,9 @@ func (s *LoginByEmailService) Execute(
 	}
 
 	cred, err := s.credentialRepo.FindByEmail(ctx, loginCmd.Email)
-	if err != nil {
+	if errors.Is(err, credential.ErrNoCredentialFound) {
+		return nil, ErrInvalidCredentials
+	} else if err != nil {
 		return nil, fmt.Errorf("failed to find credential by email: %w", err)
 	}
 
