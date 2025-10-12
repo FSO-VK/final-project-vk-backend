@@ -279,17 +279,16 @@ func setSessionCookie(
 	return nil
 }
 
-type RegistrationRequest struct {
-	RegistrationType string `json:"type"`
-	Email            string `json:"email"`
-	Password         string `json:"password"`
+type RegistrationByEmailRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-type RegistrationResponse struct {
+type RegistrationByEmailResponse struct {
 	UserID string `json:"userId"`
 }
 
-func (h *AuthHandlers) Registration(ctx *fasthttp.RequestCtx) {
+func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
 	var body *bytes.Buffer
 	_, err := body.Read(ctx.PostBody())
 	if err != nil {
@@ -305,7 +304,7 @@ func (h *AuthHandlers) Registration(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	var req RegistrationRequest
+	var req RegistrationByEmailRequest
 	err = json.Unmarshal(body.Bytes(), &req)
 	if err != nil {
 		h.logger.Errorf("Failed to read request body: %v", err)
@@ -343,7 +342,7 @@ func (h *AuthHandlers) Registration(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	response := &RegistrationResponse{
+	response := &RegistrationByEmailResponse{
 		UserID: serviceResult.UserID,
 	}
 
@@ -367,7 +366,7 @@ func (h *AuthHandlers) Registration(ctx *fasthttp.RequestCtx) {
 	}
 
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*RegistrationResponse]{
+	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*RegistrationByEmailResponse]{
 		StatusCode: fasthttp.StatusOK,
 		Body:       response,
 		Error:      "",

@@ -7,8 +7,10 @@ import (
 	"syscall"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/application"
+	"github.com/FSO-VK/final-project-vk-backend/internal/auth/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/presentation/http"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/password"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/sirupsen/logrus"
@@ -27,6 +29,12 @@ func main() {
 	l.SetReportCaller(true)
 	l.SetLevel(logrus.DebugLevel)
 	logger := logrus.NewEntry(l)
+
+	var conf config.Config
+	err := configuration.KoanfLoad("config/auth-conf.yaml", &conf)
+	if err != nil {
+		logger.Fatal(err)
+	}
 
 	validator := validator.NewValidationProvider()
 	credentialRepo := memory.NewCredentialStorage()
@@ -48,6 +56,12 @@ func main() {
 			sessionRepo,
 			validator,
 		),
+		Registration: application.NewRegistrationService(
+			credentialRepo,
+			sessionRepo,
+			validator,
+			hasher,
+		),
 	}
 
 	handlers := http.NewAuthHandlers(
@@ -57,7 +71,7 @@ func main() {
 
 	router := http.NewRouter(handlers)
 
-	server := http.NewServerHTTP(":8080", router, logger)
+	server := http.NewServerHTTP(conf.Server, router, logger)
 
 	var wg sync.WaitGroup
 
@@ -78,7 +92,7 @@ func main() {
 		}
 	}()
 
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil {
 		logger.Fatal(err)
 	}
