@@ -1,6 +1,9 @@
 package http
 
-import "github.com/valyala/fasthttp"
+import (
+	"github.com/sirupsen/logrus"
+	"github.com/valyala/fasthttp"
+)
 
 type ServerConfig struct {
 	Host string
@@ -16,15 +19,15 @@ type ServerHTTP struct {
 	srv  *fasthttp.Server
 	// logger must at least implement fasthttp.Logger's
 	// method Printf()
-	logger fasthttp.Logger
+	logger *logrus.Entry
 }
 
-func NewServerHTTP(conf ServerConfig, router *Router, logger fasthttp.Logger) *ServerHTTP {
+func NewServerHTTP(conf ServerConfig, router *Router, logger *logrus.Entry) *ServerHTTP {
 	return &ServerHTTP{
 		conf: &conf,
 		srv: &fasthttp.Server{
 			Logger:  logger,
-			Handler: router.GetRouter(),
+			Handler: RequestInfoMiddleware(router.GetRouter(), logger),
 		},
 		logger: logger,
 	}
