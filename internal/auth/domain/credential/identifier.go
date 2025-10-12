@@ -21,13 +21,9 @@ type IdentifierEmail struct {
 	email string
 }
 
-func NewIdentifier(
-	IdentifierType Credential,
+func NewIdentifierEmail(
 	plainIdentifier string,
 ) (*IdentifierEmail, error) {
-	if !IdentifierType.IsTypeEmail() {
-		return nil, ErrNotEmailCredentials
-	}
 	if plainIdentifier == "" {
 		return nil, ErrEmailEmpty
 	}

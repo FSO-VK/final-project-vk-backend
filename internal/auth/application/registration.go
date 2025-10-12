@@ -24,9 +24,8 @@ type Registration interface {
 
 // RegistrationCommand represents the command to register a new user.
 type RegistrationCommand struct {
-	RegistrationType string
-	Identifier       string
-	Password         string
+	Email    string `validate:"required,email"`
+	Password string `validate:"required,min=8,max=64"`
 }
 
 // RegistrationResult represents the result of a registration operation.
@@ -67,7 +66,7 @@ func (s *RegistrationService) Execute(
 	}
 
 	ID := uuid.New()
-	Type := credential.CredentialType(registrationCmd.RegistrationType)
+	Type := credential.TypeEmail
 
 	for {
 		_, err1 := s.credentialRepo.FindByID(ctx, ID)
@@ -83,7 +82,7 @@ func (s *RegistrationService) Execute(
 	user := credential.NewCredential(
 		ID,
 		Type,
-		registrationCmd.Identifier,
+		registrationCmd.Email,
 		Password,
 		time.Now(),
 	)
