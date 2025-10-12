@@ -41,7 +41,7 @@ type LoginResponse struct {
 }
 
 func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
-	var body []byte = ctx.PostBody()
+	body := ctx.PostBody()
 	if len(body) == 0 {
 		h.logger.Error("Empty request body")
 
@@ -74,8 +74,8 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 
 	serviceRequest := &application.LoginByEmailCommand{
 		CurrentDeviceSessionID: string(sessionID),
-		Email:    req.Email,
-		Password: req.Password,
+		Email:                  req.Email,
+		Password:               req.Password,
 	}
 
 	serviceResult, err := h.app.LoginByEmail.Execute(ctx, serviceRequest)
@@ -299,7 +299,7 @@ type RegistrationByEmailResponse struct {
 }
 
 func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
-	var body []byte = ctx.PostBody()
+	body := ctx.PostBody()
 	if len(body) == 0 {
 		h.logger.Error("Empty request body")
 

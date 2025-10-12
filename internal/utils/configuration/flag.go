@@ -1,9 +1,12 @@
 package configuration
 
 import (
+	"errors"
 	"flag"
-	"fmt"
 )
+
+var ErrFlagWithoutValue = errors.New(
+	"must specify path if flag -f or --file are using")
 
 // ReadConfigPathFlag reads path to file (-f, --file flags) from command line.
 // It takes default path as an argument.
@@ -22,7 +25,7 @@ func ReadConfigPathFlag(defaultPath string) (string, error) {
 	}
 
 	if filePath == "" {
-		return "", fmt.Errorf("must specify path if flag -f or --file are using")
+		return "", ErrFlagWithoutValue
 	}
 
 	return filePath, nil

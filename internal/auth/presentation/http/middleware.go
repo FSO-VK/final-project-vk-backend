@@ -7,7 +7,10 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func RequestInfoMiddleware(next fasthttp.RequestHandler, logger *logrus.Entry) fasthttp.RequestHandler {
+func RequestInfoMiddleware(
+	next fasthttp.RequestHandler,
+	logger *logrus.Entry,
+) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		l := logger.WithFields(logrus.Fields{
 			"method": string(ctx.Method()),
