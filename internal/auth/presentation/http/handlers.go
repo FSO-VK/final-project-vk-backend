@@ -278,3 +278,98 @@ func setSessionCookie(
 	ctx.Response.Header.SetCookie(c)
 	return nil
 }
+
+type RegistrationRequest struct {
+	RegistrationType string `json:"type"`
+	Email            string `json:"email"`
+	Password         string `json:"password"`
+}
+
+type RegistrationResponse struct {
+	UserID string `json:"userId"`
+}
+
+func (h *AuthHandlers) Registration(ctx *fasthttp.RequestCtx) {
+	var body *bytes.Buffer
+	_, err := body.Read(ctx.PostBody())
+	if err != nil {
+		h.logger.Errorf("Failed to read request body: %v", err)
+
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+			StatusCode: fasthttp.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgNoBody,
+		})
+
+		return
+	}
+
+	var req RegistrationRequest
+	err = json.Unmarshal(body.Bytes(), &req)
+	if err != nil {
+		h.logger.Errorf("Failed to read request body: %v", err)
+
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+			StatusCode: fasthttp.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgNoBody,
+		})
+
+		return
+	}
+
+	serviceRequest := &application.RegistrationCommand{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+
+	serviceResult, err := h.app.Registration.Execute(ctx, serviceRequest)
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to register user")
+
+		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		errorOut := MsgInvalidEmail
+		if errors.Is(err, application.ErrInvalidPassword) {
+			errorOut = MsgInvalidPassword
+		}
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+			StatusCode: fasthttp.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      errorOut,
+		})
+
+		return
+	}
+
+	response := &RegistrationResponse{
+		UserID: serviceResult.UserID,
+	}
+
+	err = setSessionCookie(
+		ctx,
+		SessionCookieKey,
+		serviceResult.SessionID,
+		serviceResult.ExpiresAt,
+	)
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to set session cookie")
+
+		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+			StatusCode: fasthttp.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgSetCookieFail,
+		})
+
+		return
+	}
+
+	ctx.SetStatusCode(fasthttp.StatusOK)
+	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*RegistrationResponse]{
+		StatusCode: fasthttp.StatusOK,
+		Body:       response,
+		Error:      "",
+	})
+}

@@ -21,7 +21,6 @@ var (
 
 type Credential struct {
 	ID             uuid.UUID
-	UserID         uuid.UUID
 	CredentialType CredentialType
 	Identifier     string
 	Secret         Secret
@@ -31,7 +30,6 @@ type Credential struct {
 
 func NewCredential(
 	ID uuid.UUID,
-	userID uuid.UUID,
 	credentialType CredentialType,
 	identifier string,
 	secret Secret,
@@ -39,7 +37,6 @@ func NewCredential(
 ) *Credential {
 	return &Credential{
 		ID:             ID,
-		UserID:         userID,
 		CredentialType: credentialType,
 		Identifier:     identifier,
 		Secret:         secret,
