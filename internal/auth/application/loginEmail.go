@@ -10,6 +10,7 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/domain/session"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/password"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
+	"github.com/google/uuid"
 )
 
 var (
@@ -23,8 +24,9 @@ type LoginByEmail interface {
 
 // LoginByEmailCommand represents the command to login by email.
 type LoginByEmailCommand struct {
-	Email    string
-	Password string
+	CurrentDeviceSessionID string
+	Email                  string
+	Password               string
 }
 
 // LoginByEmailResult represents the result of a login by email operation.
@@ -65,7 +67,9 @@ func (s *LoginByEmailService) Execute(
 	}
 
 	cred, err := s.credentialRepo.FindByEmail(ctx, loginCmd.Email)
-	if err != nil {
+	if errors.Is(err, credential.ErrNoCredentialFound) {
+		return nil, ErrInvalidCredentials
+	} else if err != nil {
 		return nil, fmt.Errorf("failed to find credential by email: %w", err)
 	}
 
@@ -81,15 +85,28 @@ func (s *LoginByEmailService) Execute(
 		return nil, ErrInvalidCredentials
 	}
 
-	sess := session.NewSession(cred.ID)
-	err = s.sessionRepo.Create(ctx, sess)
+	// Check if there is a session for the current device with the same credential.
+	currentSessionID, err := uuid.Parse(loginCmd.CurrentDeviceSessionID)
+	if err == nil {
+		currentSession, err := s.sessionRepo.GetByID(ctx, currentSessionID)
+		if err == nil {
+			return &LoginByEmailResult{
+				UserID:    cred.ID.String(),
+				SessionID: currentSession.ID.String(),
+				ExpiresAt: currentSession.ExpiresAt,
+			}, nil
+		}
+	}
+
+	newSession := session.NewSession(cred.ID)
+	err = s.sessionRepo.Create(ctx, newSession)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session: %w", err)
 	}
 
 	return &LoginByEmailResult{
 		UserID:    cred.ID.String(),
-		SessionID: sess.ID.String(),
-		ExpiresAt: sess.ExpiresAt,
+		SessionID: newSession.ID.String(),
+		ExpiresAt: newSession.ExpiresAt,
 	}, nil
 }

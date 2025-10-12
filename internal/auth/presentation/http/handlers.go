@@ -1,7 +1,6 @@
 package http
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"time"
@@ -42,10 +41,9 @@ type LoginResponse struct {
 }
 
 func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
-	var body *bytes.Buffer
-	_, err := body.Read(ctx.PostBody())
-	if err != nil {
-		h.logger.Errorf("Failed to read request body: %v", err)
+	body := ctx.PostBody()
+	if len(body) == 0 {
+		h.logger.Error("Empty request body")
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
@@ -58,9 +56,9 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 	}
 
 	var req LoginRequest
-	err = json.Unmarshal(body.Bytes(), &req)
+	err := json.Unmarshal(body, &req)
 	if err != nil {
-		h.logger.Errorf("Failed to read request body: %v", err)
+		h.logger.WithError(err).Errorf("Failed to read request body: %v", err)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
@@ -72,20 +70,32 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	sessionID := ctx.Request.Header.Cookie(SessionCookieKey)
+
 	serviceRequest := &application.LoginByEmailCommand{
-		Email:    req.Email,
-		Password: req.Password,
+		CurrentDeviceSessionID: string(sessionID),
+		Email:                  req.Email,
+		Password:               req.Password,
 	}
 
 	serviceResult, err := h.app.LoginByEmail.Execute(ctx, serviceRequest)
-	if err != nil {
+	if errors.Is(err, application.ErrInvalidCredentials) {
+		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
+		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+			StatusCode: fasthttp.StatusUnauthorized,
+			Body:       struct{}{},
+			Error:      MsgWrongCredentials,
+		})
+
+		return
+	} else if err != nil {
 		h.logger.WithError(err).Error("Failed to login by email")
 
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusInternalServerError,
 			Body:       struct{}{},
-			Error:      MsgWrongCredentials,
+			Error:      api.MsgServerError,
 		})
 
 		return
@@ -210,7 +220,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 	}
 
 	if !serviceResult.IsAuthenticated {
-		h.logger.Errorf("User is not authenticated")
+		h.logger.WithError(err).Errorf("User is not authenticated")
 
 		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 
@@ -279,21 +289,19 @@ func setSessionCookie(
 	return nil
 }
 
-type RegistrationRequest struct {
-	RegistrationType string `json:"type"`
-	Email            string `json:"email"`
-	Password         string `json:"password"`
+type RegistrationByEmailRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-type RegistrationResponse struct {
+type RegistrationByEmailResponse struct {
 	UserID string `json:"userId"`
 }
 
-func (h *AuthHandlers) Registration(ctx *fasthttp.RequestCtx) {
-	var body *bytes.Buffer
-	_, err := body.Read(ctx.PostBody())
-	if err != nil {
-		h.logger.Errorf("Failed to read request body: %v", err)
+func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
+	body := ctx.PostBody()
+	if len(body) == 0 {
+		h.logger.Error("Empty request body")
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
@@ -305,10 +313,10 @@ func (h *AuthHandlers) Registration(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	var req RegistrationRequest
-	err = json.Unmarshal(body.Bytes(), &req)
+	var req RegistrationByEmailRequest
+	err := json.Unmarshal(body, &req)
 	if err != nil {
-		h.logger.Errorf("Failed to read request body: %v", err)
+		h.logger.WithError(err).Errorf("Failed to read request body: %v", err)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
@@ -343,7 +351,7 @@ func (h *AuthHandlers) Registration(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	response := &RegistrationResponse{
+	response := &RegistrationByEmailResponse{
 		UserID: serviceResult.UserID,
 	}
 
@@ -367,7 +375,7 @@ func (h *AuthHandlers) Registration(ctx *fasthttp.RequestCtx) {
 	}
 
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*RegistrationResponse]{
+	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*RegistrationByEmailResponse]{
 		StatusCode: fasthttp.StatusOK,
 		Body:       response,
 		Error:      "",

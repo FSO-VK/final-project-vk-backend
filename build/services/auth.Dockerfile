@@ -8,14 +8,16 @@ RUN go mod download && go mod verify
 
 COPY . .
 
-# RUN go build ./cmd/auth/main.go
+RUN go build ./cmd/auth/main.go
 
-# FROM alpine:3.22
+FROM alpine:3.22
 
-# WORKDIR /auth
+WORKDIR /auth
 
-# COPY --from=builder /build/main .
+COPY --from=builder /build/main /build/config/ ./
 
-# ENTRYPOINT ["./main"]
+ENTRYPOINT ["./main"]
 
-# EXPOSE 8080
+CMD ["--file", "./auth-conf.yaml"]
+
+EXPOSE 8000
