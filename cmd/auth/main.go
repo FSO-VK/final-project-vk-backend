@@ -28,7 +28,7 @@ func main() {
 	l.SetLevel(logrus.DebugLevel)
 	logger := logrus.NewEntry(l)
 
-	validator := validator.NewValidation()
+	validator := validator.NewValidationProvider()
 	credentialRepo := memory.NewCredentialStorage()
 	sessionRepo := memory.NewSessionStorage()
 	hasher := password.NewPasswordHasherProvider()

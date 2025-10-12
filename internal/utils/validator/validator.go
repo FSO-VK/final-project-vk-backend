@@ -4,13 +4,12 @@ type Validator interface {
 	ValidateStruct(v any) error
 }
 
-type Validation struct {
+type ValidationProvider struct{}
+
+func NewValidationProvider() *ValidationProvider {
+	return &ValidationProvider{}
 }
 
-func NewValidation() *Validation {
-	return &Validation{}
-}
-
-func (val *Validation) ValidateStruct(v any) error {
+func (val *ValidationProvider) ValidateStruct(v any) error {
 	return nil
 }
