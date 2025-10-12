@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/domain/credential"
@@ -88,13 +87,10 @@ func (s *LoginByEmailService) Execute(
 
 	// Check if there is a session for the current device with the same credential.
 	currentSessionID, err := uuid.Parse(loginCmd.CurrentDeviceSessionID)
-	if err != nil {
-		log.Print(1)
+	if err == nil {
 		currentSession, err := s.sessionRepo.GetByID(ctx, currentSessionID)
-		log.Print(err)
-		if err == nil  {
-				log.Print(2)
-				return &LoginByEmailResult{
+		if err == nil {
+			return &LoginByEmailResult{
 				UserID:    cred.ID.String(),
 				SessionID: currentSession.ID.String(),
 				ExpiresAt: currentSession.ExpiresAt,

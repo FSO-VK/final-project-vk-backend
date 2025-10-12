@@ -70,7 +70,10 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	sessionID := ctx.Request.Header.Cookie(SessionCookieKey)
+
 	serviceRequest := &application.LoginByEmailCommand{
+		CurrentDeviceSessionID: string(sessionID),
 		Email:    req.Email,
 		Password: req.Password,
 	}
