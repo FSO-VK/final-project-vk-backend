@@ -33,8 +33,12 @@ func (r *Router) GetRouter() fasthttp.RequestHandler {
 }
 
 func (r *Router) router(ctx *fasthttp.RequestCtx) {
-	if string(ctx.Path()) == "/api/v1/auth/session" {
-		switch strings.ToUpper(string(ctx.Method())) {
+	path := string(ctx.Path())
+	method := strings.ToUpper(string(ctx.Method()))
+
+	switch path {
+	case "/session":
+		switch method {
 		case string(MethodPost):
 			r.withMethod(r.handlers.Login, MethodPost)(ctx)
 		case string(MethodGet):
@@ -44,14 +48,14 @@ func (r *Router) router(ctx *fasthttp.RequestCtx) {
 		default:
 			r.handlerMethodNotAllowed(ctx)
 		}
-	} else if string(ctx.Path()) == "/api/v1/auth/user" {
-		switch strings.ToUpper(string(ctx.Method())) {
+	case "/user":
+		switch method {
 		case string(MethodPost):
 			r.withMethod(r.handlers.RegistrationByEmail, MethodPost)(ctx)
 		default:
 			r.handlerMethodNotAllowed(ctx)
 		}
-	} else {
+	default:
 		r.handlerNotFound(ctx)
 	}
 }
