@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/FSO-VK/final-project-vk-backend/internal/medicine/application"
-	"github.com/FSO-VK/final-project-vk-backend/internal/medicine/infrastructure/config"
-	"github.com/FSO-VK/final-project-vk-backend/internal/medicine/storage/memory"
-	"github.com/FSO-VK/final-project-vk-backend/internal/medicine/transport/http"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/config"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/storage/memory"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/transport/http"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
 	"github.com/sirupsen/logrus"
 )

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/FSO-VK/final-project-vk-backend/internal/medicine/application"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
 	httph "github.com/FSO-VK/final-project-vk-backend/internal/transport/http"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
 	"github.com/gorilla/mux"

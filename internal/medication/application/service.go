@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/FSO-VK/final-project-vk-backend/internal/medicine/medicine"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/medicine"
 )
 
 type MedicineServiceProvider struct {
