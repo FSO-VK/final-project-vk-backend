@@ -1,3 +1,4 @@
+// Package application is a package for application logic of the medication service.
 package application
 
 import (
@@ -8,21 +9,26 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/medicine"
 )
 
+// MedicineServiceProvider is a service provider for medicine.
 type MedicineServiceProvider struct {
-	medicineRepo medicine.MedicineRepository
+	medicineRepo medicine.RepositoryForMedication
 }
 
-func NewMedicineServiceProvider(medicineRepo medicine.MedicineRepository) *MedicineServiceProvider {
+// NewMedicineServiceProvider creates a new medicine service provider.
+func NewMedicineServiceProvider(
+	medicineRepo medicine.RepositoryForMedication,
+) *MedicineServiceProvider {
 	return &MedicineServiceProvider{
 		medicineRepo: medicineRepo,
 	}
 }
 
+// AddMedicine adds a medicine.
 func (s *MedicineServiceProvider) AddMedicine(
 	ctx context.Context,
 	req *AddMedicineRequest,
 ) (*AddMedicineResponse, error) {
-	// TODO: add validator
+	//  TODO: add validator
 
 	expiration, err := time.Parse(time.DateOnly, req.Expires)
 	if err != nil {
@@ -32,6 +38,7 @@ func (s *MedicineServiceProvider) AddMedicine(
 	medicine := medicine.NewMedicine(
 		req.Name,
 		req.Items,
+		req.CategoriesID,
 		req.ItemsUnit,
 		expiration,
 	)
@@ -46,11 +53,12 @@ func (s *MedicineServiceProvider) AddMedicine(
 	}, nil
 }
 
+// UpdateMedicine updates a medicine.
 func (s *MedicineServiceProvider) UpdateMedicine(
 	ctx context.Context,
 	req *UpdateMedicineRequest,
 ) (*UpdateMedicineResponse, error) {
-	// TODO: add validator
+	//  need to do: add validator
 
 	expiration, err := time.Parse(time.DateOnly, req.Expires)
 	if err != nil {
@@ -66,6 +74,7 @@ func (s *MedicineServiceProvider) UpdateMedicine(
 	medicine := medicine.NewMedicine(
 		req.Name,
 		req.Items,
+		req.CategoriesID,
 		req.ItemsUnit,
 		expiration,
 	)
@@ -81,11 +90,16 @@ func (s *MedicineServiceProvider) UpdateMedicine(
 	}, nil
 }
 
+// DeleteMedicine deletes a medicine.
 func (s *MedicineServiceProvider) DeleteMedicine(
 	ctx context.Context,
 	req *DeleteMedicineRequest,
 ) (*DeleteMedicineResponse, error) {
 	// TODO: add validator
+	// err := s.validator.ValidateStruct(req)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to validate request: %w", err)
+	// }
 
 	err := s.medicineRepo.Delete(ctx, req.ID)
 	if err != nil {
@@ -95,12 +109,11 @@ func (s *MedicineServiceProvider) DeleteMedicine(
 	return &DeleteMedicineResponse{}, nil
 }
 
+// GetMedicineList returns a list of medicines.
 func (s *MedicineServiceProvider) GetMedicineList(
 	ctx context.Context,
-	req *GetMedicineListRequest,
+	_ *GetMedicineListRequest,
 ) (*GetMedicineListResponse, error) {
-	// TODO: add validator
-
 	medicines, err := s.medicineRepo.GetListAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get medicine list: %w", err)

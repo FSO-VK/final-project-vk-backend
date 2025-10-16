@@ -1,3 +1,4 @@
+// Package http is a package for http handlers
 package http
 
 import (
@@ -14,14 +15,17 @@ import (
 )
 
 const (
+	// SlugID is a slug for id
 	SlugID = "id"
 )
 
+// MedicineHandlers is a handler for Medicine
 type MedicineHandlers struct {
 	MedicineService application.MedicineService
 	logger          *logrus.Entry
 }
 
+// NewHandlers creates a new MedicineHandlers
 func NewHandlers(
 	medicineService application.MedicineService,
 	logger *logrus.Entry,
@@ -32,6 +36,7 @@ func NewHandlers(
 	}
 }
 
+// AddMedicineJSONRequest is a request for AddMedicine
 type AddMedicineJSONRequest struct {
 	Name       string `json:"name"`
 	Items      uint   `json:"items"`
@@ -39,6 +44,7 @@ type AddMedicineJSONRequest struct {
 	Expiration string `json:"expiration"`
 }
 
+// AddMedicine adds a medicine
 func (h *MedicineHandlers) AddMedicine(w http.ResponseWriter, r *http.Request) {
 	var reqJSON *AddMedicineJSONRequest
 
@@ -75,10 +81,11 @@ func (h *MedicineHandlers) AddMedicine(w http.ResponseWriter, r *http.Request) {
 	}
 
 	serviceRequest := &application.AddMedicineRequest{
-		Name:      reqJSON.Name,
-		Items:     reqJSON.Items,
-		ItemsUnit: reqJSON.ItemsUnit,
-		Expires:   reqJSON.Expiration,
+		Name:         reqJSON.Name,
+		CategoriesID: nil,
+		Items:        reqJSON.Items,
+		ItemsUnit:    reqJSON.ItemsUnit,
+		Expires:      reqJSON.Expiration,
 	}
 
 	serviceResponse, err := h.MedicineService.AddMedicine(
@@ -102,9 +109,11 @@ func (h *MedicineHandlers) AddMedicine(w http.ResponseWriter, r *http.Request) {
 	_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
 		StatusCode: http.StatusOK,
 		Body:       serviceResponse,
+		Error:      "",
 	})
 }
 
+// UpdateMedicineJSONRequest is a request for UpdateMedicine
 type UpdateMedicineJSONRequest struct {
 	Name       string `json:"name"`
 	Items      uint   `json:"items"`
@@ -112,6 +121,7 @@ type UpdateMedicineJSONRequest struct {
 	Expiration string `json:"expiration"`
 }
 
+// UpdateMedicineJSONResponse is a response for UpdateMedicine
 type UpdateMedicineJSONResponse struct {
 	ID         string `json:"id"`
 	Name       string `json:"name"`
@@ -120,6 +130,7 @@ type UpdateMedicineJSONResponse struct {
 	Expiration string `json:"expiration"`
 }
 
+// UpdateMedicine updates a medicine
 func (h *MedicineHandlers) UpdateMedicine(w http.ResponseWriter, r *http.Request) {
 	var reqJSON *UpdateMedicineJSONRequest
 
@@ -132,6 +143,7 @@ func (h *MedicineHandlers) UpdateMedicine(w http.ResponseWriter, r *http.Request
 
 		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
 			Error:      "Failed to parse id",
 		})
 		return
@@ -149,6 +161,7 @@ func (h *MedicineHandlers) UpdateMedicine(w http.ResponseWriter, r *http.Request
 
 		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
 			Error:      "Failed to read request body",
 		})
 		return
@@ -161,17 +174,19 @@ func (h *MedicineHandlers) UpdateMedicine(w http.ResponseWriter, r *http.Request
 
 		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
 			Error:      "Failed to unmarshal request body",
 		})
 		return
 	}
 
 	serviceRequest := &application.UpdateMedicineRequest{
-		ID:        uint(idUint),
-		Name:      reqJSON.Name,
-		Items:     reqJSON.Items,
-		ItemsUnit: reqJSON.ItemsUnit,
-		Expires:   reqJSON.Expiration,
+		ID:           uint(idUint),
+		Name:         reqJSON.Name,
+		CategoriesID: nil,
+		Items:        reqJSON.Items,
+		ItemsUnit:    reqJSON.ItemsUnit,
+		Expires:      reqJSON.Expiration,
 	}
 
 	serviceResponse, err := h.MedicineService.UpdateMedicine(
@@ -184,6 +199,7 @@ func (h *MedicineHandlers) UpdateMedicine(w http.ResponseWriter, r *http.Request
 
 		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
 			Error:      "Failed to update medicine",
 		})
 
@@ -202,9 +218,11 @@ func (h *MedicineHandlers) UpdateMedicine(w http.ResponseWriter, r *http.Request
 	_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
 		StatusCode: http.StatusOK,
 		Body:       response,
+		Error:      "",
 	})
 }
 
+// DeleteMedicine deletes a medicine
 func (h *MedicineHandlers) DeleteMedicine(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars[SlugID]
@@ -215,6 +233,7 @@ func (h *MedicineHandlers) DeleteMedicine(w http.ResponseWriter, r *http.Request
 
 		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
 			Error:      "Failed to parse id",
 		})
 		return
@@ -234,6 +253,7 @@ func (h *MedicineHandlers) DeleteMedicine(w http.ResponseWriter, r *http.Request
 
 		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
 			Error:      "Failed to delete medicine",
 		})
 
@@ -244,9 +264,11 @@ func (h *MedicineHandlers) DeleteMedicine(w http.ResponseWriter, r *http.Request
 	_ = httph.NetHTTPWriteJSON(w, &api.Response[struct{}]{
 		StatusCode: http.StatusOK,
 		Body:       struct{}{},
+		Error:      "",
 	})
 }
 
+// GetMedicineListItem returns a list of medicines
 type GetMedicineListItem struct {
 	ID         string `json:"id"`
 	Name       string `json:"name"`
@@ -255,10 +277,12 @@ type GetMedicineListItem struct {
 	Expiration string `json:"expiration"`
 }
 
+// GetMedicineListJSONResponse returns a list of medicines
 type GetMedicineListJSONResponse struct {
 	MedicineList []GetMedicineListItem `json:"medicineList"`
 }
 
+// GetMedicineList returns a list of medicines
 func (h *MedicineHandlers) GetMedicineList(w http.ResponseWriter, r *http.Request) {
 	serviceResponse, err := h.MedicineService.GetMedicineList(
 		r.Context(),
@@ -270,6 +294,7 @@ func (h *MedicineHandlers) GetMedicineList(w http.ResponseWriter, r *http.Reques
 
 		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
 			Error:      "Failed to get medicine list",
 		})
 		return
@@ -293,5 +318,6 @@ func (h *MedicineHandlers) GetMedicineList(w http.ResponseWriter, r *http.Reques
 	_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
 		StatusCode: http.StatusOK,
 		Body:       response,
+		Error:      "",
 	})
 }

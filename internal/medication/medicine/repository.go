@@ -5,9 +5,11 @@ import (
 	"errors"
 )
 
+// ErrNoMedicineFound is an error when a medicine is not found.
 var ErrNoMedicineFound = errors.New("medicine not found")
 
-type MedicineRepository interface {
+// RepositoryForMedication is a repository - provides methods to create, get, update, and delete medicines.
+type RepositoryForMedication interface {
 	Create(ctx context.Context, medicine *Medicine) (*Medicine, error)
 	GetByID(ctx context.Context, medicineID uint) (*Medicine, error)
 	GetListAll(ctx context.Context) ([]*Medicine, error)

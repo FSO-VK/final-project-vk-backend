@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// ServerConfig holds HTTP server configuration
 type ServerConfig struct {
 	Host string
 	Port string
@@ -23,40 +24,58 @@ var defaultServerConfig = &ServerConfig{
 	Port: "8080",
 }
 
+// Address returns the full server address in host:port format
 func (s *ServerConfig) Address() string {
 	return fmt.Sprintf("%s:%s", s.Host, s.Port)
 }
 
-type HTTPServer struct {
+// MedicationHTTPServer represents an HTTP server with configuration, logger and underlying http.Server
+type MedicationHTTPServer struct {
 	config *ServerConfig
 	srv    *http.Server
 	logger *logrus.Entry
 }
 
-func NewHTTPServer(conf *ServerConfig, l *logrus.Entry) *HTTPServer {
+// NewHTTPServer creates a new HTTP server instance with the provided configuration and logger
+func NewHTTPServer(conf *ServerConfig, l *logrus.Entry) *MedicationHTTPServer {
 	if conf == nil {
 		conf = defaultServerConfig
 	}
-	return &HTTPServer{
+	return &MedicationHTTPServer{
 		config: conf,
 		srv: &http.Server{
-			Addr:              conf.Address(),
-			Handler:           nil,
-			ReadHeaderTimeout: 5 * time.Second,
+			Addr:                         conf.Address(),
+			Handler:                      nil,
+			ReadHeaderTimeout:            5 * time.Second,
+			DisableGeneralOptionsHandler: false,
+			TLSConfig:                    nil,
+			ReadTimeout:                  0,
+			WriteTimeout:                 0,
+			IdleTimeout:                  0,
+			MaxHeaderBytes:               0,
+			TLSNextProto:                 nil,
+			ConnState:                    nil,
+			ErrorLog:                     nil,
+			BaseContext:                  nil,
+			ConnContext:                  nil,
+			HTTP2:                       true,
 		},
 		logger: l,
 	}
 }
 
-func (s *HTTPServer) Router(router *mux.Router) {
+// Router sets the HTTP router for the server
+func (s *MedicationHTTPServer) Router(router *mux.Router) {
 	s.srv.Handler = router
 }
 
-func (s *HTTPServer) Shutdown(ctx context.Context) error {
+// Shutdown gracefully shuts down the server
+func (s *MedicationHTTPServer) Shutdown(ctx context.Context) error {
 	return s.srv.Shutdown(ctx)
 }
 
-func (s *HTTPServer) ListenAndServe() error {
+// ListenAndServe starts the HTTP server
+func (s *MedicationHTTPServer) ListenAndServe() error {
 	s.logger.Infof("Server started on %s", s.config.Address())
 	return s.srv.ListenAndServe()
 }

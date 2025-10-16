@@ -1,9 +1,11 @@
+// Package medicine is a package for medicines
 package medicine
 
 import (
 	"time"
 )
 
+// Medicine represents a medicine.
 type Medicine struct {
 	ID           uint
 	Name         string
@@ -13,16 +15,19 @@ type Medicine struct {
 	Expires      time.Time // срок годности
 }
 
+// NewMedicine creates a new medicine.
 func NewMedicine(
 	name string,
 	items uint,
+	categoriesID []uint,
 	itemsUnit string,
 	expires time.Time,
 ) *Medicine {
 	return &Medicine{
-		Name:      name,
-		Items:     items,
-		ItemsUnit: itemsUnit,
-		Expires:   expires,
+		Name:         name,
+		CategoriesID: categoriesID,
+		Items:        items,
+		ItemsUnit:    itemsUnit,
+		Expires:      expires,
 	}
 }

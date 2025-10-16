@@ -8,6 +8,7 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/medicine"
 )
 
+// MedicineStorage is a storage for medicines
 type MedicineStorage struct {
 	data *Cache[*medicine.Medicine]
 	id   uint
@@ -15,6 +16,7 @@ type MedicineStorage struct {
 	mu *sync.RWMutex
 }
 
+// NewMedicineStorage returns a new MedicineStorage
 func NewMedicineStorage() *MedicineStorage {
 	return &MedicineStorage{
 		data: NewCache[*medicine.Medicine](),
@@ -23,8 +25,9 @@ func NewMedicineStorage() *MedicineStorage {
 	}
 }
 
+// Create creates a new medicine in memory
 func (s *MedicineStorage) Create(
-	ctx context.Context,
+	_ context.Context,
 	medicine *medicine.Medicine,
 ) (*medicine.Medicine, error) {
 	s.mu.RLock()
@@ -32,22 +35,24 @@ func (s *MedicineStorage) Create(
 
 	medicine.ID = s.id
 	s.id++
-	s.data.Set(strconv.Itoa(int(medicine.ID)), medicine)
+	s.data.Set(strconv.FormatUint(uint64(medicine.ID), 10), medicine)
 	return medicine, nil
 }
 
+// GetByID returns a medicine by id
 func (s *MedicineStorage) GetByID(
-	ctx context.Context,
+	_ context.Context,
 	medicineID uint,
 ) (*medicine.Medicine, error) {
-	drug, ok := s.data.Get(strconv.Itoa(int(medicineID)))
+	drug, ok := s.data.Get(strconv.FormatUint(uint64(medicineID), 10))
 	if !ok {
 		return nil, medicine.ErrNoMedicineFound
 	}
 	return drug, nil
 }
 
-func (s *MedicineStorage) GetListAll(ctx context.Context) ([]*medicine.Medicine, error) {
+// GetListAll returns a list of all medicines
+func (s *MedicineStorage) GetListAll(_ context.Context) ([]*medicine.Medicine, error) {
 	list := make([]*medicine.Medicine, 0)
 	for _, medicine := range s.data.data {
 		list = append(list, medicine)
@@ -55,31 +60,33 @@ func (s *MedicineStorage) GetListAll(ctx context.Context) ([]*medicine.Medicine,
 	return list, nil
 }
 
+// Update updates a medicine in memory
 func (s *MedicineStorage) Update(
-	ctx context.Context,
-	Medicine *medicine.Medicine,
+	_ context.Context,
+	medicineToUpdate *medicine.Medicine,
 ) (*medicine.Medicine, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	_, ok := s.data.Get(strconv.Itoa(int(Medicine.ID)))
+	_, ok := s.data.Get(strconv.FormatUint(uint64(medicineToUpdate.ID), 10))
 	if !ok {
 		s.data.mu.Unlock()
 		return nil, medicine.ErrNoMedicineFound
 	}
-	s.data.Set(strconv.Itoa(int(Medicine.ID)), Medicine)
-	return Medicine, nil
+	s.data.Set(strconv.FormatUint(uint64(medicineToUpdate.ID), 10), medicineToUpdate)
+	return medicineToUpdate, nil
 }
 
-func (s *MedicineStorage) Delete(ctx context.Context, medicineID uint) error {
+// Delete deletes a medicine in memory
+func (s *MedicineStorage) Delete(_ context.Context, medicineID uint) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	_, ok := s.data.Get(strconv.Itoa(int(medicineID)))
+	_, ok := s.data.Get(strconv.FormatUint(uint64(medicineID), 10))
 	if !ok {
 		return medicine.ErrNoMedicineFound
 	}
 
-	s.data.Delete(strconv.Itoa(int(medicineID)))
+	s.data.Delete(strconv.FormatUint(uint64(medicineID), 10))
 	return nil
 }
