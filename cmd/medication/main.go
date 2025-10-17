@@ -6,11 +6,11 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/presentation/http"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	// TODO: configure logger via config file
 	l := logrus.New()
 	l.SetFormatter(
 		&logrus.TextFormatter{
@@ -35,10 +35,16 @@ func main() {
 		logger.Fatal(err)
 	}
 	medicineRepo := memory.NewMedicineStorage()
+	validator := validator.NewValidationProvider()
 
-	medicineService := application.NewMedicineServiceProvider(medicineRepo)
+	app := &application.MedicineApplication{
+		GetMedicineList: application.NewGetMedicineListService(medicineRepo, validator),
+		AddMedicine:     application.NewAddMedicineService(medicineRepo, validator),
+		UpdateMedicine:  application.NewUpdateMedicineService(medicineRepo, validator),
+		DeleteMedicine:  application.NewDeleteMedicineService(medicineRepo, validator),
+	}
 
-	medicineHandlers := http.NewHandlers(medicineService, logger)
+	medicineHandlers := http.NewHandlers(app, logger)
 	router := http.Router(medicineHandlers)
 
 	server := http.NewHTTPServer(&conf.Server, logger)
