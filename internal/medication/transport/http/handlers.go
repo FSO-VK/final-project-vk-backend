@@ -15,17 +15,17 @@ import (
 )
 
 const (
-	// SlugID is a slug for id
+	// SlugID is a slug for id.
 	SlugID = "id"
 )
 
-// MedicineHandlers is a handler for Medicine
+// MedicineHandlers is a handler for Medicine.
 type MedicineHandlers struct {
 	MedicineService application.MedicineService
 	logger          *logrus.Entry
 }
 
-// NewHandlers creates a new MedicineHandlers
+// NewHandlers creates a new MedicineHandlers.
 func NewHandlers(
 	medicineService application.MedicineService,
 	logger *logrus.Entry,
@@ -36,7 +36,7 @@ func NewHandlers(
 	}
 }
 
-// AddMedicineJSONRequest is a request for AddMedicine
+// AddMedicineJSONRequest is a request for AddMedicine.
 type AddMedicineJSONRequest struct {
 	Name       string `json:"name"`
 	Items      uint   `json:"items"`
@@ -44,7 +44,7 @@ type AddMedicineJSONRequest struct {
 	Expiration string `json:"expiration"`
 }
 
-// AddMedicine adds a medicine
+// AddMedicine adds a medicine.
 func (h *MedicineHandlers) AddMedicine(w http.ResponseWriter, r *http.Request) {
 	var reqJSON *AddMedicineJSONRequest
 
@@ -113,7 +113,7 @@ func (h *MedicineHandlers) AddMedicine(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// UpdateMedicineJSONRequest is a request for UpdateMedicine
+// UpdateMedicineJSONRequest is a request for UpdateMedicine.
 type UpdateMedicineJSONRequest struct {
 	Name       string `json:"name"`
 	Items      uint   `json:"items"`
@@ -121,7 +121,7 @@ type UpdateMedicineJSONRequest struct {
 	Expiration string `json:"expiration"`
 }
 
-// UpdateMedicineJSONResponse is a response for UpdateMedicine
+// UpdateMedicineJSONResponse is a response for UpdateMedicine.
 type UpdateMedicineJSONResponse struct {
 	ID         string `json:"id"`
 	Name       string `json:"name"`
@@ -130,7 +130,7 @@ type UpdateMedicineJSONResponse struct {
 	Expiration string `json:"expiration"`
 }
 
-// UpdateMedicine updates a medicine
+// UpdateMedicine updates a medicine.
 func (h *MedicineHandlers) UpdateMedicine(w http.ResponseWriter, r *http.Request) {
 	var reqJSON *UpdateMedicineJSONRequest
 
@@ -222,7 +222,7 @@ func (h *MedicineHandlers) UpdateMedicine(w http.ResponseWriter, r *http.Request
 	})
 }
 
-// DeleteMedicine deletes a medicine
+// DeleteMedicine deletes a medicine.
 func (h *MedicineHandlers) DeleteMedicine(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars[SlugID]
@@ -268,7 +268,7 @@ func (h *MedicineHandlers) DeleteMedicine(w http.ResponseWriter, r *http.Request
 	})
 }
 
-// GetMedicineListItem returns a list of medicines
+// GetMedicineListItem returns a list of medicines.
 type GetMedicineListItem struct {
 	ID         string `json:"id"`
 	Name       string `json:"name"`
@@ -277,12 +277,12 @@ type GetMedicineListItem struct {
 	Expiration string `json:"expiration"`
 }
 
-// GetMedicineListJSONResponse returns a list of medicines
+// GetMedicineListJSONResponse returns a list of medicines.
 type GetMedicineListJSONResponse struct {
 	MedicineList []GetMedicineListItem `json:"medicineList"`
 }
 
-// GetMedicineList returns a list of medicines
+// GetMedicineList returns a list of medicines.
 func (h *MedicineHandlers) GetMedicineList(w http.ResponseWriter, r *http.Request) {
 	serviceResponse, err := h.MedicineService.GetMedicineList(
 		r.Context(),

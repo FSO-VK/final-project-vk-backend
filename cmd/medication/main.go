@@ -34,7 +34,6 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-
 	medicineRepo := memory.NewMedicineStorage()
 
 	medicineService := application.NewMedicineServiceProvider(medicineRepo)

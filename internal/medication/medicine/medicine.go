@@ -24,6 +24,7 @@ func NewMedicine(
 	expires time.Time,
 ) *Medicine {
 	return &Medicine{
+		ID:           0, // could not be nill, but will be set later
 		Name:         name,
 		CategoriesID: categoriesID,
 		Items:        items,

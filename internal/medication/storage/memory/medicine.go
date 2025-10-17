@@ -8,7 +8,7 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/medicine"
 )
 
-// MedicineStorage is a storage for medicines
+// MedicineStorage is a storage for medicines.
 type MedicineStorage struct {
 	data *Cache[*medicine.Medicine]
 	id   uint
@@ -16,7 +16,7 @@ type MedicineStorage struct {
 	mu *sync.RWMutex
 }
 
-// NewMedicineStorage returns a new MedicineStorage
+// NewMedicineStorage returns a new MedicineStorage.
 func NewMedicineStorage() *MedicineStorage {
 	return &MedicineStorage{
 		data: NewCache[*medicine.Medicine](),
@@ -25,7 +25,7 @@ func NewMedicineStorage() *MedicineStorage {
 	}
 }
 
-// Create creates a new medicine in memory
+// Create creates a new medicine in memory.
 func (s *MedicineStorage) Create(
 	_ context.Context,
 	medicine *medicine.Medicine,
@@ -39,7 +39,7 @@ func (s *MedicineStorage) Create(
 	return medicine, nil
 }
 
-// GetByID returns a medicine by id
+// GetByID returns a medicine by id.
 func (s *MedicineStorage) GetByID(
 	_ context.Context,
 	medicineID uint,
@@ -51,7 +51,7 @@ func (s *MedicineStorage) GetByID(
 	return drug, nil
 }
 
-// GetListAll returns a list of all medicines
+// GetListAll returns a list of all medicines.
 func (s *MedicineStorage) GetListAll(_ context.Context) ([]*medicine.Medicine, error) {
 	list := make([]*medicine.Medicine, 0)
 	for _, medicine := range s.data.data {
@@ -60,7 +60,7 @@ func (s *MedicineStorage) GetListAll(_ context.Context) ([]*medicine.Medicine, e
 	return list, nil
 }
 
-// Update updates a medicine in memory
+// Update updates a medicine in memory.
 func (s *MedicineStorage) Update(
 	_ context.Context,
 	medicineToUpdate *medicine.Medicine,
@@ -77,7 +77,7 @@ func (s *MedicineStorage) Update(
 	return medicineToUpdate, nil
 }
 
-// Delete deletes a medicine in memory
+// Delete deletes a medicine in memory.
 func (s *MedicineStorage) Delete(_ context.Context, medicineID uint) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

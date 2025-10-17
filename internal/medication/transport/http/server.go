@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ServerConfig holds HTTP server configuration
+// ServerConfig holds HTTP server configuration.
 type ServerConfig struct {
 	Host string
 	Port string
@@ -24,19 +24,19 @@ var defaultServerConfig = &ServerConfig{
 	Port: "8080",
 }
 
-// Address returns the full server address in host:port format
+// Address returns the full server address in host:port format.
 func (s *ServerConfig) Address() string {
 	return fmt.Sprintf("%s:%s", s.Host, s.Port)
 }
 
-// MedicationHTTPServer represents an HTTP server with configuration, logger and underlying http.Server
+// MedicationHTTPServer represents an HTTP server with configuration, logger and underlying http.Server.
 type MedicationHTTPServer struct {
 	config *ServerConfig
 	srv    *http.Server
 	logger *logrus.Entry
 }
 
-// NewHTTPServer creates a new HTTP server instance with the provided configuration and logger
+// NewHTTPServer creates a new HTTP server instance with the provided configuration and logger.
 func NewHTTPServer(conf *ServerConfig, l *logrus.Entry) *MedicationHTTPServer {
 	if conf == nil {
 		conf = defaultServerConfig
@@ -58,23 +58,24 @@ func NewHTTPServer(conf *ServerConfig, l *logrus.Entry) *MedicationHTTPServer {
 			ErrorLog:                     nil,
 			BaseContext:                  nil,
 			ConnContext:                  nil,
-			HTTP2:                       true,
+			HTTP2:                        nil,
+			Protocols:                    nil,
 		},
 		logger: l,
 	}
 }
 
-// Router sets the HTTP router for the server
+// Router sets the HTTP router for the server.
 func (s *MedicationHTTPServer) Router(router *mux.Router) {
 	s.srv.Handler = router
 }
 
-// Shutdown gracefully shuts down the server
+// Shutdown gracefully shuts down the server.
 func (s *MedicationHTTPServer) Shutdown(ctx context.Context) error {
 	return s.srv.Shutdown(ctx)
 }
 
-// ListenAndServe starts the HTTP server
+// ListenAndServe starts the HTTP server.
 func (s *MedicationHTTPServer) ListenAndServe() error {
 	s.logger.Infof("Server started on %s", s.config.Address())
 	return s.srv.ListenAndServe()

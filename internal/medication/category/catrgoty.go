@@ -10,6 +10,7 @@ type Category struct {
 // NewCategory creates a new category.
 func NewCategory(name string) *Category {
 	return &Category{
+		ID:   0, // could not be nill, but will be set later
 		Name: name,
 	}
 }

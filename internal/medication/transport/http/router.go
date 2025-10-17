@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Router returns a new HTTP router
+// Router returns a new HTTP router.
 func Router(
 	medicineHandlers *MedicineHandlers,
 ) *mux.Router {

@@ -28,7 +28,10 @@ func (s *MedicineServiceProvider) AddMedicine(
 	ctx context.Context,
 	req *AddMedicineRequest,
 ) (*AddMedicineResponse, error) {
-	//  TODO: add validator
+	// err := s.validator.ValidateStruct(req)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to validate request: %w", err)
+	// }
 
 	expiration, err := time.Parse(time.DateOnly, req.Expires)
 	if err != nil {
@@ -58,7 +61,10 @@ func (s *MedicineServiceProvider) UpdateMedicine(
 	ctx context.Context,
 	req *UpdateMedicineRequest,
 ) (*UpdateMedicineResponse, error) {
-	//  need to do: add validator
+	// err := s.validator.ValidateStruct(req)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to validate request: %w", err)
+	// }
 
 	expiration, err := time.Parse(time.DateOnly, req.Expires)
 	if err != nil {
@@ -86,7 +92,12 @@ func (s *MedicineServiceProvider) UpdateMedicine(
 	}
 
 	return &UpdateMedicineResponse{
-		ID: updatedMedicine.ID,
+		ID:           updatedMedicine.ID,
+		Name:         updatedMedicine.Name,
+		CategoriesID: updatedMedicine.CategoriesID,
+		Items:        updatedMedicine.Items,
+		ItemsUnit:    updatedMedicine.ItemsUnit,
+		Expires:      updatedMedicine.Expires.Format(time.DateOnly),
 	}, nil
 }
 
@@ -95,7 +106,6 @@ func (s *MedicineServiceProvider) DeleteMedicine(
 	ctx context.Context,
 	req *DeleteMedicineRequest,
 ) (*DeleteMedicineResponse, error) {
-	// TODO: add validator
 	// err := s.validator.ValidateStruct(req)
 	// if err != nil {
 	// 	return nil, fmt.Errorf("failed to validate request: %w", err)
