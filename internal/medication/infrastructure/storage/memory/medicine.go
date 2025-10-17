@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/FSO-VK/final-project-vk-backend/internal/medication/medicine"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medicine"
 )
 
 // MedicineStorage is a storage for medicines.

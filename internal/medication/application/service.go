@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/FSO-VK/final-project-vk-backend/internal/medication/medicine"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medicine"
 )
 
 // MedicineServiceProvider is a service provider for medicine.
