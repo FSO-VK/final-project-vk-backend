@@ -7,14 +7,14 @@ const (
 	MsgFailedToReadBody api.ErrorType = "Failed to read request body"
 	// MsgFailedToUnmarshal is a message for failed to unmarshal body.
 	MsgFailedToUnmarshal api.ErrorType = "Failed to unmarshal request body"
-	// MsgFailedToAddMedicine is a message for failed to add medicine.
-	MsgFailedToAddMedicine api.ErrorType = "Failed to add medicine"
-	// MsgFailedToUpdateMedicine is a message for failed to update medicine.
-	MsgFailedToUpdateMedicine api.ErrorType = "Failed to update medicine"
-	// MsgFailedToDeleteMedicine is a message for failed to delete medicine.
-	MsgFailedToDeleteMedicine api.ErrorType = "Failed to delete medicine"
-	// MsgFailedToGetMedicineList is a message for failed to get medicine list.
-	MsgFailedToGetMedicineList api.ErrorType = "Failed to get medicine list"
+	// MsgFailedToAddMedication is a message for failed to add medication.
+	MsgFailedToAddMedication api.ErrorType = "Failed to add medication"
+	// MsgFailedToUpdateMedication is a message for failed to update medication.
+	MsgFailedToUpdateMedication api.ErrorType = "Failed to update medication"
+	// MsgFailedToDeleteMedication is a message for failed to delete medication.
+	MsgFailedToDeleteMedication api.ErrorType = "Failed to delete medication"
+	// MsgFailedToGetMedicationList is a message for failed to get medication list.
+	MsgFailedToGetMedicationList api.ErrorType = "Failed to get medication list"
 	// MsgFailToParseID is a message for failed to parse id.
 	MsgFailToParseID api.ErrorType = "Failed to parse id"
 )

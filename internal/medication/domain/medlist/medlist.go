@@ -1,13 +1,13 @@
-// Package medlist is a package for medicine list operations
+// Package medlist implements domain layer for medication list aggregate.
 package medlist
 
 import (
 	"github.com/google/uuid"
 )
 
-// MedicineList is a list of medicines.
-type MedicineList struct {
-	ID          uint
-	UserID      uuid.UUID
-	MedicinesID []uint
+// MedicationList is a domain entity that represents a user's medication list aggregate root.
+type MedicationList struct {
+	ID            uint
+	UserID        uuid.UUID
+	MedicationsID []uint
 }

@@ -1,12 +1,12 @@
-// Package medicine is a package for medicines
-package medicine
+// Package medication is a domain for medication
+package medication
 
 import (
 	"time"
 )
 
-// Medicine represents a medicine.
-type Medicine struct {
+// Medication represents a medication entity.
+type Medication struct {
 	ID           uint
 	Name         string
 	CategoriesID []uint
@@ -15,15 +15,15 @@ type Medicine struct {
 	Expires      time.Time // срок годности
 }
 
-// NewMedicine creates a new medicine.
-func NewMedicine(
+// NewMedication creates a new medication.
+func NewMedication(
 	name string,
 	items uint,
 	categoriesID []uint,
 	itemsUnit string,
 	expires time.Time,
-) *Medicine {
-	return &Medicine{
+) *Medication {
+	return &Medication{
 		ID:           0, // could not be nill, but will be set later
 		Name:         name,
 		CategoriesID: categoriesID,

@@ -34,18 +34,18 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	medicineRepo := memory.NewMedicineStorage()
+	medicationRepo := memory.NewMedicationStorage()
 	validator := validator.NewValidationProvider()
 
-	app := &application.MedicineApplication{
-		GetMedicineList: application.NewGetMedicineListService(medicineRepo, validator),
-		AddMedicine:     application.NewAddMedicineService(medicineRepo, validator),
-		UpdateMedicine:  application.NewUpdateMedicineService(medicineRepo, validator),
-		DeleteMedicine:  application.NewDeleteMedicineService(medicineRepo, validator),
+	app := &application.MedicationApplication{
+		GetMedicationList: application.NewGetMedicationListService(medicationRepo, validator),
+		AddMedication:     application.NewAddMedicationService(medicationRepo, validator),
+		UpdateMedication:  application.NewUpdateMedicationService(medicationRepo, validator),
+		DeleteMedication:  application.NewDeleteMedicationService(medicationRepo, validator),
 	}
 
-	medicineHandlers := http.NewHandlers(app, logger)
-	router := http.Router(medicineHandlers)
+	medicationHandlers := http.NewHandlers(app, logger)
+	router := http.Router(medicationHandlers)
 
 	server := http.NewHTTPServer(&conf.Server, logger)
 	server.Router(router)

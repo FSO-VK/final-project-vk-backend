@@ -1,7 +1,7 @@
-// Package category is a package for categories of medications
+// Package category is a package for domain logic of medication categories.
 package category
 
-// Category represents a category.
+// Category is an entity of domain.
 type Category struct {
 	ID   uint
 	Name string

@@ -1,11 +1,11 @@
-// Package memory is a package for in memory db.
+// Package memory contains implementation of medication's repositories.
 package memory
 
 import (
 	"sync"
 )
 
-// Cache is a cache for medicines in memory db.
+// Cache is a cache realization for in memory db.
 type Cache[T any] struct {
 	data map[string]T
 	size uint64
