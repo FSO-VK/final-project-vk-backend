@@ -15,7 +15,7 @@ import (
 // ErrResponseIsNil is returned when a response object is unexpectedly nil.
 var ErrResponseIsNil = errors.New("response is nil")
 
-// WriteJSON writes encoded JSON response to the io.Writer.
+// EncodeJSON writes encoded JSON response to the io.Writer.
 func EncodeJSON[T any](w io.Writer, response *api.Response[T]) error {
 	if response == nil {
 		return ErrResponseIsNil
