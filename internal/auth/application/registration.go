@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	ErrInvalidEmail    = errors.New("invalid email")
-	ErrInvalidPassword = errors.New("invalid password")
+	ErrInvalidEmail     = errors.New("invalid email")
+	ErrInvalidPassword  = errors.New("invalid password")
 	ErrUserAlreadyExist = errors.New("user already exist")
 )
 
