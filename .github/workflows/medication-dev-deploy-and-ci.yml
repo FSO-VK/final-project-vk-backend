@@ -2,23 +2,29 @@ name: CI — lint, build-check, test, publish-on-dev
 
 on:
   push:
-    branches:
-      - master
-      - dev
+    branches: [ master, dev ]
+    paths:
+      - 'internal/medication/**'
+      - 'cmd/medication/**'
+      - 'build/services/medication.Dockerfile'
+      - 'config/medication-conf.yaml'
   pull_request:
-    branches:
-      - master
-      - dev
+    branches: [ master, dev ]
+    paths:
+      - 'internal/medication/**'
+      - 'cmd/medication/**'
+      - 'build/services/medication.Dockerfile'
+      - 'config/medication-conf.yaml'
   workflow_dispatch:
     inputs:
       ref:
-        description: "Branch to run against (example: feature/x or dev or master)"
+        description: "Branch to run against (example: dev or master)"
         required: false
         default: ""
 
 env:
   GO_VERSION: '1.25.x'
-  IMAGE_REPO: ghcr.io/fso-vk/fso-auth
+  IMAGE_REPO: ghcr.io/fso-vk/fso-medication
 
 permissions:
   contents: read
@@ -83,10 +89,10 @@ jobs:
           fi
           
           TAG="${{ env.IMAGE_REPO }}:${TARGET}"
-          echo "Building image ${TAG} using build/services/auth.Dockerfile"
+          echo "Building image ${TAG} using build/services/medication.Dockerfile"
           docker buildx build --load \
             --tag "${TAG}" \
-            -f ./build/services/auth.Dockerfile .
+            -f ./build/services/medication.Dockerfile .
 
   test:
     name: Run tests
@@ -131,4 +137,4 @@ jobs:
           echo "Buildx build+push -> ${TAG}"
           docker buildx build --push --platform linux/amd64,linux/arm64 \
             --tag "${TAG}" \
-            -f ./build/services/auth.Dockerfile .
+            -f ./build/services/medication.Dockerfile .
