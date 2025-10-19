@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	ErrNoValidSession   = errors.New("user is not authenticated")
-	ErrNotEmail = errors.New("credentials type is not email")
+	ErrNoValidSession = errors.New("user is not authenticated")
+	ErrNotEmail       = errors.New("credentials type is not email")
 )
 
 type CheckAuth interface {
