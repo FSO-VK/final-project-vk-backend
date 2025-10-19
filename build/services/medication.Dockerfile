@@ -7,11 +7,11 @@ RUN go mod download && go mod verify
 
 COPY . .
 
-RUN go build ./cmd/medicine/main.go
+RUN go build ./cmd/medication/main.go
 
 FROM alpine:3.22
 
-WORKDIR /medicine
+WORKDIR /medication
 
 COPY --from=builder /build/main .
 
