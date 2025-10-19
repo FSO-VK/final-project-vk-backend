@@ -66,9 +66,9 @@ func (s *RegistrationService) Execute(
 		return nil, fmt.Errorf("invalid login command: %w", err)
 	}
 
-	ID := uuid.New()
 	Type := credential.TypeEmail
 	_, err1 := s.credentialRepo.FindByEmail(ctx, registrationCmd.Email)
+	ID := uuid.New()
 	if err1 == nil {
 		return nil, ErrUserAlreadyExist
 	}
