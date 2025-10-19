@@ -68,10 +68,10 @@ func (s *RegistrationService) Execute(
 
 	Type := credential.TypeEmail
 	_, err1 := s.credentialRepo.FindByEmail(ctx, registrationCmd.Email)
-	ID := uuid.New()
 	if err1 == nil {
 		return nil, ErrUserAlreadyExist
 	}
+	ID := uuid.New()
 	for {
 		_, err1 := s.credentialRepo.FindByID(ctx, ID)
 		if err1 != nil {
