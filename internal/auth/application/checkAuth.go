@@ -2,12 +2,18 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/domain/session"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
+)
+
+var (
+	ErrNoValidSession   = errors.New("user is not authenticated")
+	ErrNotEmail = errors.New("credentials type is not email")
 )
 
 type CheckAuth interface {
@@ -47,17 +53,17 @@ func (s *CheckAuthService) Execute(
 ) (*CheckAuthResult, error) {
 	err := s.validator.ValidateStruct(checkAuthCommand)
 	if err != nil {
-		return nil, fmt.Errorf("invalid check auth command: %w", err)
+		return nil, ErrNoValidSession
 	}
 
 	sessionId, err := uuid.Parse(checkAuthCommand.SessionID)
 	if err != nil {
-		return nil, fmt.Errorf("parse session id to uuid: %w", err)
+		return nil, ErrNoValidSession
 	}
 
 	session, err := s.sessionRepo.GetByID(ctx, sessionId)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get session by id: %w", err)
+		return nil, ErrNoValidSession
 	}
 
 	if session.IsExpired() || session.IsRevoked() {
