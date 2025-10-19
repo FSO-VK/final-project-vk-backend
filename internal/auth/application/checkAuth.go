@@ -11,7 +11,10 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrNoValidSession = errors.New("user is not authenticated")
+var (
+	ErrNoValidSession = errors.New("user is not authenticated")
+	ErrNoSessionFound = errors.New("no session found")
+)
 
 type CheckAuth interface {
 	Execute(ctx context.Context, checkAuthCommand *CheckAuthCommand) (*CheckAuthResult, error)
@@ -60,7 +63,10 @@ func (s *CheckAuthService) Execute(
 
 	userSession, err := s.sessionRepo.GetByID(ctx, sessionId)
 	if err != nil {
-		return nil, session.ErrNoSessionFound
+		if errors.Is(err, session.ErrNoSessionFound) {
+			return nil, ErrNoSessionFound
+		}
+		return nil, fmt.Errorf("fail with db: %w", err)
 	}
 
 	if userSession.IsExpired() || userSession.IsRevoked() {

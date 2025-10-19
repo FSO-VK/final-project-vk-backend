@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/application"
-	"github.com/FSO-VK/final-project-vk-backend/internal/auth/domain/session"
 	httph "github.com/FSO-VK/final-project-vk-backend/internal/transport/http"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
 	"github.com/sirupsen/logrus"
@@ -206,13 +205,15 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 
 	serviceResult, err := h.app.CheckAuth.Execute(ctx, serviceRequest)
 	if err != nil {
-		h.logger.WithError(err).Error("Failed to check auth")
 		statusCode := fasthttp.StatusInternalServerError
-		errorMsg := api.MsgBadBody
+		errorMsg := api.MsgServerError
 		if errors.Is(err, application.ErrNoValidSession) ||
-			errors.Is(err, session.ErrNoSessionFound) {
+			errors.Is(err, application.ErrNoSessionFound) {
 			statusCode = fasthttp.StatusUnauthorized
 			errorMsg = ""
+			h.logger.Debug("Failed to check auth")
+		} else {
+			h.logger.WithError(err).Error("Database operation failed %w", err)
 		}
 
 		ctx.SetStatusCode(statusCode)
