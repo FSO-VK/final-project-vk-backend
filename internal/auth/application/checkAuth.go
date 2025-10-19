@@ -2,12 +2,18 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/domain/session"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
+)
+
+var (
+	ErrNoValidSession = errors.New("user is not authenticated")
+	ErrNoSessionFound = errors.New("no session found")
 )
 
 type CheckAuth interface {
@@ -47,40 +53,43 @@ func (s *CheckAuthService) Execute(
 ) (*CheckAuthResult, error) {
 	err := s.validator.ValidateStruct(checkAuthCommand)
 	if err != nil {
-		return nil, fmt.Errorf("invalid check auth command: %w", err)
+		return nil, ErrNoValidSession
 	}
 
 	sessionId, err := uuid.Parse(checkAuthCommand.SessionID)
 	if err != nil {
-		return nil, fmt.Errorf("parse session id to uuid: %w", err)
+		return nil, ErrNoValidSession
 	}
 
-	session, err := s.sessionRepo.GetByID(ctx, sessionId)
+	userSession, err := s.sessionRepo.GetByID(ctx, sessionId)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get session by id: %w", err)
+		if errors.Is(err, session.ErrNoSessionFound) {
+			return nil, ErrNoSessionFound
+		}
+		return nil, fmt.Errorf("fail with db: %w", err)
 	}
 
-	if session.IsExpired() || session.IsRevoked() {
+	if userSession.IsExpired() || userSession.IsRevoked() {
 		return &CheckAuthResult{
-			SessionID:       session.ID.String(),
+			SessionID:       userSession.ID.String(),
 			IsAuthenticated: false,
-			ExpiresAt:       session.ExpiresAt,
+			ExpiresAt:       userSession.ExpiresAt,
 		}, nil
 	}
 
-	err = session.Refresh()
+	err = userSession.Refresh()
 	if err != nil {
 		return nil, fmt.Errorf("failed to refresh session: %w", err)
 	}
 
-	_, err = s.sessionRepo.Update(ctx, session)
+	_, err = s.sessionRepo.Update(ctx, userSession)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update session: %w", err)
 	}
 
 	return &CheckAuthResult{
-		SessionID:       session.ID.String(),
+		SessionID:       userSession.ID.String(),
 		IsAuthenticated: true,
-		ExpiresAt:       session.ExpiresAt,
+		ExpiresAt:       userSession.ExpiresAt,
 	}, nil
 }
