@@ -209,7 +209,8 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 		h.logger.WithError(err).Error("Failed to check auth")
 		statusCode := fasthttp.StatusInternalServerError
 		errorMsg := api.MsgBadBody
-		if errors.Is(err, application.ErrNoValidSession) || errors.Is(err, session.ErrNoSessionFound) {
+		if errors.Is(err, application.ErrNoValidSession) ||
+			errors.Is(err, session.ErrNoSessionFound) {
 			statusCode = fasthttp.StatusUnauthorized
 			errorMsg = ""
 		}

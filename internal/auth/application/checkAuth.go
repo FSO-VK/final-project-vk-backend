@@ -11,9 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	ErrNoValidSession = errors.New("user is not authenticated")
-)
+var ErrNoValidSession = errors.New("user is not authenticated")
 
 type CheckAuth interface {
 	Execute(ctx context.Context, checkAuthCommand *CheckAuthCommand) (*CheckAuthResult, error)
