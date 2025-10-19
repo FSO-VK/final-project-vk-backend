@@ -211,9 +211,9 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 			errors.Is(err, application.ErrNoSessionFound) {
 			statusCode = fasthttp.StatusUnauthorized
 			errorMsg = ""
-			h.logger.Debug("Failed to check auth")
+			h.logger.Debug("no session found")
 		} else {
-			h.logger.WithError(err).Error("Database operation failed %w", err)
+			h.logger.WithError(err).Error("Failed to check auth %w", err)
 		}
 
 		ctx.SetStatusCode(statusCode)
