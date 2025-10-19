@@ -16,6 +16,7 @@ import (
 var (
 	ErrInvalidEmail    = errors.New("invalid email")
 	ErrInvalidPassword = errors.New("invalid password")
+	ErrUserAlreadyExist = errors.New("user already exist")
 )
 
 type Registration interface {
@@ -67,7 +68,10 @@ func (s *RegistrationService) Execute(
 
 	ID := uuid.New()
 	Type := credential.TypeEmail
-
+	_, err1 := s.credentialRepo.FindByEmail(ctx, registrationCmd.Email)
+	if err1 == nil {
+		return nil, ErrUserAlreadyExist
+	}
 	for {
 		_, err1 := s.credentialRepo.FindByID(ctx, ID)
 		if err1 != nil {

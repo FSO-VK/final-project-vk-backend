@@ -9,4 +9,5 @@ const (
 	MsgSetCookieFail    api.ErrorType = "Unable to set cookie"
 	MsgInvalidEmail     api.ErrorType = "Invalid email"
 	MsgInvalidPassword  api.ErrorType = "Invalid password"
+	MsgUserAlreadyExist api.ErrorType = "User with this email already exist"
 )
