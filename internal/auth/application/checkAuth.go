@@ -13,7 +13,6 @@ import (
 
 var (
 	ErrNoValidSession = errors.New("user is not authenticated")
-	ErrNotEmail       = errors.New("credentials type is not email")
 )
 
 type CheckAuth interface {
@@ -61,32 +60,32 @@ func (s *CheckAuthService) Execute(
 		return nil, ErrNoValidSession
 	}
 
-	session, err := s.sessionRepo.GetByID(ctx, sessionId)
+	userSession, err := s.sessionRepo.GetByID(ctx, sessionId)
 	if err != nil {
-		return nil, ErrNoValidSession
+		return nil, session.ErrNoSessionFound
 	}
 
-	if session.IsExpired() || session.IsRevoked() {
+	if userSession.IsExpired() || userSession.IsRevoked() {
 		return &CheckAuthResult{
-			SessionID:       session.ID.String(),
+			SessionID:       userSession.ID.String(),
 			IsAuthenticated: false,
-			ExpiresAt:       session.ExpiresAt,
+			ExpiresAt:       userSession.ExpiresAt,
 		}, nil
 	}
 
-	err = session.Refresh()
+	err = userSession.Refresh()
 	if err != nil {
 		return nil, fmt.Errorf("failed to refresh session: %w", err)
 	}
 
-	_, err = s.sessionRepo.Update(ctx, session)
+	_, err = s.sessionRepo.Update(ctx, userSession)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update session: %w", err)
 	}
 
 	return &CheckAuthResult{
-		SessionID:       session.ID.String(),
+		SessionID:       userSession.ID.String(),
 		IsAuthenticated: true,
-		ExpiresAt:       session.ExpiresAt,
+		ExpiresAt:       userSession.ExpiresAt,
 	}, nil
 }
