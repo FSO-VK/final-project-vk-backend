@@ -337,13 +337,19 @@ func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to register user")
 
-		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 		errorOut := MsgInvalidEmail
+		statusCode := fasthttp.StatusInternalServerError
 		if errors.Is(err, application.ErrInvalidPassword) {
 			errorOut = MsgInvalidPassword
+			statusCode = fasthttp.StatusBadRequest
 		}
+		if errors.Is(err, application.ErrUserAlreadyExist) {
+			errorOut = MsgUserAlreadyExist
+			statusCode = fasthttp.StatusBadRequest
+		}
+		ctx.SetStatusCode(statusCode)
 		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
-			StatusCode: fasthttp.StatusInternalServerError,
+			StatusCode: statusCode,
 			Body:       struct{}{},
 			Error:      errorOut,
 		})
