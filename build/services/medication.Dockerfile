@@ -18,6 +18,6 @@ COPY --from=builder /build/main /build/config/ ./
 
 ENTRYPOINT ["./main"]
 
-CMD ["--file", "./auth-conf.yaml"]
+CMD ["--file", "./medication-conf.yaml"]
 
 EXPOSE 8080
