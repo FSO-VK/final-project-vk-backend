@@ -12,7 +12,7 @@ func Router(
 	r := mux.NewRouter()
 
 	r.HandleFunc("/all", medicationHandlers.GetMedicationList).Methods("GET")
-	r.HandleFunc("/", medicationHandlers.AddMedication).Methods("POST")
+	r.HandleFunc("", medicationHandlers.AddMedication).Methods("POST")
 	r.HandleFunc("/{id}", medicationHandlers.UpdateMedication).Methods("PUT")
 	r.HandleFunc("/{id}", medicationHandlers.DeleteMedication).Methods("DELETE")
 
