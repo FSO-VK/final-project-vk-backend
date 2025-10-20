@@ -44,6 +44,11 @@ type AddMedicationJSONRequest struct {
 	Expiration string `json:"expiration"`
 }
 
+// AddMedicationJSONResponse is a response for AddMedication.
+type AddMedicationJSONResponse struct {
+	ID string `json:"id"`
+}
+
 // AddMedication adds a medication.
 func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Request) {
 	var reqJSON *AddMedicationJSONRequest
@@ -104,11 +109,13 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 
 		return
 	}
-
+	response := &AddMedicationJSONResponse{
+		ID: strconv.FormatUint(uint64(serviceResponse.ID), 10),
+	}
 	w.WriteHeader(http.StatusOK)
 	_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
 		StatusCode: http.StatusOK,
-		Body:       serviceResponse,
+		Body:       response,
 		Error:      "",
 	})
 }
