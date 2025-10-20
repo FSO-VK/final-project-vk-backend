@@ -11,10 +11,10 @@ func Router(
 ) *mux.Router {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/medications/all", medicationHandlers.GetMedicationList).Methods("GET")
+	r.HandleFunc("/medication/all", medicationHandlers.GetMedicationList).Methods("GET")
 	r.HandleFunc("/medication", medicationHandlers.AddMedication).Methods("POST")
-	r.HandleFunc("/medications/{id}", medicationHandlers.UpdateMedication).Methods("PUT")
-	r.HandleFunc("/medications/{id}", medicationHandlers.DeleteMedication).Methods("DELETE")
+	r.HandleFunc("/medication/{id}", medicationHandlers.UpdateMedication).Methods("PUT")
+	r.HandleFunc("/medication/{id}", medicationHandlers.DeleteMedication).Methods("DELETE")
 
 	panicMiddleware := httph.NewPanicRecoveryMiddleware()
 	r.Use(panicMiddleware.Middleware)
