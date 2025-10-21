@@ -167,12 +167,15 @@ func (h *AuthHandlers) Logout(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	setSessionCookie(
+	err = setSessionCookie(
 		ctx,
 		SessionCookieKey,
 		string(sessionID),
 		time.Unix(0, 0),
 	)
+	if err != nil {
+		h.logger.Warning("failed to set session cookie")
+	}
 
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
@@ -285,6 +288,9 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 
 var ErrNoCookie = errors.New("cookie is nil")
 
+// sessionID can have different types.
+//
+//nolint:unparam
 func setSessionCookie(
 	ctx *fasthttp.RequestCtx,
 	seesionID string,
