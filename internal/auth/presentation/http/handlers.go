@@ -155,7 +155,6 @@ func (h *AuthHandlers) Logout(ctx *fasthttp.RequestCtx) {
 	_, err := h.app.Logout.Execute(ctx, serviceRequest)
 	if err != nil &&
 		!errors.Is(err, application.ErrLogoutValidationFail) {
-
 		h.logger.WithError(err).Error("Failed to logout")
 
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
@@ -350,21 +349,13 @@ func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to register user")
 
-		errorOut := MsgInvalidEmail
-		statusCode := fasthttp.StatusInternalServerError
-		if errors.Is(err, application.ErrInvalidPassword) {
-			errorOut = MsgInvalidPassword
-			statusCode = fasthttp.StatusBadRequest
-		}
-		if errors.Is(err, application.ErrUserAlreadyExist) {
-			errorOut = MsgUserAlreadyExist
-			statusCode = fasthttp.StatusBadRequest
-		}
+		statusCode, errorMsg := h.handleRegistrationUseCaseErrors(err)
+		
 		ctx.SetStatusCode(statusCode)
 		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: statusCode,
 			Body:       struct{}{},
-			Error:      errorOut,
+			Error:      errorMsg,
 		})
 
 		return
@@ -399,4 +390,29 @@ func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
 		Body:       response,
 		Error:      "",
 	})
+}
+
+func (h *AuthHandlers) handleRegistrationUseCaseErrors(err error) (int, api.ErrorType) {
+	statusCode := 0
+	var errMsg api.ErrorType
+
+	if errors.Is(err, application.ErrInvalidEmail) {
+		statusCode = fasthttp.StatusBadRequest
+		errMsg = MsgInvalidEmail
+	}
+	if errors.Is(err, application.ErrInvalidPassword) {
+		statusCode = fasthttp.StatusBadRequest
+		errMsg = MsgInvalidPassword
+	}
+	if errors.Is(err, application.ErrUserAlreadyExist) {
+		statusCode = fasthttp.StatusBadRequest
+		errMsg = MsgUserAlreadyExist
+	}
+
+	if statusCode == 0 {
+		statusCode = fasthttp.StatusInternalServerError
+		errMsg = api.MsgServerError
+	}
+
+	return statusCode, errMsg
 }

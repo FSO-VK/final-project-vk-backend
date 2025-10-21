@@ -10,9 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	ErrLogoutValidationFail = errors.New("logout command validation failed")
-)
+var ErrLogoutValidationFail = errors.New("logout command validation failed")
 
 type Logout interface {
 	Execute(ctx context.Context, cmd *LogoutCommand) (*LogoutResult, error)
@@ -45,10 +43,9 @@ func (s *LogoutService) Execute(
 	ctx context.Context,
 	cmd *LogoutCommand,
 ) (*LogoutResult, error) {
-	err := s.validator.ValidateStruct(cmd)
-	if err != nil {
-		errors.Join(err, ErrLogoutValidationFail)
-		return nil, fmt.Errorf("invalid logout command: %w", err)
+	valErr := s.validator.ValidateStruct(cmd)
+	if valErr != nil {
+		return nil, ErrLogoutValidationFail
 	}
 
 	sessionIDuuid, err := uuid.Parse(cmd.SessionID)

@@ -51,8 +51,8 @@ func (s *CheckAuthService) Execute(
 	ctx context.Context,
 	checkAuthCommand *CheckAuthCommand,
 ) (*CheckAuthResult, error) {
-	err := s.validator.ValidateStruct(checkAuthCommand)
-	if err != nil {
+	valErr := s.validator.ValidateStruct(checkAuthCommand)
+	if valErr != nil {
 		return nil, ErrNoValidSession
 	}
 

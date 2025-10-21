@@ -62,10 +62,9 @@ func (s *LoginByEmailService) Execute(
 	ctx context.Context,
 	loginCmd *LoginByEmailCommand,
 ) (*LoginByEmailResult, error) {
-	err := s.valid.ValidateStruct(loginCmd)
-	if err != nil {
-		err = errors.Join(err, ErrInvalidCredentials)
-		return nil, fmt.Errorf("invalid login command: %w", err)
+	valErr := s.valid.ValidateStruct(loginCmd)
+	if valErr != nil {
+		return nil, ErrInvalidCredentials
 	}
 
 	cred, err := s.credentialRepo.FindByEmail(ctx, loginCmd.Email)

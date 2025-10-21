@@ -1,9 +1,13 @@
 package validator
 
-import "github.com/go-playground/validator/v10"
+import (
+	"fmt"
 
-// FieldErrors represents a list of fields which failed validation.
-type FieldErrors struct {
+	"github.com/go-playground/validator/v10"
+)
+
+// FieldError represents a list of fields which failed validation.
+type FieldError struct {
 	Field string
 	Tag   string
 	Value any
@@ -16,7 +20,7 @@ type ValidationError struct {
 
 	// fields is a map of field name which failed validation
 	// and the failed tag of rule.
-	fields map[string]*FieldErrors
+	fields map[string]*FieldError
 }
 
 // Error is a method to implement error interface.
@@ -24,23 +28,27 @@ func (e *ValidationError) Error() string {
 	if len(e.fields) == 0 {
 		return e.description
 	}
-	return "validation error"
+
+	fieldWithErrors := make([]string, 0)
+	for name := range e.fields {
+		fieldWithErrors = append(fieldWithErrors, name)
+	}
+
+	return fmt.Sprintf("%s for fields: %s", e.description, fieldWithErrors)
 }
 
-var (
-	ErrCantValidate = &ValidationError{
-		description: "type can't be validated",
-	}
-)
+var ErrCantValidate = &ValidationError{
+	description: "type can't be validated",
+}
 
 // Fields returns a map of fields which failed validation.
-func (e *ValidationError) Fields() map[string]*FieldErrors {
+func (e *ValidationError) Fields() map[string]*FieldError {
 	return e.fields
 }
 
 // Validator is a validator interface.
 type Validator interface {
-	ValidateStruct(v any) error
+	ValidateStruct(v any) *ValidationError
 }
 
 // ValidationProvider is an implementation of Validator.
@@ -56,7 +64,7 @@ func NewValidationProvider() *ValidationProvider {
 }
 
 // ValidateStruct is a method to validate given struct.
-func (va *ValidationProvider) ValidateStruct(v any) error {
+func (va *ValidationProvider) ValidateStruct(v any) *ValidationError {
 	return va.errorMapping(va.validate.Struct(v))
 }
 
@@ -66,14 +74,19 @@ func (va *ValidationProvider) errorMapping(err error) *ValidationError {
 		return nil
 	}
 
+	// Error can't be wrapped cause it's a library error
+	//nolint:errorlint
 	_, ok := err.(*validator.InvalidValidationError)
 	if ok {
 		return ErrCantValidate
 	}
 
-	fields := make(map[string]*FieldErrors)
-	for _, fieldErr := range err.(validator.ValidationErrors) {
-		fields[fieldErr.Field()] = &FieldErrors{
+	fields := make(map[string]*FieldError)
+	// Error can't be wrapped cause it's a library error
+	//nolint:errorlint
+	fieldErrors, _ := err.(validator.ValidationErrors)
+	for _, fieldErr := range fieldErrors {
+		fields[fieldErr.Field()] = &FieldError{
 			Field: fieldErr.Field(),
 			Tag:   fieldErr.Tag(),
 			Value: fieldErr.Value(),
