@@ -27,6 +27,7 @@ type CheckAuthCommand struct {
 
 // CheckAuthResult represents the result of a check authentication operation.
 type CheckAuthResult struct {
+	UserID          string
 	SessionID       string
 	IsAuthenticated bool
 	ExpiresAt       time.Time
@@ -68,7 +69,6 @@ func (s *CheckAuthService) Execute(
 		}
 		return nil, fmt.Errorf("fail with db: %w", err)
 	}
-
 	if userSession.IsExpired() || userSession.IsRevoked() {
 		return &CheckAuthResult{
 			SessionID:       userSession.ID.String(),
@@ -88,6 +88,7 @@ func (s *CheckAuthService) Execute(
 	}
 
 	return &CheckAuthResult{
+		UserID:          userSession.CredentialID.String(),
 		SessionID:       userSession.ID.String(),
 		IsAuthenticated: true,
 		ExpiresAt:       userSession.ExpiresAt,
