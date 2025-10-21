@@ -37,7 +37,6 @@ linters:
           - gocritic
           - godox
           - gosec
-          - prealloc
 formatters:
   enable:
     - gci

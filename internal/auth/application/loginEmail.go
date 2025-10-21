@@ -24,9 +24,10 @@ type LoginByEmail interface {
 
 // LoginByEmailCommand represents the command to login by email.
 type LoginByEmailCommand struct {
+	// Optional. If not provided, new session will be created.
 	CurrentDeviceSessionID string
-	Email                  string
-	Password               string
+	Email                  string `validate:"required,email"`
+	Password               string `validate:"required"`
 }
 
 // LoginByEmailResult represents the result of a login by email operation.
@@ -63,6 +64,7 @@ func (s *LoginByEmailService) Execute(
 ) (*LoginByEmailResult, error) {
 	err := s.valid.ValidateStruct(loginCmd)
 	if err != nil {
+		err = errors.Join(err, ErrInvalidCredentials)
 		return nil, fmt.Errorf("invalid login command: %w", err)
 	}
 

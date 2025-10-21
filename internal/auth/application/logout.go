@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/domain/session"
@@ -9,12 +10,16 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	ErrLogoutValidationFail = errors.New("logout command validation failed")
+)
+
 type Logout interface {
 	Execute(ctx context.Context, cmd *LogoutCommand) (*LogoutResult, error)
 }
 
 type LogoutCommand struct {
-	SessionID string
+	SessionID string `validate:"required,uuid"`
 }
 
 type LogoutResult struct {
@@ -42,6 +47,7 @@ func (s *LogoutService) Execute(
 ) (*LogoutResult, error) {
 	err := s.validator.ValidateStruct(cmd)
 	if err != nil {
+		errors.Join(err, ErrLogoutValidationFail)
 		return nil, fmt.Errorf("invalid logout command: %w", err)
 	}
 

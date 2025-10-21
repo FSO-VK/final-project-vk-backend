@@ -80,6 +80,8 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 
 	serviceResult, err := h.app.LoginByEmail.Execute(ctx, serviceRequest)
 	if errors.Is(err, application.ErrInvalidCredentials) {
+		h.logger.WithError(err).Debug("Invalid credentials")
+
 		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusUnauthorized,
@@ -151,7 +153,9 @@ func (h *AuthHandlers) Logout(ctx *fasthttp.RequestCtx) {
 	}
 
 	_, err := h.app.Logout.Execute(ctx, serviceRequest)
-	if err != nil {
+	if err != nil &&
+		!errors.Is(err, application.ErrLogoutValidationFail) {
+
 		h.logger.WithError(err).Error("Failed to logout")
 
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
