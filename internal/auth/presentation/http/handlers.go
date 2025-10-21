@@ -277,7 +277,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponse]{
 		StatusCode: fasthttp.StatusOK,
 		Body: &CheckAuthResponse{
-			UserID: serviceResult.SessionID,
+			UserID: serviceResult.UserID,
 		},
 		Error: "",
 	})
