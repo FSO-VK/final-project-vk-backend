@@ -167,6 +167,13 @@ func (h *AuthHandlers) Logout(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	setSessionCookie(
+		ctx,
+		SessionCookieKey,
+		string(sessionID),
+		time.Unix(0, 0),
+	)
+
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 		StatusCode: fasthttp.StatusOK,
@@ -350,7 +357,7 @@ func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
 		h.logger.WithError(err).Error("Failed to register user")
 
 		statusCode, errorMsg := h.handleRegistrationUseCaseErrors(err)
-		
+
 		ctx.SetStatusCode(statusCode)
 		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: statusCode,
