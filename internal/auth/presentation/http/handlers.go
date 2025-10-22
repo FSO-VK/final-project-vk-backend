@@ -293,7 +293,7 @@ var ErrNoCookie = errors.New("cookie is nil")
 //nolint:unparam
 func setSessionCookie(
 	ctx *fasthttp.RequestCtx,
-	seesionID string,
+	sessionID string,
 	value string,
 	expiration time.Time,
 ) error {
@@ -304,7 +304,7 @@ func setSessionCookie(
 		return ErrNoCookie
 	}
 
-	c.SetKey(seesionID)
+	c.SetKey(sessionID)
 	c.SetValue(value)
 	c.SetExpire(expiration)
 	c.SetHTTPOnly(true)
@@ -362,7 +362,7 @@ func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to register user")
 
-		statusCode, errorMsg := h.handleRegistrationUseCaseErrors(err)
+		statusCode, errorMsg := h.convertRegistrationErrorsToHTTP(err)
 
 		ctx.SetStatusCode(statusCode)
 		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
@@ -405,7 +405,9 @@ func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
 	})
 }
 
-func (h *AuthHandlers) handleRegistrationUseCaseErrors(err error) (int, api.ErrorType) {
+// convertRegistrationErrorsToHTTP converts registration use case errors
+// to neogated with front-back protocol over HTTP.
+func (h *AuthHandlers) convertRegistrationErrorsToHTTP(err error) (int, api.ErrorType) {
 	statusCode := 0
 	var errMsg api.ErrorType
 
