@@ -1,5 +1,5 @@
 // Package http provides utility functions for handling HTTP responses.
-package http
+package httputil
 
 import (
 	"encoding/json"

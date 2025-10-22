@@ -22,7 +22,7 @@ type CheckAuth interface {
 
 // CheckAuthCommand represents the command to check authentication.
 type CheckAuthCommand struct {
-	SessionID string
+	SessionID string `validate:"required"`
 }
 
 // CheckAuthResult represents the result of a check authentication operation.
@@ -52,8 +52,8 @@ func (s *CheckAuthService) Execute(
 	ctx context.Context,
 	checkAuthCommand *CheckAuthCommand,
 ) (*CheckAuthResult, error) {
-	err := s.validator.ValidateStruct(checkAuthCommand)
-	if err != nil {
+	valErr := s.validator.ValidateStruct(checkAuthCommand)
+	if valErr != nil {
 		return nil, ErrNoValidSession
 	}
 

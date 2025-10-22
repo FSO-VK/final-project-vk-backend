@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/application"
-	httph "github.com/FSO-VK/final-project-vk-backend/internal/transport/http"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -46,7 +46,7 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 		h.logger.Error("Empty request body")
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusBadRequest,
 			Body:       struct{}{},
 			Error:      api.MsgNoBody,
@@ -61,7 +61,7 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 		h.logger.WithError(err).Errorf("Failed to read request body: %v", err)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusBadRequest,
 			Body:       struct{}{},
 			Error:      api.MsgNoBody,
@@ -80,8 +80,10 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 
 	serviceResult, err := h.app.LoginByEmail.Execute(ctx, serviceRequest)
 	if errors.Is(err, application.ErrInvalidCredentials) {
+		h.logger.WithError(err).Debug("Invalid credentials")
+
 		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusUnauthorized,
 			Body:       struct{}{},
 			Error:      MsgWrongCredentials,
@@ -92,7 +94,7 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 		h.logger.WithError(err).Error("Failed to login by email")
 
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      api.MsgServerError,
@@ -115,7 +117,7 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 		h.logger.WithError(err).Error("Failed to set session cookie")
 
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      MsgSetCookieFail,
@@ -125,7 +127,7 @@ func (h *AuthHandlers) Login(ctx *fasthttp.RequestCtx) {
 	}
 
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*LoginResponse]{
+	_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[*LoginResponse]{
 		StatusCode: fasthttp.StatusOK,
 		Body:       response,
 		Error:      "",
@@ -137,7 +139,7 @@ func (h *AuthHandlers) Logout(ctx *fasthttp.RequestCtx) {
 
 	if len(sessionID) == 0 {
 		ctx.SetStatusCode(fasthttp.StatusOK)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusOK,
 			Body:       struct{}{},
 			Error:      "",
@@ -151,11 +153,12 @@ func (h *AuthHandlers) Logout(ctx *fasthttp.RequestCtx) {
 	}
 
 	_, err := h.app.Logout.Execute(ctx, serviceRequest)
-	if err != nil {
+	if err != nil &&
+		!errors.Is(err, application.ErrLogoutValidationFail) {
 		h.logger.WithError(err).Error("Failed to logout")
 
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      MsgLogoutFailed,
@@ -164,8 +167,18 @@ func (h *AuthHandlers) Logout(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	err = setSessionCookie(
+		ctx,
+		SessionCookieKey,
+		string(sessionID),
+		time.Unix(0, 0),
+	)
+	if err != nil {
+		h.logger.Warning("failed to set session cookie")
+	}
+
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+	_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 		StatusCode: fasthttp.StatusOK,
 		Body:       struct{}{},
 		Error:      "",
@@ -188,7 +201,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 
 		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponseFail]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponseFail]{
 			StatusCode: fasthttp.StatusUnauthorized,
 			Body: &CheckAuthResponseFail{
 				SessionID: "",
@@ -217,7 +230,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 		}
 
 		ctx.SetStatusCode(statusCode)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponseFail]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponseFail]{
 			StatusCode: statusCode,
 			Body: &CheckAuthResponseFail{
 				SessionID: serviceRequest.SessionID,
@@ -233,7 +246,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 
 		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponseFail]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponseFail]{
 			StatusCode: fasthttp.StatusUnauthorized,
 			Body: &CheckAuthResponseFail{
 				SessionID: serviceRequest.SessionID,
@@ -254,7 +267,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 		h.logger.WithError(err).Error("Failed to set session cookie")
 
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      MsgSetCookieFail,
@@ -264,7 +277,7 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 	}
 
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponse]{
+	_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[*CheckAuthResponse]{
 		StatusCode: fasthttp.StatusOK,
 		Body: &CheckAuthResponse{
 			UserID: serviceResult.UserID,
@@ -275,9 +288,12 @@ func (h *AuthHandlers) CheckAuth(ctx *fasthttp.RequestCtx) {
 
 var ErrNoCookie = errors.New("cookie is nil")
 
+// sessionID can have different types.
+//
+//nolint:unparam
 func setSessionCookie(
 	ctx *fasthttp.RequestCtx,
-	seesionID string,
+	sessionID string,
 	value string,
 	expiration time.Time,
 ) error {
@@ -288,7 +304,7 @@ func setSessionCookie(
 		return ErrNoCookie
 	}
 
-	c.SetKey(seesionID)
+	c.SetKey(sessionID)
 	c.SetValue(value)
 	c.SetExpire(expiration)
 	c.SetHTTPOnly(true)
@@ -313,7 +329,7 @@ func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
 		h.logger.Error("Empty request body")
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusBadRequest,
 			Body:       struct{}{},
 			Error:      api.MsgNoBody,
@@ -328,7 +344,7 @@ func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
 		h.logger.WithError(err).Errorf("Failed to read request body: %v", err)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusBadRequest,
 			Body:       struct{}{},
 			Error:      api.MsgNoBody,
@@ -346,21 +362,13 @@ func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to register user")
 
-		errorOut := MsgInvalidEmail
-		statusCode := fasthttp.StatusInternalServerError
-		if errors.Is(err, application.ErrInvalidPassword) {
-			errorOut = MsgInvalidPassword
-			statusCode = fasthttp.StatusBadRequest
-		}
-		if errors.Is(err, application.ErrUserAlreadyExist) {
-			errorOut = MsgUserAlreadyExist
-			statusCode = fasthttp.StatusBadRequest
-		}
+		statusCode, errorMsg := h.convertRegistrationErrorsToHTTP(err)
+
 		ctx.SetStatusCode(statusCode)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: statusCode,
 			Body:       struct{}{},
-			Error:      errorOut,
+			Error:      errorMsg,
 		})
 
 		return
@@ -380,7 +388,7 @@ func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
 		h.logger.WithError(err).Error("Failed to set session cookie")
 
 		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
-		_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+		_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 			StatusCode: fasthttp.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      MsgSetCookieFail,
@@ -390,9 +398,36 @@ func (h *AuthHandlers) RegistrationByEmail(ctx *fasthttp.RequestCtx) {
 	}
 
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[*RegistrationByEmailResponse]{
+	_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[*RegistrationByEmailResponse]{
 		StatusCode: fasthttp.StatusOK,
 		Body:       response,
 		Error:      "",
 	})
+}
+
+// convertRegistrationErrorsToHTTP converts registration use case errors
+// to neogated with front-back protocol over HTTP.
+func (h *AuthHandlers) convertRegistrationErrorsToHTTP(err error) (int, api.ErrorType) {
+	statusCode := 0
+	var errMsg api.ErrorType
+
+	if errors.Is(err, application.ErrInvalidEmail) {
+		statusCode = fasthttp.StatusBadRequest
+		errMsg = MsgInvalidEmail
+	}
+	if errors.Is(err, application.ErrInvalidPassword) {
+		statusCode = fasthttp.StatusBadRequest
+		errMsg = MsgInvalidPassword
+	}
+	if errors.Is(err, application.ErrUserAlreadyExist) {
+		statusCode = fasthttp.StatusBadRequest
+		errMsg = MsgUserAlreadyExist
+	}
+
+	if statusCode == 0 {
+		statusCode = fasthttp.StatusInternalServerError
+		errMsg = api.MsgServerError
+	}
+
+	return statusCode, errMsg
 }

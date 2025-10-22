@@ -56,9 +56,9 @@ func (s *GetMedicationListService) Execute(
 	ctx context.Context,
 	req *GetMedicationListCommand,
 ) (*GetMedicationListResponse, error) {
-	err := s.validator.ValidateStruct(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to validate request: %w", err)
+	valErr := s.validator.ValidateStruct(req)
+	if valErr != nil {
+		return nil, fmt.Errorf("failed to validate request: %w", valErr)
 	}
 	medications, err := s.medicationRepo.GetListAll(ctx)
 	if err != nil {

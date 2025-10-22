@@ -3,7 +3,7 @@ package http
 import (
 	"strings"
 
-	httph "github.com/FSO-VK/final-project-vk-backend/internal/transport/http"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
 	"github.com/valyala/fasthttp"
 )
@@ -77,7 +77,7 @@ func (r *Router) withMethod(
 
 func (r *Router) handlerMethodNotAllowed(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(fasthttp.StatusMethodNotAllowed)
-	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+	_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 		StatusCode: fasthttp.StatusMethodNotAllowed,
 		Body:       struct{}{},
 		Error:      api.MsgMethodNotAllowed,
@@ -86,7 +86,7 @@ func (r *Router) handlerMethodNotAllowed(ctx *fasthttp.RequestCtx) {
 
 func (r *Router) handlerNotFound(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(fasthttp.StatusNotFound)
-	_ = httph.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
+	_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 		StatusCode: fasthttp.StatusNotFound,
 		Body:       struct{}{},
 		Error:      api.MsgNotFound,

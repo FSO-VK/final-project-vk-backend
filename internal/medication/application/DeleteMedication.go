@@ -35,7 +35,7 @@ func NewDeleteMedicationService(
 
 // DeleteMedicationCommand is a request to delete a medication.
 type DeleteMedicationCommand struct {
-	ID uint
+	ID uint `validate:"required"`
 }
 
 // DeleteMedicationResponse is a response to delete a medication.
@@ -46,12 +46,12 @@ func (s *DeleteMedicationService) Execute(
 	ctx context.Context,
 	req *DeleteMedicationCommand,
 ) (*DeleteMedicationResponse, error) {
-	err := s.validator.ValidateStruct(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to validate request: %w", err)
+	valErr := s.validator.ValidateStruct(req)
+	if valErr != nil {
+		return nil, fmt.Errorf("failed to validate request: %w", valErr)
 	}
 
-	err = s.medicationRepo.Delete(ctx, req.ID)
+	err := s.medicationRepo.Delete(ctx, req.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete medication: %w", err)
 	}

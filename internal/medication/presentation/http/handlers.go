@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
-	httph "github.com/FSO-VK/final-project-vk-backend/internal/transport/http"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -63,7 +63,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 		h.logger.WithError(err).Error("Failed to read request body")
 		w.WriteHeader(http.StatusBadRequest)
 
-		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
 			Error:      MsgFailedToReadBody,
 			Body:       nil,
@@ -77,7 +77,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 		h.logger.WithError(err).Error("Failed to unmarshal request body")
 		w.WriteHeader(http.StatusBadRequest)
 
-		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
 			Error:      MsgFailedToUnmarshal,
 			Body:       nil,
@@ -101,7 +101,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 		h.logger.WithError(err).Error("Failed to add medication")
 		w.WriteHeader(http.StatusInternalServerError)
 
-		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusInternalServerError,
 			Body:       nil,
 			Error:      MsgFailedToAddMedication,
@@ -113,7 +113,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 		ID: strconv.FormatUint(uint64(serviceResponse.ID), 10),
 	}
 	w.WriteHeader(http.StatusOK)
-	_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 		StatusCode: http.StatusOK,
 		Body:       response,
 		Error:      "",
@@ -148,7 +148,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 		h.logger.WithError(err).Error("Failed to parse id")
 		w.WriteHeader(http.StatusBadRequest)
 
-		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
 			Body:       struct{}{},
 			Error:      MsgFailToParseID,
@@ -166,7 +166,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 		h.logger.WithError(err).Error("Failed to read request body")
 		w.WriteHeader(http.StatusBadRequest)
 
-		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
 			Body:       struct{}{},
 			Error:      MsgFailedToReadBody,
@@ -179,7 +179,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 		h.logger.WithError(err).Error("Failed to unmarshal request body")
 		w.WriteHeader(http.StatusBadRequest)
 
-		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
 			Body:       struct{}{},
 			Error:      MsgFailedToUnmarshal,
@@ -204,7 +204,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 		h.logger.WithError(err).Error("Failed to update medication")
 		w.WriteHeader(http.StatusInternalServerError)
 
-		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      MsgFailedToUpdateMedication,
@@ -222,7 +222,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 		StatusCode: http.StatusOK,
 		Body:       response,
 		Error:      "",
@@ -238,7 +238,7 @@ func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Req
 		h.logger.WithError(err).Error("Failed to parse id")
 		w.WriteHeader(http.StatusBadRequest)
 
-		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
 			Body:       struct{}{},
 			Error:      MsgFailToParseID,
@@ -258,7 +258,7 @@ func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Req
 		h.logger.WithError(err).Error("Failed to delete medication")
 		w.WriteHeader(http.StatusInternalServerError)
 
-		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      MsgFailedToDeleteMedication,
@@ -268,7 +268,7 @@ func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Req
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_ = httph.NetHTTPWriteJSON(w, &api.Response[struct{}]{
+	_ = httputil.NetHTTPWriteJSON(w, &api.Response[struct{}]{
 		StatusCode: http.StatusOK,
 		Body:       struct{}{},
 		Error:      "",
@@ -299,7 +299,7 @@ func (h *MedicationHandlers) GetMedicationList(w http.ResponseWriter, r *http.Re
 		h.logger.WithError(err).Error("Failed to get medication list")
 		w.WriteHeader(http.StatusInternalServerError)
 
-		_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      MsgFailedToGetMedicationList,
@@ -322,7 +322,7 @@ func (h *MedicationHandlers) GetMedicationList(w http.ResponseWriter, r *http.Re
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_ = httph.NetHTTPWriteJSON(w, &api.Response[any]{
+	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 		StatusCode: http.StatusOK,
 		Body:       response,
 		Error:      "",

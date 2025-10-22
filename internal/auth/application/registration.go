@@ -9,14 +9,16 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/domain/credential"
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/domain/session"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/password"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/reflection"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrInvalidEmail     = errors.New("invalid email")
-	ErrInvalidPassword  = errors.New("invalid password")
-	ErrUserAlreadyExist = errors.New("user already exist")
+	ErrInvalidRegistrationCmd = errors.New("invalid command")
+	ErrInvalidEmail           = errors.New("invalid email")
+	ErrInvalidPassword        = errors.New("invalid password")
+	ErrUserAlreadyExist       = errors.New("user already exist")
 )
 
 type Registration interface {
@@ -61,9 +63,9 @@ func (s *RegistrationService) Execute(
 	ctx context.Context,
 	registrationCmd *RegistrationCommand,
 ) (*RegistrationResult, error) {
-	err := s.valid.ValidateStruct(registrationCmd)
-	if err != nil {
-		return nil, fmt.Errorf("invalid login command: %w", err)
+	valErr := s.valid.ValidateStruct(registrationCmd)
+	if valErr != nil {
+		return s.handleValidationError(registrationCmd, valErr)
 	}
 
 	Type := credential.TypeEmail
@@ -109,4 +111,35 @@ func (s *RegistrationService) Execute(
 		SessionID: sess.ID.String(),
 		ExpiresAt: sess.ExpiresAt,
 	}, nil
+}
+
+// handleValidationError handles validation errors and returns an error.
+func (s *RegistrationService) handleValidationError(
+	cmd *RegistrationCommand,
+	valErr *validator.ValidationError,
+) (*RegistrationResult, error) {
+	if errors.Is(valErr, validator.ErrCantValidate) {
+		return nil, ErrInvalidRegistrationCmd
+	}
+
+	fails := valErr.Fields()
+	emailFieldName, _ := reflection.GetFieldName(
+		cmd,
+		&cmd.Email,
+	)
+	passwordFieldName, _ := reflection.GetFieldName(
+		cmd,
+		&cmd.Password,
+	)
+
+	var err error
+	if _, ok := fails[emailFieldName]; ok {
+		err = errors.Join(err, ErrInvalidEmail)
+	}
+	if _, ok := fails[passwordFieldName]; ok {
+		err = errors.Join(err, ErrInvalidPassword)
+	}
+
+	err = errors.Join(err, valErr)
+	return nil, fmt.Errorf("validation error: %w", err)
 }

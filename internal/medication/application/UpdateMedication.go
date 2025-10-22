@@ -59,9 +59,9 @@ func (s *UpdateMedicationService) Execute(
 	ctx context.Context,
 	req *UpdateMedicationCommand,
 ) (*UpdateMedicationResponse, error) {
-	err := s.validator.ValidateStruct(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to validate request: %w", err)
+	valErr := s.validator.ValidateStruct(req)
+	if valErr != nil {
+		return nil, fmt.Errorf("failed to validate request: %w", valErr)
 	}
 
 	expiration, err := time.Parse(time.DateOnly, req.Expires)
