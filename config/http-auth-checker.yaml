@@ -1,9 +1,0 @@
-# for substitution expressions see:
-# https://github.com/drone/envsubst?tab=readme-ov-file
-
-client:
-  BaseURL:       ${BASE_URL:https://myhealthbox.ddns.net}
-  Path:          ${PATH:/api/v1/session}
-  Timeout:       ${TIMEOUT:30}
-  CookieName:    ${COOKIE_NAME:session_id}
-  CookieDomain:    ${COOKIE_DOMAIN:/}

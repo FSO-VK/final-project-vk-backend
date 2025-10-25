@@ -3,30 +3,29 @@ package client
 import (
 	"context"
 	"encoding/json"
-	"io"
 	"net/http"
+	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
 	"github.com/sirupsen/logrus"
 )
 
 type HTTPAuthChecker struct {
-	doer   HttpDoer
+	client *http.Client
 	cfg    ClientConfig
 	logger *logrus.Entry
 }
 
-func NewHTTPAuthChecker(doer HttpDoer, cfg ClientConfig, logger *logrus.Entry) *HTTPAuthChecker {
-	return &HTTPAuthChecker{doer: doer, cfg: cfg, logger: logger}
+func NewHTTPAuthChecker(cfg ClientConfig, logger *logrus.Entry) *HTTPAuthChecker {
+	client := &http.Client{
+		Timeout: 2 * time.Second,
+	}
+	return &HTTPAuthChecker{client: client, cfg: cfg, logger: logger}
 }
 
 func (h *HTTPAuthChecker) CheckAuth(reqData *Request) (*Response, error) {
-	if reqData == nil || reqData.SessionID == "" {
-		return &Response{
-			SessionID:    "",
-			UserID:       "",
-			IsAuthorized: false,
-		}, nil
+	if body, err := h.checkRequest(reqData); err != nil {
+		return body, err
 	}
 
 	ctx := context.Background()
@@ -50,25 +49,33 @@ func (h *HTTPAuthChecker) CheckAuth(reqData *Request) (*Response, error) {
 	})
 	httpReq.Header.Set("Accept", "application/json")
 
-	resp, err := h.doer.Do(httpReq)
+	resp, err := h.client.Do(httpReq)
 	if err != nil {
 		h.logger.WithError(err).Warn("auth request failed")
 		return nil, ErrAuthServiceUnavailable
 	}
-	defer h.safeClose(resp.Body)
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			h.logger.WithError(err).Debug("failed to close response body")
+		}
+	}()
 
-	if err := h.checkHTTPStatus(resp.StatusCode); err != nil {
-		return nil, err
+	if body, err := h.checkHTTPStatus(resp.StatusCode); err != nil {
+		return body, err
 	}
 
 	var env api.Response[ExpectedCheckAuthResponse]
 	if err := json.NewDecoder(resp.Body).Decode(&env); err != nil {
 		h.logger.WithError(err).Error("failed to decode auth response")
-		return nil, ErrUnauthorized
+		return nil, ErrInvalidAuthResponse
 	}
 
 	if env.StatusCode == http.StatusUnauthorized || env.StatusCode == http.StatusForbidden {
-		return nil, ErrUnauthorized
+		return &Response{
+			SessionID:    reqData.SessionID,
+			UserID:       "",
+			IsAuthorized: false,
+		}, nil
 	}
 
 	out := &Response{
@@ -80,16 +87,30 @@ func (h *HTTPAuthChecker) CheckAuth(reqData *Request) (*Response, error) {
 	return out, nil
 }
 
-func (h *HTTPAuthChecker) safeClose(body io.Closer) {
-	_ = body.Close()
+func (h *HTTPAuthChecker) checkRequest(reqData *Request) (*Response, error) {
+	if reqData == nil {
+		return nil, ErrInvalidREquest
+	}
+	if reqData.SessionID == "" {
+		return &Response{
+			SessionID:    "",
+			UserID:       "",
+			IsAuthorized: false,
+		}, nil
+	}
+	return &Response{}, nil
 }
 
-func (h *HTTPAuthChecker) checkHTTPStatus(statusCode int) error {
+func (h *HTTPAuthChecker) checkHTTPStatus(statusCode int) (*Response, error) {
 	if statusCode == http.StatusUnauthorized || statusCode == http.StatusForbidden {
-		return ErrUnauthorized
+		return &Response{
+			SessionID:    "",
+			UserID:       "",
+			IsAuthorized: false,
+		}, nil
 	}
 	if statusCode < 200 || statusCode >= 300 {
-		return ErrBadResponse
+		return nil, ErrBadResponse
 	}
-	return nil
+	return &Response{}, nil
 }

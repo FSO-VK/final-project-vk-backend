@@ -1,7 +1,5 @@
 package client
 
-import "net/http"
-
 type AuthChecker interface {
 	CheckAuth(req *Request) (*Response, error)
 }
@@ -18,9 +16,4 @@ type Response struct {
 
 type ExpectedCheckAuthResponse struct {
 	UserID string `json:"userId"`
-}
-
-// Abstraction above http.Client — any client with Do().
-type HttpDoer interface {
-	Do(req *http.Request) (*http.Response, error)
 }
