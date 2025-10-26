@@ -1,3 +1,4 @@
+// Package client provides auth client for other services.
 package client
 
 import (
@@ -10,12 +11,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// HTTPAuthChecker implements AuthChecker interface.
 type HTTPAuthChecker struct {
 	client *http.Client
 	cfg    ClientConfig
 	logger *logrus.Entry
 }
 
+// NewHTTPAuthChecker creates a new HTTPAuthChecker.
 func NewHTTPAuthChecker(cfg ClientConfig, logger *logrus.Entry) *HTTPAuthChecker {
 	client := &http.Client{
 		Timeout: 2 * time.Second,
@@ -23,9 +26,10 @@ func NewHTTPAuthChecker(cfg ClientConfig, logger *logrus.Entry) *HTTPAuthChecker
 	return &HTTPAuthChecker{client: client, cfg: cfg, logger: logger}
 }
 
+// CheckAuth checks auth for other services.
 func (h *HTTPAuthChecker) CheckAuth(reqData *Request) (*Response, error) {
-	if body, err := h.checkRequest(reqData); err != nil {
-		return body, err
+	if err := h.checkRequest(reqData); err != nil {
+		return nil, err
 	}
 
 	ctx := context.Background()
@@ -87,18 +91,11 @@ func (h *HTTPAuthChecker) CheckAuth(reqData *Request) (*Response, error) {
 	return out, nil
 }
 
-func (h *HTTPAuthChecker) checkRequest(reqData *Request) (*Response, error) {
-	if reqData == nil {
-		return nil, ErrInvalidREquest
+func (h *HTTPAuthChecker) checkRequest(reqData *Request) error {
+	if reqData == nil || reqData.SessionID == "" {
+		return ErrInvalidRequest
 	}
-	if reqData.SessionID == "" {
-		return &Response{
-			SessionID:    "",
-			UserID:       "",
-			IsAuthorized: false,
-		}, nil
-	}
-	return &Response{}, nil
+	return nil
 }
 
 func (h *HTTPAuthChecker) checkHTTPStatus(statusCode int) (*Response, error) {
