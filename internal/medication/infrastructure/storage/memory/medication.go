@@ -10,8 +10,8 @@ import (
 
 // MedicationStorage is a storage for medications.
 type MedicationStorage struct {
-	data *Cache[*medication.Medication]
-	id   uint
+	data  *Cache[*medication.Medication]
+	count uint
 
 	mu *sync.RWMutex
 }
@@ -19,9 +19,9 @@ type MedicationStorage struct {
 // NewMedicationStorage returns a new MedicationStorage.
 func NewMedicationStorage() *MedicationStorage {
 	return &MedicationStorage{
-		data: NewCache[*medication.Medication](),
-		id:   0,
-		mu:   &sync.RWMutex{},
+		data:  NewCache[*medication.Medication](),
+		count: 0,
+		mu:    &sync.RWMutex{},
 	}
 }
 
@@ -33,9 +33,8 @@ func (s *MedicationStorage) Create(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	medication.ID = s.id
-	s.id++
-	s.data.Set(strconv.FormatUint(uint64(medication.ID), 10), medication)
+	s.count++
+	s.data.Set(medication.ID.String(), medication)
 	return medication, nil
 }
 
@@ -68,12 +67,12 @@ func (s *MedicationStorage) Update(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	_, ok := s.data.Get(strconv.FormatUint(uint64(medicationToUpdate.ID), 10))
+	_, ok := s.data.Get(medicationToUpdate.ID.String())
 	if !ok {
 		s.data.mu.Unlock()
 		return nil, medication.ErrNoMedicationFound
 	}
-	s.data.Set(strconv.FormatUint(uint64(medicationToUpdate.ID), 10), medicationToUpdate)
+	s.data.Set(medicationToUpdate.ID.String(), medicationToUpdate)
 	return medicationToUpdate, nil
 }
 

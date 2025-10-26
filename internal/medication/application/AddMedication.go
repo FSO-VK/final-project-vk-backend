@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	medication "github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
+	"github.com/google/uuid"
 )
 
 // AddMedication is an interface for adding a medication.
@@ -64,15 +65,22 @@ func (s *AddMedicationService) Execute(
 		return nil, fmt.Errorf("failed to parse expiration: %w", err)
 	}
 
-	medication := medication.NewMedication(
-		req.Name,
-		req.Items,
-		req.CategoriesID,
-		req.ItemsUnit,
-		expiration,
+	drugName, err := medication.NewMedicationName(req.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create VO: %w", err)
+	}
+
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create uuid v7: %w", err)
+	}
+
+	drug := medication.NewMedication(
+		id,
+		drugName,
 	)
 
-	addedMedication, err := s.medicationRepo.Create(ctx, medication)
+	addedMedication, err := s.medicationRepo.Create(ctx, drug)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add medication: %w", err)
 	}

@@ -72,7 +72,7 @@ func (s *GetMedicationListService) Execute(
 			Name:      medication.Name,
 			Items:     medication.Items,
 			ItemsUnit: medication.ItemsUnit,
-			Expires:   medication.Expires.Format(time.DateOnly),
+			Expires:   medication.ExpiresAt.Format(time.DateOnly),
 		})
 	}
 
