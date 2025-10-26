@@ -39,10 +39,20 @@ func NewHandlers(
 
 // AddMedicationJSONRequest is a request for AddMedication.
 type AddMedicationJSONRequest struct {
-	Name       string `json:"name"`
-	Items      uint   `json:"items"`
-	ItemsUnit  string `json:"itemsUnit"`
-	Expiration string `json:"expiration"`
+	Name                string  `json:"name"`
+	InternationalName   string  `json:"internationalName"`
+	AmountValue         float32 `json:"amountValue"`
+	AmountUnit          string  `json:"amountUnit"`
+	ReleaseForm         string  `json:"releaseForm"`
+	Group               string  `json:"group"`
+	ManufacturerName    string  `json:"manufacturerName"`
+	ManufacturerCountry string  `json:"manufacturerCountry"`
+	ActiveSubstanceName string  `json:"activeSubstanceName"`
+	ActiveSubstanceDose float32 `json:"activeSubstanceDose"`
+	ActiveSubstanceUnit string  `json:"activeSubstanceUnit"`
+	Expires             string  `json:"expires"`
+	Release             string  `json:"release"`
+	Commentary          string  `json:"commentary"`
 }
 
 // AddMedicationJSONResponse is a response for AddMedication.
@@ -87,11 +97,20 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 	}
 
 	serviceRequest := &application.AddMedicationCommand{
-		Name:         reqJSON.Name,
-		CategoriesID: nil,
-		Items:        reqJSON.Items,
-		ItemsUnit:    reqJSON.ItemsUnit,
-		Expires:      reqJSON.Expiration,
+		Name:                reqJSON.Name,
+		InternationalName:   reqJSON.InternationalName,
+		AmountValue:         reqJSON.AmountValue,
+		AmountUnit:          reqJSON.AmountUnit,
+		ReleaseForm:         reqJSON.ReleaseForm,
+		Group:               reqJSON.Group,
+		ManufacturerName:    reqJSON.ManufacturerName,
+		ManufacturerCountry: reqJSON.ManufacturerCountry,
+		ActiveSubstanceName: reqJSON.ActiveSubstanceName,
+		ActiveSubstanceDose: reqJSON.ActiveSubstanceDose,
+		ActiveSubstanceUnit: reqJSON.ActiveSubstanceUnit,
+		Expires:             reqJSON.Expires,
+		Release:             reqJSON.Release,
+		Commentary:          reqJSON.Commentary,
 	}
 
 	serviceResponse, err := h.app.AddMedication.Execute(
@@ -111,7 +130,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	response := &AddMedicationJSONResponse{
-		ID: strconv.FormatUint(uint64(serviceResponse.ID), 10),
+		ID: serviceResponse.ID,
 	}
 	w.WriteHeader(http.StatusOK)
 	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
