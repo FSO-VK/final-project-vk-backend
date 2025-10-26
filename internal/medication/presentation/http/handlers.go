@@ -233,24 +233,12 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars[SlugID]
-	idUint, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		h.logger.WithError(err).Error("Failed to parse id")
-		w.WriteHeader(http.StatusBadRequest)
-
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusBadRequest,
-			Body:       struct{}{},
-			Error:      MsgFailToParseID,
-		})
-		return
-	}
 
 	serviceRequest := &application.DeleteMedicationCommand{
-		ID: uint(idUint),
+		ID: id,
 	}
 
-	_, err = h.app.DeleteMedication.Execute(
+	_, err := h.app.DeleteMedication.Execute(
 		r.Context(),
 		serviceRequest,
 	)
