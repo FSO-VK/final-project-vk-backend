@@ -10,29 +10,23 @@ import (
 
 // Medication represents a medication entity.
 type Medication struct {
-	ID uuid.UUID
-
+	ID                uuid.UUID
 	Name              MedicationName
 	InternationalName MedicationInternationalName
-
-	Group MedicationGroup
-
-	Manufacturer MedicationManufacturer
-
-	ReleaseForm MedicationReleaseForm
-	Amount      MedicationAmount
+	Group             MedicationGroup
+	Manufacturer      MedicationManufacturer
+	ReleaseForm       MedicationReleaseForm
+	Amount            MedicationAmount
 
 	// Точно ли комментарий относится к лекарству?
 	// Скорее это относится к записи в аптечке человека.
 	Commentary MedicationCommentary
 
 	ActiveSubstance MedicationActiveSubstance
-
-	ReleaseDate    time.Time // дата выпуска
-	ExpirationDate time.Time // срок годности
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ReleaseDate     time.Time // дата выпуска
+	ExpirationDate  time.Time // срок годности
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 // NewMedication creates a new medication.
