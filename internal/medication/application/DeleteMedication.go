@@ -10,7 +10,8 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrDeleteInvalidUuidFormat = errors.New("invalid UUID format")
+// ErrDeleteInvalidUUIDFormat represents an error when the uuid is invalid.
+var ErrDeleteInvalidUUIDFormat = errors.New("invalid UUID format")
 
 // DeleteMedication is an interface for deleting a medication.
 type DeleteMedication interface {
@@ -57,7 +58,7 @@ func (s *DeleteMedicationService) Execute(
 
 	parsedUUID, err := uuid.Parse(req.ID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrDeleteInvalidUuidFormat, err)
+		return nil, fmt.Errorf("%w: %w", ErrDeleteInvalidUUIDFormat, err)
 	}
 
 	err = s.medicationRepo.Delete(ctx, parsedUUID)

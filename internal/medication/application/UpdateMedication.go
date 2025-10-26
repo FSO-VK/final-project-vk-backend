@@ -12,7 +12,9 @@ import (
 )
 
 var (
-	ErrUpdateInvalidUUID   = errors.New("invalid uuid")
+	// ErrUpdateInvalidUUID represents an error when the uuid is invalid.
+	ErrUpdateInvalidUUID = errors.New("invalid uuid")
+	// ErrUpdateInvalidEntity represents an error when the entity is invalid.
 	ErrUpdateInvalidEntity = errors.New("invalid entity")
 )
 
@@ -44,16 +46,15 @@ func NewUpdateMedicationService(
 // UpdateMedicationCommand is a request to update a medication.
 type UpdateMedicationCommand struct {
 	// fields embedded
-	AddMedicationCommand
+	CommandBase
 
 	ID string `validate:"required,uuid"`
 }
 
 // UpdateMedicationResponse is a response to update a medication.
 type UpdateMedicationResponse struct {
-	AddMedicationCommand
-
-	ID string
+	// embedded struct
+	ResponseBase
 }
 
 // Execute updates a medication.
@@ -87,27 +88,11 @@ func (s *UpdateMedicationService) Execute(
 	}
 
 	return &UpdateMedicationResponse{
-		ID: savedMedication.ID.String(),
-		AddMedicationCommand: AddMedicationCommand{
-			Name:                savedMedication.GetName().GetName(),
-			InternationalName:   savedMedication.GetInternationalName().GetInternationalName(),
-			AmountValue:         savedMedication.GetAmount().GetValue(),
-			AmountUnit:          savedMedication.GetAmount().GetUnit().String(),
-			ReleaseForm:         savedMedication.GetReleaseForm().String(),
-			Group:               savedMedication.GetGroup().GetGroup(),
-			ManufacturerName:    savedMedication.GetManufacturer().GetName(),
-			ManufacturerCountry: savedMedication.GetManufacturer().GetCountry(),
-			ActiveSubstanceName: savedMedication.GetActiveSubstance().GetName(),
-			ActiveSubstanceDose: savedMedication.GetActiveSubstance().GetDose().GetValue(),
-			ActiveSubstanceUnit: savedMedication.GetActiveSubstance().GetDose().GetUnit().String(),
-			Expires:             savedMedication.GetExpirationDate().Format(time.DateOnly),
-			Release:             savedMedication.GetReleaseDate().Format(time.DateOnly),
-			Commentary:          savedMedication.GetCommentary().GetCommentary(),
-		},
+		responseBaseMapper(savedMedication),
 	}, nil
 }
 
-func (u *UpdateMedicationService) updateMedicationEntity(
+func (s *UpdateMedicationService) updateMedicationEntity(
 	req *UpdateMedicationCommand,
 	oldMedication *medication.Medication,
 ) (*medication.Medication, error) {

@@ -32,9 +32,11 @@ var (
 	ErrInvalidDateRange         = errors.New("expiration date must be greater than release date")
 )
 
-type MedicationName string
+// Name is a Value Object representing the name of a medication.
+type Name string
 
-func NewMedicationName(name string) (MedicationName, error) {
+// NewMedicationName creates validated medication name.
+func NewMedicationName(name string) (Name, error) {
 	err := errors.Join(
 		validation.Required(name),
 		validation.MaxLength(name, 200),
@@ -42,32 +44,39 @@ func NewMedicationName(name string) (MedicationName, error) {
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrInvalidName, err)
 	}
-	return MedicationName(name), nil
+	return Name(name), nil
 }
 
-func (n MedicationName) GetName() string {
+// GetName returns the string value of the medication name.
+func (n Name) GetName() string {
 	return string(n)
 }
 
-type MedicationInternationalName string
+// InternationalName is a Value Object representing the international non-proprietary name of a medication.
+type InternationalName string
 
-func NewMedicationInternationalName(name string) (MedicationInternationalName, error) {
+// NewMedicationInternationalName creates validated medication international name.
+func NewMedicationInternationalName(name string) (InternationalName, error) {
 	err := errors.Join(
 		validation.MaxLength(name, maxNameLength),
 	)
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrInvalidInternationalName, err)
 	}
-	return MedicationInternationalName(name), nil
+	return InternationalName(name), nil
 }
 
-func (n MedicationInternationalName) GetInternationalName() string {
+// GetInternationalName returns the international name of the medication.
+func (n InternationalName) GetInternationalName() string {
 	return string(n)
 }
 
-type MedicationGroup string
+// Group is a Value Object representing
+// the therapeutic or pharmacological group of a medication.
+type Group string
 
-func NewMedicationGroup(group string) (MedicationGroup, error) {
+// NewMedicationGroup creates validated medication group.
+func NewMedicationGroup(group string) (Group, error) {
 	err := errors.Join(
 		validation.MaxLength(group, maxGroupNameLength),
 	)
@@ -75,49 +84,59 @@ func NewMedicationGroup(group string) (MedicationGroup, error) {
 		return "", fmt.Errorf("%w: %w", ErrInvalidGroup, err)
 	}
 
-	return MedicationGroup(group), nil
+	return Group(group), nil
 }
 
-func (g MedicationGroup) GetGroup() string {
+// GetGroup returns the medication group name.
+func (g Group) GetGroup() string {
 	return string(g)
 }
 
-type MedicationManufacturerDraft struct {
+// ManufacturerDraft represents the raw input data
+// structure for a medication manufacturer.
+type ManufacturerDraft struct {
 	Name    string
 	Country string
 }
 
-type MedicationManufacturer struct {
+// Manufacturer is a VO representing manufacturer information.
+type Manufacturer struct {
 	name    string
 	country string
 }
 
-func NewMedicationManufacturer(name string, country string) (MedicationManufacturer, error) {
+// NewMedicationManufacturer creates validated medication manufacturer.
+func NewMedicationManufacturer(name string, country string) (Manufacturer, error) {
 	err := errors.Join(
 		validation.MaxLength(name, maxNameLength),
-		validation.MaxLength(country, maxCommentaryLength),
+		validation.MaxLength(country, maxCountryLength),
 	)
 	if err != nil {
-		return MedicationManufacturer{}, fmt.Errorf("%w: %w", ErrInvalidManufacturer, err)
+		return Manufacturer{}, fmt.Errorf("%w: %w", ErrInvalidManufacturer, err)
 	}
-	return MedicationManufacturer{
+	return Manufacturer{
 		name:    name,
 		country: country,
 	}, nil
 }
 
-func (m MedicationManufacturer) GetName() string {
+// GetName returns the manufacturer's name.
+func (m Manufacturer) GetName() string {
 	return m.name
 }
 
-func (m MedicationManufacturer) GetCountry() string {
+// GetCountry returns the manufacturer's country.
+func (m Manufacturer) GetCountry() string {
 	return m.country
 }
 
-type MedicationReleaseForm int
+// ReleaseForm is a Value Object representing the physical form
+// in which the medication is released.
+type ReleaseForm int
 
+// Enum values of possible medication release form.
 const (
-	UnknownForm MedicationReleaseForm = iota
+	UnknownForm ReleaseForm = iota
 	Tablet
 	Capsule
 	Injection
@@ -131,7 +150,7 @@ const (
 // Unexported global variable.
 //
 //nolint:gochecknoglobals
-var releaseFormToString = map[string]MedicationReleaseForm{
+var releaseFormToString = map[string]ReleaseForm{
 	"tablet":     Tablet,
 	"capsule":    Capsule,
 	"injection":  Injection,
@@ -145,7 +164,7 @@ var releaseFormToString = map[string]MedicationReleaseForm{
 // Unexported global variable.
 //
 //nolint:gochecknoglobals
-var stringToReleaseForm = map[MedicationReleaseForm]string{
+var stringToReleaseForm = map[ReleaseForm]string{
 	UnknownForm: "unknown form",
 	Tablet:      "tablet",
 	Capsule:     "capsule",
@@ -157,7 +176,8 @@ var stringToReleaseForm = map[MedicationReleaseForm]string{
 	Patch:       "patch",
 }
 
-func NewMedicationReleaseForm(form string) (MedicationReleaseForm, error) {
+// NewMedicationReleaseForm creates validated medication release form.
+func NewMedicationReleaseForm(form string) (ReleaseForm, error) {
 	err := errors.Join(
 		validation.Required(form),
 	)
@@ -167,14 +187,19 @@ func NewMedicationReleaseForm(form string) (MedicationReleaseForm, error) {
 	return releaseFormToString[form], nil
 }
 
-func (f MedicationReleaseForm) String() string {
+// String returns the string representation of the release form.
+func (f ReleaseForm) String() string {
 	return stringToReleaseForm[f]
 }
 
-type MedicationUnit int
+// Unit is a VO representing the unit of measurement
+// for medication quantities.
+type Unit int
 
+// Enum values of possible medication unit.
 const (
-	UnknownUnit MedicationUnit = iota
+	UnsetUnit Unit = iota
+	UnknownUnit
 	Piece
 	Gram
 	Milligram
@@ -184,21 +209,24 @@ const (
 // Unexported global variable.
 //
 //nolint:gochecknoglobals
-var unitToString = map[string]MedicationUnit{
-	"piece":      Piece,
-	"gram":       Gram,
-	"milligram":  Milligram,
-	"milliliter": Milliliter,
-	"pcs":        Piece,
-	"g":          Gram,
-	"mg":         Milligram,
-	"ml":         Milliliter,
+var stringToUnit = map[string]Unit{
+	"piece":        Piece,
+	"gram":         Gram,
+	"milligram":    Milligram,
+	"milliliter":   Milliliter,
+	"pcs":          Piece,
+	"g":            Gram,
+	"mg":           Milligram,
+	"ml":           Milliliter,
+	"":             UnsetUnit,
+	"unknown unit": UnknownUnit,
 }
 
 // Unexported global variable.
 //
 //nolint:gochecknoglobals
-var stringToUnit = map[MedicationUnit]string{
+var unitToString = map[Unit]string{
+	UnsetUnit:   "",
 	UnknownUnit: "unknown unit",
 	Piece:       "piece",
 	Gram:        "gram",
@@ -206,26 +234,32 @@ var stringToUnit = map[MedicationUnit]string{
 	Milliliter:  "milliliter",
 }
 
-func NewMedicationUnit(unit string) (MedicationUnit, error) {
-	err := errors.Join(
-		validation.Required(unit),
-	)
-	if err != nil {
-		return UnknownUnit, fmt.Errorf("%w: %w", ErrInvalidUnit, err)
+// NewMedicationUnit creates validated medication unit.
+func NewMedicationUnit(unit string) (Unit, error) {
+	if unit == "" {
+		return UnsetUnit, nil
 	}
-	return unitToString[unit], nil
+	_, ok := stringToUnit[unit]
+	if !ok {
+		return UnknownUnit, fmt.Errorf("%w: unknown unit", ErrInvalidUnit)
+	}
+	return stringToUnit[unit], nil
 }
 
-func (u MedicationUnit) String() string {
-	return stringToUnit[u]
+// String returns the string representation of the medication unit.
+func (u Unit) String() string {
+	return unitToString[u]
 }
 
-type MedicationAmount struct {
+// Amount is a VO representing the quantity of a medication
+// with its unit of measurement.
+type Amount struct {
 	value float32
-	unit  MedicationUnit
+	unit  Unit
 }
 
-func NewMedicationAmount(value float32, unit string) (MedicationAmount, error) {
+// NewMedicationAmount creates validated medication amount.
+func NewMedicationAmount(value float32, unit string) (Amount, error) {
 	medicationUnit, err := NewMedicationUnit(unit)
 
 	err = errors.Join(
@@ -233,49 +267,57 @@ func NewMedicationAmount(value float32, unit string) (MedicationAmount, error) {
 		validation.Positive(value),
 	)
 	if err != nil {
-		return MedicationAmount{}, fmt.Errorf("%w: %w", ErrInvalidAmount, err)
+		return Amount{}, fmt.Errorf("%w: %w", ErrInvalidAmount, err)
 	}
 
-	return MedicationAmount{
+	return Amount{
 		value: value,
 		unit:  medicationUnit,
 	}, nil
 }
 
-func (a MedicationAmount) GetValue() float32 {
+// GetValue returns the numeric value of the amount.
+func (a Amount) GetValue() float32 {
 	return a.value
 }
 
-func (a MedicationAmount) GetUnit() MedicationUnit {
+// GetUnit returns the unit of measurement for the amount.
+func (a Amount) GetUnit() Unit {
 	return a.unit
 }
 
-type MedicationCommentary string
+// Commentary is a Value Object representing additional notes or comments about a medication.
+type Commentary string
 
-func NewMedicationCommentary(commentary string) (MedicationCommentary, error) {
+// NewMedicationCommentary creates validated medication commentary.
+func NewMedicationCommentary(commentary string) (Commentary, error) {
 	err := errors.Join(
 		validation.MaxLength(commentary, maxCommentaryLength),
 	)
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrInvalidCommentary, err)
 	}
-	return MedicationCommentary(commentary), nil
+	return Commentary(commentary), nil
 }
 
-func (c MedicationCommentary) GetCommentary() string {
+// GetCommentary returns the text of the medication commentary.
+func (c Commentary) GetCommentary() string {
 	return string(c)
 }
 
-type MedicationActiveSubstance struct {
+// ActiveSubstance is a VO representing the active
+// pharmaceutical substance and its dosage.
+type ActiveSubstance struct {
 	name string
-	dose MedicationAmount
+	dose Amount
 }
 
+// NewMedicationActiveSubstance creates validated medication active substance.
 func NewMedicationActiveSubstance(
 	name string,
 	doseValue float32,
 	doseUnit string,
-) (MedicationActiveSubstance, error) {
+) (ActiveSubstance, error) {
 	dose, err := NewMedicationAmount(
 		doseValue,
 		doseUnit,
@@ -285,15 +327,17 @@ func NewMedicationActiveSubstance(
 		err,
 	)
 	if err != nil {
-		return MedicationActiveSubstance{}, fmt.Errorf("%w: %w", ErrInvalidActiveSubstance, err)
+		return ActiveSubstance{}, fmt.Errorf("%w: %w", ErrInvalidActiveSubstance, err)
 	}
 
-	return MedicationActiveSubstance{
+	return ActiveSubstance{
 		name: name,
 		dose: dose,
 	}, nil
 }
 
-func (a MedicationActiveSubstance) GetName() string { return a.name }
+// GetName returns the name of the active substance.
+func (a ActiveSubstance) GetName() string { return a.name }
 
-func (a MedicationActiveSubstance) GetDose() MedicationAmount { return a.dose }
+// GetDose returns the dose amount of the active substance.
+func (a ActiveSubstance) GetDose() Amount { return a.dose }

@@ -52,8 +52,8 @@ type GetMedicationListResponse struct {
 
 // Execute returns a list of medications.
 func (s *GetMedicationListService) Execute(
-	ctx context.Context,
-	req *GetMedicationListCommand,
+	_ context.Context,
+	_ *GetMedicationListCommand,
 ) (*GetMedicationListResponse, error) {
 	// Temporary disabled due to not implemented
 	//

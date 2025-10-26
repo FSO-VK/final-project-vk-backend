@@ -34,7 +34,7 @@ func (s *MedicationStorage) Create(
 	defer s.mu.RUnlock()
 
 	s.count++
-	s.data.Set(medication.ID.String(), medication)
+	s.data.Set(medication.GetID().String(), medication)
 	return medication, nil
 }
 
@@ -67,12 +67,12 @@ func (s *MedicationStorage) Update(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	_, ok := s.data.Get(medicationToUpdate.ID.String())
+	_, ok := s.data.Get(medicationToUpdate.GetID().String())
 	if !ok {
 		s.data.mu.Unlock()
 		return nil, medication.ErrNoMedicationFound
 	}
-	s.data.Set(medicationToUpdate.ID.String(), medicationToUpdate)
+	s.data.Set(medicationToUpdate.GetID().String(), medicationToUpdate)
 	return medicationToUpdate, nil
 }
 

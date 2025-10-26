@@ -38,32 +38,14 @@ func NewAddMedicationService(
 
 // AddMedicationCommand is a request to add a medication.
 type AddMedicationCommand struct {
-	Name              string `validate:"required"`
-	InternationalName string
-	AmountValue       float32 `validate:"required,gte=0"`
-	AmountUnit        string  `validate:"required"`
-	ReleaseForm       string  `validate:"required"`
-
-	Group string
-
-	ManufacturerName    string
-	ManufacturerCountry string
-
-	ActiveSubstanceName string
-	ActiveSubstanceDose float32
-	ActiveSubstanceUnit string
-
-	Expires string `validate:"required"`
-	Release string
-
-	Commentary string
+	// embedded struct
+	CommandBase
 }
 
 // AddMedicationResponse is a response to add a medication.
 type AddMedicationResponse struct {
-	AddMedicationCommand
-
-	ID string
+	// embedded struct
+	ResponseBase
 }
 
 // Execute executes the AddMedication command.
@@ -106,7 +88,7 @@ func (s *AddMedicationService) Execute(
 
 			InternationalName: req.InternationalName,
 			Group:             req.Group,
-			Manufacturer: medication.MedicationManufacturerDraft{
+			Manufacturer: medication.ManufacturerDraft{
 				Name:    req.ManufacturerName,
 				Country: req.ManufacturerCountry,
 			},
@@ -129,22 +111,6 @@ func (s *AddMedicationService) Execute(
 	}
 
 	return &AddMedicationResponse{
-		ID: addedMedication.ID.String(),
-		AddMedicationCommand: AddMedicationCommand{
-			Name:                addedMedication.GetName().GetName(),
-			InternationalName:   addedMedication.GetInternationalName().GetInternationalName(),
-			AmountValue:         addedMedication.GetAmount().GetValue(),
-			AmountUnit:          addedMedication.GetAmount().GetUnit().String(),
-			ReleaseForm:         addedMedication.GetReleaseForm().String(),
-			Group:               addedMedication.GetGroup().GetGroup(),
-			ManufacturerName:    addedMedication.GetManufacturer().GetName(),
-			ManufacturerCountry: addedMedication.GetManufacturer().GetCountry(),
-			ActiveSubstanceName: addedMedication.GetActiveSubstance().GetName(),
-			ActiveSubstanceDose: addedMedication.GetActiveSubstance().GetDose().GetValue(),
-			ActiveSubstanceUnit: addedMedication.GetActiveSubstance().GetDose().GetUnit().String(),
-			Expires:             addedMedication.GetExpirationDate().Format(time.DateOnly),
-			Release:             addedMedication.GetReleaseDate().Format(time.DateOnly),
-			Commentary:          addedMedication.GetCommentary().GetCommentary(),
-		},
+		responseBaseMapper(addedMedication),
 	}, nil
 }

@@ -39,20 +39,7 @@ func NewHandlers(
 
 // AddMedicationJSONRequest is a request for AddMedication.
 type AddMedicationJSONRequest struct {
-	Name                string  `json:"name"`
-	InternationalName   string  `json:"internationalName"`
-	AmountValue         float32 `json:"amountValue"`
-	AmountUnit          string  `json:"amountUnit"`
-	ReleaseForm         string  `json:"releaseForm"`
-	Group               string  `json:"group"`
-	ManufacturerName    string  `json:"manufacturerName"`
-	ManufacturerCountry string  `json:"manufacturerCountry"`
-	ActiveSubstanceName string  `json:"activeSubstanceName"`
-	ActiveSubstanceDose float32 `json:"activeSubstanceDose"`
-	ActiveSubstanceUnit string  `json:"activeSubstanceUnit"`
-	Expires             string  `json:"expires"`
-	Release             string  `json:"release"`
-	Commentary          string  `json:"commentary"`
+	BodyCommonObject `json:",inline"`
 }
 
 // AddMedicationJSONResponse is a response for AddMedication.
@@ -100,20 +87,22 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 	}
 
 	serviceRequest := &application.AddMedicationCommand{
-		Name:                reqJSON.Name,
-		InternationalName:   reqJSON.InternationalName,
-		AmountValue:         reqJSON.AmountValue,
-		AmountUnit:          reqJSON.AmountUnit,
-		ReleaseForm:         reqJSON.ReleaseForm,
-		Group:               reqJSON.Group,
-		ManufacturerName:    reqJSON.ManufacturerName,
-		ManufacturerCountry: reqJSON.ManufacturerCountry,
-		ActiveSubstanceName: reqJSON.ActiveSubstanceName,
-		ActiveSubstanceDose: reqJSON.ActiveSubstanceDose,
-		ActiveSubstanceUnit: reqJSON.ActiveSubstanceUnit,
-		Expires:             reqJSON.Expires,
-		Release:             reqJSON.Release,
-		Commentary:          reqJSON.Commentary,
+		CommandBase: application.CommandBase{
+			Name:                reqJSON.Name,
+			InternationalName:   reqJSON.InternationalName,
+			AmountValue:         reqJSON.Amount.Value,
+			AmountUnit:          reqJSON.Amount.Unit,
+			ReleaseForm:         reqJSON.ReleaseForm,
+			Group:               reqJSON.Group,
+			ManufacturerName:    reqJSON.Producer.Name,
+			ManufacturerCountry: reqJSON.Producer.Country,
+			ActiveSubstanceName: reqJSON.ActiveSubstance.Name,
+			ActiveSubstanceDose: reqJSON.ActiveSubstance.Value,
+			ActiveSubstanceUnit: reqJSON.ActiveSubstance.Unit,
+			Expires:             reqJSON.Expiration,
+			Release:             reqJSON.Release,
+			Commentary:          reqJSON.Commentary,
+		},
 	}
 
 	serviceResponse, err := h.app.AddMedication.Execute(
@@ -219,7 +208,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 
 	serviceRequest := &application.UpdateMedicationCommand{
 		ID: id,
-		AddMedicationCommand: application.AddMedicationCommand{
+		CommandBase: application.CommandBase{
 			Name:                reqJSON.Name,
 			InternationalName:   reqJSON.InternationalName,
 			AmountValue:         reqJSON.Amount.Value,
@@ -302,7 +291,7 @@ func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Req
 		serviceRequest,
 	)
 	if err != nil {
-		if errors.Is(err, application.ErrDeleteInvalidUuidFormat) {
+		if errors.Is(err, application.ErrDeleteInvalidUUIDFormat) {
 			h.logger.WithError(err).Error("Failed to parse")
 			w.WriteHeader(http.StatusBadRequest)
 			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{

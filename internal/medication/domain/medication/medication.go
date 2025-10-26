@@ -10,60 +10,62 @@ import (
 
 // Medication represents a medication entity.
 type Medication struct {
-	ID                uuid.UUID
-	Name              MedicationName
-	InternationalName MedicationInternationalName
-	Group             MedicationGroup
-	Manufacturer      MedicationManufacturer
-	ReleaseForm       MedicationReleaseForm
-	Amount            MedicationAmount
+	id                uuid.UUID
+	name              Name
+	internationalName InternationalName
+	group             Group
+	manufacturer      Manufacturer
+	releaseForm       ReleaseForm
+	amount            Amount
 
 	// Точно ли комментарий относится к лекарству?
 	// Скорее это относится к записи в аптечке человека.
-	Commentary MedicationCommentary
+	commentary Commentary
 
-	ActiveSubstance MedicationActiveSubstance
-	ReleaseDate     time.Time // дата выпуска
-	ExpirationDate  time.Time // срок годности
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	activeSubstance ActiveSubstance
+	releaseDate     time.Time // дата выпуска
+	expirationDate  time.Time // срок годности
+	createdAt       time.Time
+	updatedAt       time.Time
 }
 
 // NewMedication creates a new medication.
 func NewMedication(
 	id uuid.UUID,
-	name MedicationName,
-	internationalName MedicationInternationalName,
-	group MedicationGroup,
-	manufacturer MedicationManufacturer,
-	releaseForm MedicationReleaseForm,
-	amount MedicationAmount,
-	activeSubstance MedicationActiveSubstance,
+	name Name,
+	internationalName InternationalName,
+	group Group,
+	manufacturer Manufacturer,
+	releaseForm ReleaseForm,
+	amount Amount,
+	activeSubstance ActiveSubstance,
 	releaseDate time.Time,
 	expirationDate time.Time,
-	commentary MedicationCommentary,
+	commentary Commentary,
 	createdAt time.Time,
 	updatedAt time.Time,
 ) *Medication {
 	return &Medication{
-		ID:                id,
-		Name:              name,
-		InternationalName: internationalName,
-		Group:             group,
-		Manufacturer:      manufacturer,
-		ReleaseForm:       releaseForm,
-		Amount:            amount,
-		ActiveSubstance:   activeSubstance,
-		ReleaseDate:       releaseDate,
-		ExpirationDate:    expirationDate,
-		Commentary:        commentary,
-		CreatedAt:         createdAt,
-		UpdatedAt:         updatedAt,
+		id:                id,
+		name:              name,
+		internationalName: internationalName,
+		group:             group,
+		manufacturer:      manufacturer,
+		releaseForm:       releaseForm,
+		amount:            amount,
+		activeSubstance:   activeSubstance,
+		releaseDate:       releaseDate,
+		expirationDate:    expirationDate,
+		commentary:        commentary,
+		createdAt:         createdAt,
+		updatedAt:         updatedAt,
 	}
 }
 
 // MedicationDraft represents a medication draft entity
 // that uses built-in types.
+//
+//nolint:revive
 type MedicationDraft struct {
 	// required fields
 	ID             uuid.UUID
@@ -76,7 +78,7 @@ type MedicationDraft struct {
 	// optional fields, nullable
 	InternationalName string
 	Group             string
-	Manufacturer      MedicationManufacturerDraft
+	Manufacturer      ManufacturerDraft
 
 	ActiveSubstanceName      string
 	ActiveSubstanceDoseValue float32
@@ -92,17 +94,17 @@ type MedicationDraft struct {
 
 type requiredFields struct {
 	id          uuid.UUID
-	name        MedicationName
-	releaseForm MedicationReleaseForm
-	amount      MedicationAmount
+	name        Name
+	releaseForm ReleaseForm
+	amount      Amount
 }
 
 type optionalFields struct {
-	internationalName MedicationInternationalName
-	group             MedicationGroup
-	manufacturer      MedicationManufacturer
-	activeSubstance   MedicationActiveSubstance
-	commentary        MedicationCommentary
+	internationalName InternationalName
+	group             Group
+	manufacturer      Manufacturer
+	activeSubstance   ActiveSubstance
+	commentary        Commentary
 }
 
 func validateRequired(draft MedicationDraft) (requiredFields, error) {
@@ -179,6 +181,7 @@ func validateOptional(draft MedicationDraft) (optionalFields, error) {
 	}, nil
 }
 
+// NewMedicationParse creates a new medication from a draft.
 func NewMedicationParse(draft MedicationDraft) (*Medication, error) {
 	required, err := validateRequired(draft)
 	if err != nil {
@@ -191,112 +194,136 @@ func NewMedicationParse(draft MedicationDraft) (*Medication, error) {
 	}
 
 	return &Medication{
-		ID:                required.id,
-		Name:              required.name,
-		ReleaseForm:       required.releaseForm,
-		Amount:            required.amount,
-		InternationalName: optional.internationalName,
-		Group:             optional.group,
-		Manufacturer:      optional.manufacturer,
-		ActiveSubstance:   optional.activeSubstance,
-		Commentary:        optional.commentary,
-		ReleaseDate:       draft.ReleaseDate,
-		ExpirationDate:    draft.ExpirationDate,
-		CreatedAt:         draft.CreatedAt,
-		UpdatedAt:         draft.UpdatedAt,
+		id:                required.id,
+		name:              required.name,
+		releaseForm:       required.releaseForm,
+		amount:            required.amount,
+		internationalName: optional.internationalName,
+		group:             optional.group,
+		manufacturer:      optional.manufacturer,
+		activeSubstance:   optional.activeSubstance,
+		commentary:        optional.commentary,
+		releaseDate:       draft.ReleaseDate,
+		expirationDate:    draft.ExpirationDate,
+		createdAt:         draft.CreatedAt,
+		updatedAt:         draft.UpdatedAt,
 	}, nil
 }
 
-func (m *Medication) GetID() uuid.UUID { return m.ID }
+// GetID returns the unique identifier of the medication.
+func (m *Medication) GetID() uuid.UUID { return m.id }
 
-func (m *Medication) SetName(name MedicationName) {
-	m.Name = name
+// SetName updates the name Value Object of the medication.
+func (m *Medication) SetName(name Name) {
+	m.name = name
 }
 
-func (m *Medication) SetInternationalName(name MedicationInternationalName) {
-	m.InternationalName = name
+// SetInternationalName updates the international name Value Object of the medication.
+func (m *Medication) SetInternationalName(name InternationalName) {
+	m.internationalName = name
 }
 
-func (m *Medication) SetGroup(group MedicationGroup) {
-	m.Group = group
+// SetGroup updates the group Value Object of the medication.
+func (m *Medication) SetGroup(group Group) {
+	m.group = group
 }
 
-func (m *Medication) SetManufacturer(manufacturer MedicationManufacturer) {
-	m.Manufacturer = manufacturer
+// SetManufacturer updates the manufacturer Value Object of the medication.
+func (m *Medication) SetManufacturer(manufacturer Manufacturer) {
+	m.manufacturer = manufacturer
 }
 
-func (m *Medication) SetReleaseForm(form MedicationReleaseForm) {
-	m.ReleaseForm = form
+// SetReleaseForm updates the release form Value Object of the medication.
+func (m *Medication) SetReleaseForm(form ReleaseForm) {
+	m.releaseForm = form
 }
 
-func (m *Medication) SetAmount(amount MedicationAmount) {
-	m.Amount = amount
+// SetAmount updates the amount Value Object of the medication.
+func (m *Medication) SetAmount(amount Amount) {
+	m.amount = amount
 }
 
-func (m *Medication) SetCommentary(commentary MedicationCommentary) {
-	m.Commentary = commentary
+// SetCommentary updates the commentary Value Object of the medication.
+func (m *Medication) SetCommentary(commentary Commentary) {
+	m.commentary = commentary
 }
 
-func (m *Medication) SetActiveSubstance(substance MedicationActiveSubstance) {
-	m.ActiveSubstance = substance
+// SetActiveSubstance updates the active substance Value Object of the medication.
+func (m *Medication) SetActiveSubstance(substance ActiveSubstance) {
+	m.activeSubstance = substance
 }
 
+// SetReleaseDate updates the release date of the medication.
 func (m *Medication) SetReleaseDate(date time.Time) {
-	m.ReleaseDate = date
+	m.releaseDate = date
 }
 
+// SetExpirationDate updates the expiration date of the medication.
 func (m *Medication) SetExpirationDate(date time.Time) {
-	m.ExpirationDate = date
+	m.expirationDate = date
 }
 
+// SetUpdatedAt updates the last modification timestamp of the medication.
 func (m *Medication) SetUpdatedAt(date time.Time) {
-	m.UpdatedAt = date
+	m.updatedAt = date
 }
 
-func (m *Medication) GetName() MedicationName {
-	return m.Name
+// GetName returns the name Value Object of the medication.
+func (m *Medication) GetName() Name {
+	return m.name
 }
 
-func (m *Medication) GetInternationalName() MedicationInternationalName {
-	return m.InternationalName
+// GetInternationalName returns the international name Value Object of the medication.
+func (m *Medication) GetInternationalName() InternationalName {
+	return m.internationalName
 }
 
-func (m *Medication) GetGroup() MedicationGroup {
-	return m.Group
+// GetGroup returns the group Value Object of the medication.
+func (m *Medication) GetGroup() Group {
+	return m.group
 }
 
-func (m *Medication) GetManufacturer() MedicationManufacturer {
-	return m.Manufacturer
+// GetManufacturer returns the manufacturer Value Object of the medication.
+func (m *Medication) GetManufacturer() Manufacturer {
+	return m.manufacturer
 }
 
-func (m *Medication) GetReleaseForm() MedicationReleaseForm {
-	return m.ReleaseForm
+// GetReleaseForm returns the release form Value Object of the medication.
+func (m *Medication) GetReleaseForm() ReleaseForm {
+	return m.releaseForm
 }
 
-func (m *Medication) GetAmount() MedicationAmount {
-	return m.Amount
+// GetAmount returns the amount Value Object of the medication.
+func (m *Medication) GetAmount() Amount {
+	return m.amount
 }
 
-func (m *Medication) GetCommentary() MedicationCommentary {
-	return m.Commentary
+// GetCommentary returns the commentary Value Object of the medication.
+func (m *Medication) GetCommentary() Commentary {
+	return m.commentary
 }
 
-func (m *Medication) GetActiveSubstance() MedicationActiveSubstance {
-	return m.ActiveSubstance
+// GetActiveSubstance returns the active substance Value Object of the medication.
+func (m *Medication) GetActiveSubstance() ActiveSubstance {
+	return m.activeSubstance
 }
 
+// GetReleaseDate returns the release date of the medication.
 func (m *Medication) GetReleaseDate() time.Time {
-	return m.ReleaseDate
+	return m.releaseDate
 }
 
+// GetExpirationDate returns the expiration date of the medication.
 func (m *Medication) GetExpirationDate() time.Time {
-	return m.ExpirationDate
+	return m.expirationDate
 }
 
+// GetCreatedAt returns the creation timestamp of the medication.
 func (m *Medication) GetCreatedAt() time.Time {
-	return m.CreatedAt
+	return m.createdAt
 }
 
+// GetUpdatedAt returns the last modification timestamp of the medication.
 func (m *Medication) GetUpdatedAt() time.Time {
-	return m.UpdatedAt
+	return m.updatedAt
 }
