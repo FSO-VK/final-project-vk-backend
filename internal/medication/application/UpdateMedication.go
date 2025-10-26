@@ -95,6 +95,6 @@ func (s *UpdateMedicationService) Execute(
 		CategoriesID: updatedMedication.CategoriesID,
 		Items:        updatedMedication.Items,
 		ItemsUnit:    updatedMedication.ItemsUnit,
-		Expires:      updatedMedication.Expires.Format(time.DateOnly),
+		Expires:      updatedMedication.ExpiresAt.Format(time.DateOnly),
 	}, nil
 }
