@@ -4,6 +4,7 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -242,15 +243,26 @@ func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Req
 		r.Context(),
 		serviceRequest,
 	)
-	if err != nil {
-		h.logger.WithError(err).Error("Failed to delete medication")
-		w.WriteHeader(http.StatusInternalServerError)
 
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusInternalServerError,
-			Body:       struct{}{},
-			Error:      MsgFailedToDeleteMedication,
-		})
+	if err != nil {
+		if errors.Is(application.ErrDeleteInvalidUuidFormat, err) {
+			h.logger.WithError(err).Error("Failed to parse")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+				StatusCode: http.StatusBadRequest,
+				Body:       struct{}{},
+				Error:      MsgFailToParseID,
+			})
+		} else {
+			h.logger.WithError(err).Error("Failed to delete medication")
+			w.WriteHeader(http.StatusInternalServerError)
+
+			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+				StatusCode: http.StatusInternalServerError,
+				Body:       struct{}{},
+				Error:      MsgFailedToDeleteMedication,
+			})
+		}
 
 		return
 	}

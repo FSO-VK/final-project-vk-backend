@@ -2,11 +2,16 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	medication "github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
+)
+
+var (
+	ErrDeleteInvalidUuidFormat = errors.New("invalid UUID format")
 )
 
 // DeleteMedication is an interface for deleting a medication.
@@ -54,7 +59,7 @@ func (s *DeleteMedicationService) Execute(
 
 	parsedUUID, err := uuid.Parse(req.ID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid UUID format: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrDeleteInvalidUuidFormat, err)
 	}
 
 	err = s.medicationRepo.Delete(ctx, parsedUUID)
