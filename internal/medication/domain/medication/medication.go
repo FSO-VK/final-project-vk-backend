@@ -111,17 +111,10 @@ func validateRequired(draft MedicationDraft) (requiredFields, error) {
 	name, err := NewMedicationName(draft.Name)
 	allErrors = errors.Join(allErrors, err)
 
-	releaseForm, ok := ReleaseFormString[draft.ReleaseForm]
-	if !ok {
-		allErrors = errors.Join(allErrors, ErrInvalidReleaseForm)
-	}
+	releaseForm, err := NewMedicationReleaseForm(draft.ReleaseForm)
+	allErrors = errors.Join(allErrors, err)
 
-	amountUnit, ok := UnitString[draft.AmountUnit]
-	if !ok {
-		allErrors = errors.Join(allErrors, ErrInvalidUnit)
-	}
-
-	amount, err := NewMedicationAmount(draft.AmountValue, amountUnit)
+	amount, err := NewMedicationAmount(draft.AmountValue, draft.AmountUnit)
 	allErrors = errors.Join(allErrors, err)
 
 	if draft.ExpirationDate.IsZero() {
@@ -155,15 +148,10 @@ func validateOptional(draft MedicationDraft) (optionalFields, error) {
 	)
 	allErrors = errors.Join(allErrors, err)
 
-	activeSubstanceUnit, ok := UnitString[draft.ActiveSubstanceDoseUnit]
-	if !ok {
-		allErrors = errors.Join(allErrors, ErrInvalidUnit)
-	}
-
 	activeSubstance, err := NewMedicationActiveSubstance(
 		draft.ActiveSubstanceName,
 		draft.ActiveSubstanceDoseValue,
-		activeSubstanceUnit,
+		draft.ActiveSubstanceDoseUnit,
 	)
 	allErrors = errors.Join(allErrors, err)
 
@@ -216,3 +204,97 @@ func NewMedicationParse(draft MedicationDraft) (*Medication, error) {
 }
 
 func (m *Medication) GetID() uuid.UUID { return m.ID }
+
+func (m *Medication) SetName(name MedicationName) {
+	m.Name = name
+}
+
+func (m *Medication) SetInternationalName(name MedicationInternationalName) {
+	m.InternationalName = name
+}
+
+func (m *Medication) SetGroup(group MedicationGroup) {
+	m.Group = group
+}
+
+func (m *Medication) SetManufacturer(manufacturer MedicationManufacturer) {
+	m.Manufacturer = manufacturer
+}
+
+func (m *Medication) SetReleaseForm(form MedicationReleaseForm) {
+	m.ReleaseForm = form
+}
+
+func (m *Medication) SetAmount(amount MedicationAmount) {
+	m.Amount = amount
+}
+
+func (m *Medication) SetCommentary(commentary MedicationCommentary) {
+	m.Commentary = commentary
+}
+
+func (m *Medication) SetActiveSubstance(substance MedicationActiveSubstance) {
+	m.ActiveSubstance = substance
+}
+
+func (m *Medication) SetReleaseDate(date time.Time) {
+	m.ReleaseDate = date
+}
+
+func (m *Medication) SetExpirationDate(date time.Time) {
+	m.ExpirationDate = date
+}
+
+func (m *Medication) SetUpdatedAt(date time.Time) {
+	m.UpdatedAt = date
+}
+
+func (m *Medication) GetName() MedicationName {
+	return m.Name
+}
+
+func (m *Medication) GetInternationalName() MedicationInternationalName {
+	return m.InternationalName
+}
+
+func (m *Medication) GetGroup() MedicationGroup {
+	return m.Group
+}
+
+func (m *Medication) GetManufacturer() MedicationManufacturer {
+	return m.Manufacturer
+}
+
+func (m *Medication) GetReleaseForm() MedicationReleaseForm {
+	return m.ReleaseForm
+}
+
+func (m *Medication) GetAmount() MedicationAmount {
+	return m.Amount
+}
+
+func (m *Medication) GetCommentary() MedicationCommentary {
+	return m.Commentary
+}
+
+func (m *Medication) GetActiveSubstance() MedicationActiveSubstance {
+	return m.ActiveSubstance
+}
+
+func (m *Medication) GetReleaseDate() time.Time {
+	return m.ReleaseDate
+}
+
+func (m *Medication) GetExpirationDate() time.Time {
+	return m.ExpirationDate
+}
+
+func (m *Medication) GetCreatedAt() time.Time {
+	return m.CreatedAt
+}
+
+func (m *Medication) GetUpdatedAt() time.Time {
+	return m.UpdatedAt
+}
+
+ 
