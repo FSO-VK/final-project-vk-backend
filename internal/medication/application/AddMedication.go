@@ -42,18 +42,26 @@ type AddMedicationCommand struct {
 	InternationalName string
 	AmountValue       float32 `validate:"required,gte=0"`
 	AmountUnit        string  `validate:"required"`
+	ReleaseForm       string  `validate:"required"`
+
+	Group string
 
 	ManufacturerName    string
 	ManufacturerCountry string
 
-	Items     uint   `validate:"required"`
-	ItemsUnit string `validate:"required"`
-	Expires   string `validate:"required"`
+	ActiveSubstanceName string
+	ActiveSubstanceDose float32
+	ActiveSubstanceUnit string
+
+	Expires string `validate:"required"`
+	Release string
+
+	Commentary string
 }
 
 // AddMedicationResponse is a response to add a medication.
 type AddMedicationResponse struct {
-	ID uint
+	ID string
 }
 
 // Execute executes the AddMedication command.
@@ -71,9 +79,13 @@ func (s *AddMedicationService) Execute(
 		return nil, fmt.Errorf("failed to parse expiration: %w", err)
 	}
 
-	drugName, err := medication.NewMedicationName(req.Name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create VO: %w", err)
+	var release time.Time
+	if req.Release != "" {
+		release, err := time.Parse(time.DateOnly, req.Release)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse release: %w", err)
+		}
+		expiration = release
 	}
 
 	id, err := uuid.NewV7()
@@ -81,13 +93,40 @@ func (s *AddMedicationService) Execute(
 		return nil, fmt.Errorf("failed to create uuid v7: %w", err)
 	}
 
+	drug, err := medication.NewMedicationParse(
+		medication.MedicationDraft{
+			ID:             id,
+			Name:           req.Name,
+			ReleaseForm:    req.ReleaseForm,
+			AmountValue:    req.AmountValue,
+			AmountUnit:     req.AmountUnit,
+			ExpirationDate: expiration,
+
+			InternationalName: req.InternationalName,
+			Group:             req.Group,
+			Manufacturer: medication.MedicationManufacturerDraft{
+				Name:    req.ManufacturerName,
+				Country: req.ManufacturerCountry,
+			},
+			ActiveSubstanceName:      req.ActiveSubstanceName,
+			ActiveSubstanceDoseValue: req.ActiveSubstanceDose,
+			ActiveSubstanceDoseUnit:  req.ActiveSubstanceUnit,
+			Commentary:               req.Commentary,
+			ReleaseDate:              release,
+			CreatedAt:                time.Now(),
+			UpdatedAt:                time.Now(),
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create medication: %w", err)
+	}
 
 	addedMedication, err := s.medicationRepo.Create(ctx, drug)
 	if err != nil {
-		return nil, fmt.Errorf("failed to add medication: %w", err)
+		return nil, fmt.Errorf("failed to save medication: %w", err)
 	}
 
 	return &AddMedicationResponse{
-		ID: addedMedication.ID,
+		ID: addedMedication.ID.String(),
 	}, nil
 }
