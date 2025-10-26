@@ -10,9 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	ErrDeleteInvalidUuidFormat = errors.New("invalid UUID format")
-)
+var ErrDeleteInvalidUuidFormat = errors.New("invalid UUID format")
 
 // DeleteMedication is an interface for deleting a medication.
 type DeleteMedication interface {

@@ -43,17 +43,17 @@ func NewUpdateMedicationService(
 
 // UpdateMedicationCommand is a request to update a medication.
 type UpdateMedicationCommand struct {
-	ID string `validate:"required,uuid"`
-
 	// fields embedded
 	AddMedicationCommand
+
+	ID string `validate:"required,uuid"`
 }
 
 // UpdateMedicationResponse is a response to update a medication.
 type UpdateMedicationResponse struct {
-	ID uuid.UUID
-
 	AddMedicationCommand
+
+	ID string
 }
 
 // Execute updates a medication.
@@ -87,7 +87,7 @@ func (s *UpdateMedicationService) Execute(
 	}
 
 	return &UpdateMedicationResponse{
-		ID: savedMedication.ID,
+		ID: savedMedication.ID.String(),
 		AddMedicationCommand: AddMedicationCommand{
 			Name:                savedMedication.GetName().GetName(),
 			InternationalName:   savedMedication.GetInternationalName().GetInternationalName(),

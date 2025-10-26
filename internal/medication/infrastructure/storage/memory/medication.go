@@ -2,10 +2,10 @@ package memory
 
 import (
 	"context"
-	"strconv"
 	"sync"
 
 	medication "github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
+	"github.com/google/uuid"
 )
 
 // MedicationStorage is a storage for medications.
@@ -41,9 +41,9 @@ func (s *MedicationStorage) Create(
 // GetByID returns a medication by id.
 func (s *MedicationStorage) GetByID(
 	_ context.Context,
-	medicationID uint,
+	medicationID uuid.UUID,
 ) (*medication.Medication, error) {
-	drug, ok := s.data.Get(strconv.FormatUint(uint64(medicationID), 10))
+	drug, ok := s.data.Get(medicationID.String())
 	if !ok {
 		return nil, medication.ErrNoMedicationFound
 	}
@@ -77,15 +77,15 @@ func (s *MedicationStorage) Update(
 }
 
 // Delete deletes a medication in memory.
-func (s *MedicationStorage) Delete(_ context.Context, medicationID uint) error {
+func (s *MedicationStorage) Delete(_ context.Context, medicationID uuid.UUID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	_, ok := s.data.Get(strconv.FormatUint(uint64(medicationID), 10))
+	_, ok := s.data.Get(medicationID.String())
 	if !ok {
 		return medication.ErrNoMedicationFound
 	}
 
-	s.data.Delete(strconv.FormatUint(uint64(medicationID), 10))
+	s.data.Delete(medicationID.String())
 	return nil
 }

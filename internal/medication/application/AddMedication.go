@@ -61,6 +61,8 @@ type AddMedicationCommand struct {
 
 // AddMedicationResponse is a response to add a medication.
 type AddMedicationResponse struct {
+	AddMedicationCommand
+
 	ID string
 }
 
@@ -128,5 +130,21 @@ func (s *AddMedicationService) Execute(
 
 	return &AddMedicationResponse{
 		ID: addedMedication.ID.String(),
+		AddMedicationCommand: AddMedicationCommand{
+			Name:                addedMedication.GetName().GetName(),
+			InternationalName:   addedMedication.GetInternationalName().GetInternationalName(),
+			AmountValue:         addedMedication.GetAmount().GetValue(),
+			AmountUnit:          addedMedication.GetAmount().GetUnit().String(),
+			ReleaseForm:         addedMedication.GetReleaseForm().String(),
+			Group:               addedMedication.GetGroup().GetGroup(),
+			ManufacturerName:    addedMedication.GetManufacturer().GetName(),
+			ManufacturerCountry: addedMedication.GetManufacturer().GetCountry(),
+			ActiveSubstanceName: addedMedication.GetActiveSubstance().GetName(),
+			ActiveSubstanceDose: addedMedication.GetActiveSubstance().GetDose().GetValue(),
+			ActiveSubstanceUnit: addedMedication.GetActiveSubstance().GetDose().GetUnit().String(),
+			Expires:             addedMedication.GetExpirationDate().Format(time.DateOnly),
+			Release:             addedMedication.GetReleaseDate().Format(time.DateOnly),
+			Commentary:          addedMedication.GetCommentary().GetCommentary(),
+		},
 	}, nil
 }

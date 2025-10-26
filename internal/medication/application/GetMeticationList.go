@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
@@ -54,5 +55,8 @@ func (s *GetMedicationListService) Execute(
 	ctx context.Context,
 	req *GetMedicationListCommand,
 ) (*GetMedicationListResponse, error) {
-	return  &GetMedicationListResponse{}, nil
+	// Temporary disabled due to not implemented
+	//
+	//nolint:err113
+	return nil, errors.New("not implemented")
 }

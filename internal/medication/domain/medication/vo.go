@@ -128,6 +128,9 @@ const (
 	Patch
 )
 
+// Unexported global variable.
+//
+//nolint:gochecknoglobals
 var releaseFormToString = map[string]MedicationReleaseForm{
 	"tablet":     Tablet,
 	"capsule":    Capsule,
@@ -139,16 +142,19 @@ var releaseFormToString = map[string]MedicationReleaseForm{
 	"patch":      Patch,
 }
 
+// Unexported global variable.
+//
+//nolint:gochecknoglobals
 var stringToReleaseForm = map[MedicationReleaseForm]string{
 	UnknownForm: "unknown form",
-	Tablet:     "tablet",
-	Capsule:    "capsule",
-	Injection:  "injection",
-	Ointment:   "ointment",
-	Syrup:      "syrup",
-	Drops:      "drops",
-	Inhalation: "inhalation",
-	Patch:      "patch",
+	Tablet:      "tablet",
+	Capsule:     "capsule",
+	Injection:   "injection",
+	Ointment:    "ointment",
+	Syrup:       "syrup",
+	Drops:       "drops",
+	Inhalation:  "inhalation",
+	Patch:       "patch",
 }
 
 func NewMedicationReleaseForm(form string) (MedicationReleaseForm, error) {
@@ -175,6 +181,9 @@ const (
 	Milliliter
 )
 
+// Unexported global variable.
+//
+//nolint:gochecknoglobals
 var unitToString = map[string]MedicationUnit{
 	"piece":      Piece,
 	"gram":       Gram,
@@ -186,12 +195,15 @@ var unitToString = map[string]MedicationUnit{
 	"ml":         Milliliter,
 }
 
+// Unexported global variable.
+//
+//nolint:gochecknoglobals
 var stringToUnit = map[MedicationUnit]string{
 	UnknownUnit: "unknown unit",
-	Piece:      "piece",
-	Gram:       "gram",
-	Milligram:  "milligram",
-	Milliliter: "milliliter",
+	Piece:       "piece",
+	Gram:        "gram",
+	Milligram:   "milligram",
+	Milliliter:  "milliliter",
 }
 
 func NewMedicationUnit(unit string) (MedicationUnit, error) {

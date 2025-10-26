@@ -38,6 +38,7 @@ func NewMedication(
 	manufacturer MedicationManufacturer,
 	releaseForm MedicationReleaseForm,
 	amount MedicationAmount,
+	activeSubstance MedicationActiveSubstance,
 	releaseDate time.Time,
 	expirationDate time.Time,
 	commentary MedicationCommentary,
@@ -52,6 +53,7 @@ func NewMedication(
 		Manufacturer:      manufacturer,
 		ReleaseForm:       releaseForm,
 		Amount:            amount,
+		ActiveSubstance:   activeSubstance,
 		ReleaseDate:       releaseDate,
 		ExpirationDate:    expirationDate,
 		Commentary:        commentary,
@@ -60,6 +62,8 @@ func NewMedication(
 	}
 }
 
+// MedicationDraft represents a medication draft entity
+// that uses built-in types.
 type MedicationDraft struct {
 	// required fields
 	ID             uuid.UUID
@@ -296,5 +300,3 @@ func (m *Medication) GetCreatedAt() time.Time {
 func (m *Medication) GetUpdatedAt() time.Time {
 	return m.UpdatedAt
 }
-
- 

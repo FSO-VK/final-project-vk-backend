@@ -20,16 +20,16 @@ func Required(value string) error {
 	return nil
 }
 
-func MinLength(value string, min int) error {
-	if len(value) < min {
-		return fmt.Errorf("%w: can't be less than %d", ErrValueShort, min)
+func MinLength(value string, length int) error {
+	if len(value) < length {
+		return fmt.Errorf("%w: can't be less than %d", ErrValueShort, length)
 	}
 	return nil
 }
 
-func MaxLength(value string, max int) error {
-	if len(value) > max {
-		return fmt.Errorf("%w, can't be longer than %d", ErrValueLong, max)
+func MaxLength(value string, length int) error {
+	if len(value) > length {
+		return fmt.Errorf("%w, can't be longer than %d", ErrValueLong, length)
 	}
 	return nil
 }
