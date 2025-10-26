@@ -4,8 +4,25 @@ package medication
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/FSO-VK/final-project-vk-backend/pkg/validation"
+)
+
+// Errors of the medication domain VO's.
+var (
+	ErrInvalidID                = errors.New("invalid id")
+	ErrInvalidName              = errors.New("invalid name")
+	ErrInvalidInternationalName = errors.New("invalid international name")
+	ErrInvalidGroup             = errors.New("invalid group")
+	ErrInvalidManufacturer      = errors.New("invalid manufacturer")
+	ErrInvalidReleaseForm       = errors.New("invalid release form")
+	ErrInvalidUnit              = errors.New("invalid unit")
+	ErrInvalidAmount            = errors.New("invalid amount")
+	ErrInvalidActiveSubstance   = errors.New("invalid active substance")
+	ErrInvalidCommentary        = errors.New("invalid commentary")
+	ErrInvalidExpirationTime    = errors.New("invalid expiration time")
+	ErrInvalidDateRange         = errors.New("expiration date must be greater than release date")
 )
 
 type MedicationName string
@@ -16,7 +33,7 @@ func NewMedicationName(name string) (MedicationName, error) {
 		validation.MaxLength(name, 200),
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %w", ErrInvalidName, err)
 	}
 	return MedicationName(name), nil
 }
@@ -32,7 +49,7 @@ func NewMedicationInternationalName(name string) (MedicationInternationalName, e
 		validation.MaxLength(name, 200),
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %w", ErrInvalidInternationalName, err)
 	}
 	return MedicationInternationalName(name), nil
 }
@@ -48,7 +65,7 @@ func NewMedicationGroup(group string) (MedicationGroup, error) {
 		validation.MaxLength(group, 200),
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %w", ErrInvalidGroup, err)
 	}
 
 	return MedicationGroup(group), nil
@@ -74,7 +91,7 @@ func NewMedicationManufacturer(name string, country string) (MedicationManufactu
 		validation.MaxLength(country, 200),
 	)
 	if err != nil {
-		return MedicationManufacturer{}, err
+		return MedicationManufacturer{}, fmt.Errorf("%w: %w", ErrInvalidManufacturer, err)
 	}
 	return MedicationManufacturer{
 		name:    name,
@@ -146,7 +163,7 @@ func NewMedicationAmount(value float32, unit MedicationUnit) (MedicationAmount, 
 		validation.Positive(value),
 	)
 	if err != nil {
-		return MedicationAmount{}, err
+		return MedicationAmount{}, fmt.Errorf("%w: %w", ErrInvalidAmount, err)
 	}
 
 	return MedicationAmount{
@@ -170,7 +187,7 @@ func NewMedicationCommentary(commentary string) (MedicationCommentary, error) {
 		validation.MaxLength(commentary, 1000),
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %w", ErrInvalidCommentary, err)
 	}
 	return MedicationCommentary(commentary), nil
 }
@@ -193,9 +210,8 @@ func NewMedicationActiveSubstance(
 		validation.MaxLength(name, 200),
 		err,
 	)
-
 	if err != nil {
-		return MedicationActiveSubstance{}, err
+		return MedicationActiveSubstance{}, fmt.Errorf("%w: %w", ErrInvalidActiveSubstance, err)
 	}
 
 	return MedicationActiveSubstance{
