@@ -2,10 +2,16 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	medication "github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
+	"github.com/google/uuid"
+)
+
+var (
+	ErrDeleteInvalidUuidFormat = errors.New("invalid UUID format")
 )
 
 // DeleteMedication is an interface for deleting a medication.
@@ -35,7 +41,7 @@ func NewDeleteMedicationService(
 
 // DeleteMedicationCommand is a request to delete a medication.
 type DeleteMedicationCommand struct {
-	ID uint `validate:"required"`
+	ID string `validate:"required"`
 }
 
 // DeleteMedicationResponse is a response to delete a medication.
@@ -51,7 +57,12 @@ func (s *DeleteMedicationService) Execute(
 		return nil, fmt.Errorf("failed to validate request: %w", valErr)
 	}
 
-	err := s.medicationRepo.Delete(ctx, req.ID)
+	parsedUUID, err := uuid.Parse(req.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrDeleteInvalidUuidFormat, err)
+	}
+
+	err = s.medicationRepo.Delete(ctx, parsedUUID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete medication: %w", err)
 	}
