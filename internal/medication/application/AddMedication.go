@@ -38,11 +38,17 @@ func NewAddMedicationService(
 
 // AddMedicationCommand is a request to add a medication.
 type AddMedicationCommand struct {
-	Name         string `validate:"required"`
-	CategoriesID []uint
-	Items        uint   `validate:"required"`
-	ItemsUnit    string `validate:"required"`
-	Expires      string `validate:"required"`
+	Name              string `validate:"required"`
+	InternationalName string
+	AmountValue       float32 `validate:"required,gte=0"`
+	AmountUnit        string  `validate:"required"`
+
+	ManufacturerName    string
+	ManufacturerCountry string
+
+	Items     uint   `validate:"required"`
+	ItemsUnit string `validate:"required"`
+	Expires   string `validate:"required"`
 }
 
 // AddMedicationResponse is a response to add a medication.
@@ -75,10 +81,6 @@ func (s *AddMedicationService) Execute(
 		return nil, fmt.Errorf("failed to create uuid v7: %w", err)
 	}
 
-	drug := medication.NewMedication(
-		id,
-		drugName,
-	)
 
 	addedMedication, err := s.medicationRepo.Create(ctx, drug)
 	if err != nil {

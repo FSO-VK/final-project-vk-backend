@@ -8,22 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	ErrInvalidID                = errors.New("invalid id")
-	ErrInvalidName              = errors.New("invalid name")
-	ErrInvalidInternationalName = errors.New("invalid international name")
-	ErrInvalidGroup             = errors.New("invalid group")
-	ErrInvalidManufacturer      = errors.New("invalid manufacturer")
-	ErrInvalidReleaseForm       = errors.New("invalid release form")
-	ErrInvalidUnit              = errors.New("invalid unit")
-	ErrInvalidAmount            = errors.New("invalid amount")
-	ErrInvalidActiveSubstance   = errors.New("invalid active substance")
-	ErrInvalidCommentary        = errors.New("invalid commentary")
-	ErrInvalidReleaseDate       = errors.New("invalid release date")
-	ErrInvalidExpirationTime    = errors.New("invalid expiration time")
-	ErrInvalidDateRange         = errors.New("expiration date must be greater than release date")
-)
-
 // Medication represents a medication entity.
 type Medication struct {
 	ID uuid.UUID
@@ -117,10 +101,10 @@ type requiredFields struct {
 
 type optionalFields struct {
 	internationalName MedicationInternationalName
-	group            MedicationGroup
-	manufacturer     MedicationManufacturer
-	activeSubstance  MedicationActiveSubstance
-	commentary       MedicationCommentary
+	group             MedicationGroup
+	manufacturer      MedicationManufacturer
+	activeSubstance   MedicationActiveSubstance
+	commentary        MedicationCommentary
 }
 
 func validateRequired(draft MedicationDraft) (requiredFields, error) {
@@ -131,9 +115,7 @@ func validateRequired(draft MedicationDraft) (requiredFields, error) {
 	}
 
 	name, err := NewMedicationName(draft.Name)
-	if err != nil {
-		allErrors = errors.Join(allErrors, ErrInvalidName)
-	}
+	allErrors = errors.Join(allErrors, err)
 
 	releaseForm, ok := ReleaseFormString[draft.ReleaseForm]
 	if !ok {
@@ -146,9 +128,7 @@ func validateRequired(draft MedicationDraft) (requiredFields, error) {
 	}
 
 	amount, err := NewMedicationAmount(draft.AmountValue, amountUnit)
-	if err != nil {
-		allErrors = errors.Join(allErrors, ErrInvalidAmount)
-	}
+	allErrors = errors.Join(allErrors, err)
 
 	if draft.ExpirationDate.IsZero() {
 		allErrors = errors.Join(allErrors, ErrInvalidExpirationTime)
@@ -170,22 +150,16 @@ func validateOptional(draft MedicationDraft) (optionalFields, error) {
 	var allErrors error
 
 	internationalName, err := NewMedicationInternationalName(draft.InternationalName)
-	if err != nil {
-		allErrors = errors.Join(allErrors, ErrInvalidInternationalName)
-	}
+	allErrors = errors.Join(allErrors, err)
 
 	group, err := NewMedicationGroup(draft.Group)
-	if err != nil {
-		allErrors = errors.Join(allErrors, ErrInvalidGroup)
-	}
+	allErrors = errors.Join(allErrors, err)
 
 	manufacturer, err := NewMedicationManufacturer(
 		draft.Manufacturer.Name,
 		draft.Manufacturer.Country,
 	)
-	if err != nil {
-		allErrors = errors.Join(allErrors, ErrInvalidManufacturer)
-	}
+	allErrors = errors.Join(allErrors, err)
 
 	activeSubstanceUnit, ok := UnitString[draft.ActiveSubstanceDoseUnit]
 	if !ok {
@@ -197,14 +171,10 @@ func validateOptional(draft MedicationDraft) (optionalFields, error) {
 		draft.ActiveSubstanceDoseValue,
 		activeSubstanceUnit,
 	)
-	if err != nil {
-		allErrors = errors.Join(allErrors, ErrInvalidActiveSubstance)
-	}
+	allErrors = errors.Join(allErrors, err)
 
 	commentary, err := NewMedicationCommentary(draft.Commentary)
-	if err != nil {
-		allErrors = errors.Join(allErrors, ErrInvalidCommentary)
-	}
+	allErrors = errors.Join(allErrors, err)
 
 	if draft.ReleaseDate.After(draft.ExpirationDate) {
 		allErrors = errors.Join(allErrors, ErrInvalidDateRange)
@@ -216,10 +186,10 @@ func validateOptional(draft MedicationDraft) (optionalFields, error) {
 
 	return optionalFields{
 		internationalName: internationalName,
-		group:            group,
-		manufacturer:     manufacturer,
-		activeSubstance:  activeSubstance,
-		commentary:       commentary,
+		group:             group,
+		manufacturer:      manufacturer,
+		activeSubstance:   activeSubstance,
+		commentary:        commentary,
 	}, nil
 }
 
