@@ -38,20 +38,20 @@ func NewHandlers(
 
 // AddMedicationJSONRequest is a request for AddMedication.
 type AddMedicationJSONRequest struct {
-	Name                string `json:"name"`
-	InternationalName   string `json:"internationalName"`
-	AmountValue         float32   `json:"amountValue"`
-	AmountUnit          string `json:"amountUnit"`
-	ReleaseForm         string `json:"releaseForm"`
-	Group               string `json:"group"`
-	ManufacturerName    string `json:"manufacturerName"`
-	ManufacturerCountry string `json:"manufacturerCountry"`
-	ActiveSubstanceName string `json:"activeSubstanceName"`
-	ActiveSubstanceDose float32   `json:"activeSubstanceDose"`
-	ActiveSubstanceUnit string `json:"activeSubstanceUnit"`
-	Expires             string `json:"expires"`
-	Release             string `json:"release"`
-	Commentary          string `json:"commentary"`
+	Name                string  `json:"name"`
+	InternationalName   string  `json:"internationalName"`
+	AmountValue         float32 `json:"amountValue"`
+	AmountUnit          string  `json:"amountUnit"`
+	ReleaseForm         string  `json:"releaseForm"`
+	Group               string  `json:"group"`
+	ManufacturerName    string  `json:"manufacturerName"`
+	ManufacturerCountry string  `json:"manufacturerCountry"`
+	ActiveSubstanceName string  `json:"activeSubstanceName"`
+	ActiveSubstanceDose float32 `json:"activeSubstanceDose"`
+	ActiveSubstanceUnit string  `json:"activeSubstanceUnit"`
+	Expires             string  `json:"expires"`
+	Release             string  `json:"release"`
+	Commentary          string  `json:"commentary"`
 }
 
 // AddMedicationJSONResponse is a response for AddMedication.
@@ -96,8 +96,8 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 	}
 
 	serviceRequest := &application.AddMedicationCommand{
-		Name:         reqJSON.Name,
-		InternationalName: reqJSON.InternationalName,
+		Name:                reqJSON.Name,
+		InternationalName:   reqJSON.InternationalName,
 		AmountValue:         reqJSON.AmountValue,
 		AmountUnit:          reqJSON.AmountUnit,
 		ReleaseForm:         reqJSON.ReleaseForm,
