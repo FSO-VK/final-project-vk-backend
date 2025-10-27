@@ -65,6 +65,9 @@ func NewMedication(
 // MedicationDraft represents a medication draft entity
 // that uses built-in types.
 //
+// Revive consider to name this struct as Draft
+// but it's more clear to name the struct as-is.
+//
 //nolint:revive
 type MedicationDraft struct {
 	// required fields
@@ -181,8 +184,8 @@ func validateOptional(draft MedicationDraft) (optionalFields, error) {
 	}, nil
 }
 
-// NewMedicationParse creates a new medication from a draft.
-func NewMedicationParse(draft MedicationDraft) (*Medication, error) {
+// Parse creates a new medication from a draft.
+func Parse(draft MedicationDraft) (*Medication, error) {
 	required, err := validateRequired(draft)
 	if err != nil {
 		return nil, err

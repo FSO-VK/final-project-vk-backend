@@ -77,7 +77,7 @@ func (s *AddMedicationService) Execute(
 		return nil, fmt.Errorf("failed to create uuid v7: %w", err)
 	}
 
-	drug, err := medication.NewMedicationParse(
+	drug, err := medication.Parse(
 		medication.MedicationDraft{
 			ID:             id,
 			Name:           req.Name,
