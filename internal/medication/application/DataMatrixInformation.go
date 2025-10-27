@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"strings"
 
+	client "github.com/FSO-VK/final-project-vk-backend/internal/medication/application/api_client"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 )
 
-var (
-	ErrCantSetCache = errors.New("error when setting cache")
-)
+// ErrCantSetCache is an error when setting cache.
+var ErrCantSetCache = errors.New("error when setting cache")
 
 // DataMatrixInformation is an interface for scanned info from data matrix.
 type DataMatrixInformation interface {
@@ -22,26 +22,27 @@ type DataMatrixInformation interface {
 	) (*DataMatrixInformationResponse, error)
 }
 
-// DataMatrixInformationService is a service for adding a medication.
+// DataMatrixInformationService is a service for get info from API.
 type DataMatrixInformationService struct {
-	dataMatrixClient DataMatrixClient
-	dataMatrixCache  DataMatrixCache
+	dataMatrixClient client.DataMatrixClient
+	dataMatrixCache  client.DataMatrixCache
 	validator        validator.Validator
 }
 
 // NewDataMatrixInformationService returns a new DataMatrixInformationService.
 func NewDataMatrixInformationService(
-	dataMatrixClient DataMatrixClient,
-	dataMatrixCache DataMatrixCache,
+	dataMatrixClient client.DataMatrixClient,
+	dataMatrixCache client.DataMatrixCache,
 	valid validator.Validator,
 ) *DataMatrixInformationService {
 	return &DataMatrixInformationService{
 		dataMatrixClient: dataMatrixClient,
+		dataMatrixCache:  dataMatrixCache,
 		validator:        valid,
 	}
 }
 
-// DataMatrixInformationCommand is a request to add a medication.
+// DataMatrixInformationCommand is a request to get info from API.
 type DataMatrixInformationCommand struct {
 	GTIN         string `validate:"required"`
 	SerialNumber string `validate:"required"`
@@ -49,9 +50,10 @@ type DataMatrixInformationCommand struct {
 	CryptoData92 string `validate:"required"`
 }
 
-// DataMatrixInformationResponse is a response to add a medication.
+// DataMatrixInformationResponse is a response to get info from API.
 type DataMatrixInformationResponse struct {
-	ExpDate string
+	// embedded struct
+	CommandBase
 }
 
 // Execute executes the DataMatrixInformation command.
@@ -67,12 +69,26 @@ func (s *DataMatrixInformationService) Execute(
 	if req.CryptoData92 != "" {
 		req.CryptoData92 = strings.TrimSuffix(req.CryptoData92, "=")
 	}
-	dataMatrixInfo, err := s.dataMatrixCache.Get(req.GTIN + req.SerialNumber + req.CryptoData91 + req.CryptoData92)
-	var errOut error = nil
+	dataMatrixInfo, err := s.dataMatrixCache.Get(
+		ctx,
+		req.GTIN+req.SerialNumber+req.CryptoData91+req.CryptoData92,
+	)
+	var errOut error
+	fmt.Println("1111111111111111111111111111111111111")
 	if err != nil {
-		dataMatrixInfo, err = s.dataMatrixClient.GetInformationByDataMatrix(req.GTIN, req.SerialNumber, req.CryptoData91, req.CryptoData92)
+		fmt.Println("22222222222222222222222")
+		code := client.NewDataMatrixCodeInfo(
+			req.GTIN,
+			req.SerialNumber,
+			req.CryptoData91,
+			req.CryptoData92)
+		dataMatrixInfo, err = s.dataMatrixClient.GetInformationByDataMatrix(code)
 		if err == nil {
-			err = s.dataMatrixCache.Set(req.GTIN+req.SerialNumber+req.CryptoData91+req.CryptoData92, dataMatrixInfo)
+			fmt.Println("333333333333333333333333333")
+			err = s.dataMatrixCache.Set(
+				ctx,
+				req.GTIN+req.SerialNumber+req.CryptoData91+req.CryptoData92, dataMatrixInfo,
+			)
 			if err != nil {
 				errOut = ErrCantSetCache
 			}
@@ -84,6 +100,21 @@ func (s *DataMatrixInformationService) Execute(
 	}
 
 	return &DataMatrixInformationResponse{
-		ExpDate: dataMatrixInfo.ExpDate,
+		CommandBase: CommandBase{
+			Name:                dataMatrixInfo.Name,
+			InternationalName:   dataMatrixInfo.InternationalName,
+			AmountValue:         dataMatrixInfo.AmountValue,
+			AmountUnit:          dataMatrixInfo.AmountUnit,
+			ReleaseForm:         dataMatrixInfo.ReleaseForm,
+			Group:               dataMatrixInfo.Group,
+			ManufacturerName:    dataMatrixInfo.ManufacturerName,
+			ManufacturerCountry: dataMatrixInfo.ManufacturerCountry,
+			ActiveSubstanceName: dataMatrixInfo.ActiveSubstanceName,
+			ActiveSubstanceDose: dataMatrixInfo.ActiveSubstanceDose,
+			ActiveSubstanceUnit: dataMatrixInfo.ActiveSubstanceUnit,
+			Expires:             dataMatrixInfo.Expires,
+			Release:             dataMatrixInfo.Release,
+			Commentary:          "",
+		},
 	}, errOut
 }

@@ -374,3 +374,111 @@ func (h *MedicationHandlers) GetMedicationList(w http.ResponseWriter, r *http.Re
 		Error:      "",
 	})
 }
+
+// DataMatrixInformationJSONRequest is a request for DataMatrixInformation.
+type DataMatrixInformationJSONRequest struct {
+	GTIN         string `json:"gtin"`
+	SerialNumber string `json:"serialNumber"`
+	CryptoData91 string `json:"cryptoData91"`
+	CryptoData92 string `json:"cryptoData92"`
+}
+
+// DataMatrixInformationJSONResponse is a response for DataMatrixInformation.
+type DataMatrixInformationJSONResponse struct {
+	// embedded struct
+	BodyCommonObject `json:",inline"`
+}
+
+// DataMatrixInformation adds a medication.
+func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *http.Request) {
+	var reqJSON *DataMatrixInformationJSONRequest
+
+	var body bytes.Buffer
+	_, err := body.ReadFrom(r.Body)
+	defer func() {
+		_ = r.Body.Close()
+	}()
+
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to read request body")
+		w.WriteHeader(http.StatusBadRequest)
+
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Error:      MsgFailedToReadBody,
+			Body:       nil,
+		})
+
+		return
+	}
+
+	err = json.Unmarshal(body.Bytes(), &reqJSON)
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to unmarshal request body")
+		w.WriteHeader(http.StatusBadRequest)
+
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Error:      MsgFailedToUnmarshal,
+			Body:       nil,
+		})
+		return
+	}
+
+	serviceRequest := &application.DataMatrixInformationCommand{
+		GTIN:         reqJSON.GTIN,
+		SerialNumber: reqJSON.SerialNumber,
+		CryptoData91: reqJSON.CryptoData91,
+		CryptoData92: reqJSON.CryptoData92,
+	}
+
+	serviceResponse, err := h.app.DataMatrixInformation.Execute(
+		r.Context(),
+		serviceRequest,
+	)
+	if err != nil {
+		if errors.Is(err, application.ErrCantSetCache) {
+			h.logger.WithError(err).Error("Failed to set cache: %w", err)
+		} else {
+			h.logger.WithError(err).Error("Failed to get info from scan: %w", err)
+			w.WriteHeader(http.StatusInternalServerError)
+
+			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+				StatusCode: http.StatusInternalServerError,
+				Body:       nil,
+				Error:      MsgFailedToGetIfoFromScan,
+			})
+			return
+		}
+	}
+	response := &DataMatrixInformationJSONResponse{
+		BodyCommonObject: BodyCommonObject{
+			Name:              serviceResponse.Name,
+			InternationalName: serviceResponse.InternationalName,
+			Amount: AmountObject{
+				Value: serviceResponse.AmountValue,
+				Unit:  serviceResponse.AmountUnit,
+			},
+			ReleaseForm: serviceResponse.ReleaseForm,
+			Group:       serviceResponse.Group,
+			Producer: ProducerObject{
+				Name:    serviceResponse.ManufacturerName,
+				Country: serviceResponse.ManufacturerCountry,
+			},
+			ActiveSubstance: ActiveSubstanceObject{
+				Name:  serviceResponse.ActiveSubstanceName,
+				Value: serviceResponse.ActiveSubstanceDose,
+				Unit:  serviceResponse.ActiveSubstanceUnit,
+			},
+			Expiration: serviceResponse.Expires,
+			Release:    serviceResponse.Release,
+			Commentary: serviceResponse.Commentary,
+		},
+	}
+	w.WriteHeader(http.StatusOK)
+	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+		StatusCode: http.StatusOK,
+		Body:       response,
+		Error:      "",
+	})
+}

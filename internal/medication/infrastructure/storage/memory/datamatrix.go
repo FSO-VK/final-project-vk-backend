@@ -4,12 +4,12 @@ import (
 	"context"
 	"sync"
 
-	medication "github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
+	client "github.com/FSO-VK/final-project-vk-backend/internal/medication/application/api_client"
 )
 
 // DataMatrixStorage is a storage for medications.
 type DataMatrixStorage struct {
-	data  *Cache[*medication.Medication]
+	data  *Cache[*client.MedicationInfo]
 	count uint
 	mu    *sync.RWMutex
 }
@@ -17,33 +17,33 @@ type DataMatrixStorage struct {
 // NewDataMatrixStorage returns a new DataMatrixStorage.
 func NewDataMatrixStorage() *DataMatrixStorage {
 	return &DataMatrixStorage{
-		data: NewCache[*medication.Medication](),
-		count:   0,
-		mu:   &sync.RWMutex{},
+		data:  NewCache[*client.MedicationInfo](),
+		count: 0,
+		mu:    &sync.RWMutex{},
 	}
 }
 
-// Create creates a new medication in memory.
-func (s *DataMatrixStorage) Create(
+// Set creates a new medication in memory.
+func (s *DataMatrixStorage) Set(
 	_ context.Context,
 	dataMatrixString string,
-	medication *medication.Medication,
-) (*medication.Medication, error) {
+	medication *client.MedicationInfo,
+) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	s.count++
 	s.data.Set(dataMatrixString, medication)
-	return medication, nil
+	return nil
 }
 
-// GetByDataMatrixString returns a medication info by GTIN+SerialNumber+CryptoData91+CryptoData92.
-func (s *DataMatrixStorage) GetByDataMatrixString(
+// Get returns a medication info by GTIN+SerialNumber+CryptoData91+CryptoData92.
+func (s *DataMatrixStorage) Get(
 	_ context.Context,
 	dataMatrixString string,
-) (*medication.Medication, error) {
+) (*client.MedicationInfo, error) {
 	drug, ok := s.data.Get(dataMatrixString)
 	if !ok {
-		return nil, medication.ErrNoMedicationFound
+		return nil, client.ErrNoMedicationFound
 	}
 	return drug, nil
 }

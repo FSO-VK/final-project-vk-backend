@@ -1,19 +1,19 @@
-package datamatrix
+package clientdatamatrix
 
-// DataMatrixScannedInfo is a request to find medication info in API.
-type DataMatrixScannedInfo struct {
+// ScannedInfoFromDataMatrix is a request to find medication info in API.
+type ScannedInfoFromDataMatrix struct {
 	GTIN         string
 	SerialNumber string
 	CryptoData91 string
 	CryptoData92 string
 }
 
-// Response is the response for the CheckAuth method.
+// MedicationInfoFromAPI is the response for the CheckAuth method.
 type MedicationInfoFromAPI struct {
 	ExpDate string
 }
 
-// ExpectedCheckAuthResponse is the expected response for dataMatrix API.
+// ExpectedDataMatrixAPIResponse is the expected response for dataMatrix API.
 type ExpectedDataMatrixAPIResponse struct {
 	CodeFounded   bool      `json:"codeFounded"`
 	CheckDate     int64     `json:"checkDate"`
@@ -29,6 +29,7 @@ type ExpectedDataMatrixAPIResponse struct {
 	DrugsData     DrugsData `json:"drugsData"`
 }
 
+// DrugsData represents Drugs data from API.
 type DrugsData struct {
 	ProductDescLabel      string    `json:"prodDescLabel"`
 	ProducerName          string    `json:"packingName"`
@@ -46,6 +47,7 @@ type DrugsData struct {
 	VidalData             VidalData `json:"vidalData"`
 }
 
+// FOIVData represents FOIV data from API.
 type FOIVData struct {
 	ProductFormName     string `json:"prodFormNormName"`
 	Dosage              string `json:"prodDNormName"`
@@ -60,6 +62,7 @@ type FOIVData struct {
 	ProductName         string `json:"prodNormName"`
 }
 
+// VidalData represents Vidal data from API.
 type VidalData struct {
 	Pharmacology string `json:"phKinetics"`
 }
