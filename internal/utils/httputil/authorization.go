@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
@@ -9,36 +10,46 @@ import (
 )
 
 const (
-	// MsgUnauthorized is a err message for unauthorized user.
-	MsgUnauthorized api.ErrorType = "User is not authorized"
 	// SessionCookieKey is a key for session cookie.
 	SessionCookieKey string = "session_id"
 )
 
-// AuthPrincipal contains user id and authorization status for handlers to use.
-type AuthPrincipal struct {
+var (
+	ErrAuthNotFound    = fmt.Errorf("authentication data not found in context")
+	ErrInvalidAuthType = fmt.Errorf("invalid authentication data type in context")
+)
+
+// AuthStatus contains user id and authorization status for handlers to use.
+type AuthStatus struct {
 	UserID       string
 	IsAuthorized bool
+}
+
+// ResponseUnauthorized is a response for unauthorized requests.
+type ResponseUnauthorized struct {
+	SessionID string `json:"sessionId"`
 }
 
 type ctxKey string
 
 const authUserValueKey ctxKey = "httputil_auth_principal"
 
-// SetAuthToCtx returns a new *http.Request with AuthPrincipal added to the context.
-func SetAuthToCtx(r *http.Request, p *AuthPrincipal) *http.Request {
+// SetAuthToCtx returns a new *http.Request with AuthStatus added to the context.
+func SetAuthToCtx(r *http.Request, p *AuthStatus) *http.Request {
 	ctx := context.WithValue(r.Context(), authUserValueKey, p)
 	return r.WithContext(ctx)
 }
 
-// GetAuthFromCtx extracts AuthPrincipal from the request context.
-func GetAuthFromCtx(r *http.Request) (*AuthPrincipal, bool) {
+func GetAuthFromCtx(r *http.Request) (*AuthStatus, error) {
 	v := r.Context().Value(authUserValueKey)
 	if v == nil {
-		return nil, false
+		return nil, ErrAuthNotFound
 	}
-	p, ok := v.(*AuthPrincipal)
-	return p, ok
+	p, ok := v.(*AuthStatus)
+	if !ok {
+		return nil, ErrInvalidAuthType
+	}
+	return p, nil
 }
 
 // AuthMiddleware implements authorization check as a struct.
@@ -64,16 +75,16 @@ func (m *AuthMiddleware) AuthMiddlewareWrapper(next http.Handler) http.Handler {
 			_ = NetHTTPWriteJSON(w, &api.Response[struct{}]{
 				StatusCode: http.StatusUnauthorized,
 				Body:       struct{}{},
-				Error:      MsgUnauthorized,
+				Error:      api.MsgUnauthorized,
 			})
 			return
 		}
 
 		resp, err := m.checker.CheckAuth(&client.Request{SessionID: sid})
 		if err != nil {
-			_ = NetHTTPWriteJSON(w, &api.Response[struct{}]{
+			_ = NetHTTPWriteJSON(w, &api.Response[ResponseUnauthorized]{
 				StatusCode: http.StatusServiceUnavailable,
-				Body:       struct{}{},
+				Body:       ResponseUnauthorized{SessionID: ""},
 				Error:      api.MsgServerError,
 			})
 			return
@@ -83,12 +94,12 @@ func (m *AuthMiddleware) AuthMiddlewareWrapper(next http.Handler) http.Handler {
 			_ = NetHTTPWriteJSON(w, &api.Response[struct{}]{
 				StatusCode: http.StatusForbidden,
 				Body:       struct{}{},
-				Error:      MsgUnauthorized,
+				Error:      api.MsgUnauthorized,
 			})
 			return
 		}
 
-		r = SetAuthToCtx(r, &AuthPrincipal{
+		r = SetAuthToCtx(r, &AuthStatus{
 			UserID:       resp.UserID,
 			IsAuthorized: resp.IsAuthorized,
 		})
