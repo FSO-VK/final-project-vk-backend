@@ -12,6 +12,7 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
 	"github.com/gorilla/mux"
+	"github.com/guregu/null/v6"
 	"github.com/sirupsen/logrus"
 )
 
@@ -96,9 +97,9 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 			Group:               reqJSON.Group,
 			ManufacturerName:    reqJSON.Producer.Name,
 			ManufacturerCountry: reqJSON.Producer.Country,
-			ActiveSubstanceName: reqJSON.ActiveSubstance.Name,
-			ActiveSubstanceDose: reqJSON.ActiveSubstance.Value,
-			ActiveSubstanceUnit: reqJSON.ActiveSubstance.Unit,
+			ActiveSubstanceName: reqJSON.ActiveSubstance.V.Name,
+			ActiveSubstanceDose: reqJSON.ActiveSubstance.V.Value,
+			ActiveSubstanceUnit: reqJSON.ActiveSubstance.V.Unit,
 			Expires:             reqJSON.Expiration,
 			Release:             reqJSON.Release,
 			Commentary:          reqJSON.Commentary,
@@ -136,11 +137,11 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 				Name:    serviceResponse.ManufacturerName,
 				Country: serviceResponse.ManufacturerCountry,
 			},
-			ActiveSubstance: ActiveSubstanceObject{
+			ActiveSubstance: null.ValueFrom(ActiveSubstanceObject{
 				Name:  serviceResponse.ActiveSubstanceName,
 				Value: serviceResponse.ActiveSubstanceDose,
 				Unit:  serviceResponse.ActiveSubstanceUnit,
-			},
+			}),
 			Expiration: serviceResponse.Expires,
 			Release:    serviceResponse.Release,
 			Commentary: serviceResponse.Commentary,
@@ -217,9 +218,9 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 			Group:               reqJSON.Group,
 			ManufacturerName:    reqJSON.Producer.Name,
 			ManufacturerCountry: reqJSON.Producer.Country,
-			ActiveSubstanceName: reqJSON.ActiveSubstance.Name,
-			ActiveSubstanceDose: reqJSON.ActiveSubstance.Value,
-			ActiveSubstanceUnit: reqJSON.ActiveSubstance.Unit,
+			ActiveSubstanceName: reqJSON.ActiveSubstance.V.Name,
+			ActiveSubstanceDose: reqJSON.ActiveSubstance.V.Value,
+			ActiveSubstanceUnit: reqJSON.ActiveSubstance.V.Unit,
 			Expires:             reqJSON.Expiration,
 			Release:             reqJSON.Release,
 			Commentary:          reqJSON.Commentary,
@@ -258,11 +259,11 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 				Name:    serviceResponse.ManufacturerName,
 				Country: serviceResponse.ManufacturerCountry,
 			},
-			ActiveSubstance: ActiveSubstanceObject{
+			ActiveSubstance: null.ValueFrom(ActiveSubstanceObject{
 				Name:  serviceResponse.ActiveSubstanceName,
 				Value: serviceResponse.ActiveSubstanceDose,
 				Unit:  serviceResponse.ActiveSubstanceUnit,
-			},
+			}),
 			Expiration: serviceResponse.Expires,
 			Release:    serviceResponse.Release,
 			Commentary: serviceResponse.Commentary,
@@ -434,14 +435,10 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 				Name:    serviceResponse.ManufacturerName,
 				Country: serviceResponse.ManufacturerCountry,
 			},
-			ActiveSubstance: ActiveSubstanceObject{
-				Name:  serviceResponse.ActiveSubstanceName,
-				Value: serviceResponse.ActiveSubstanceDose,
-				Unit:  serviceResponse.ActiveSubstanceUnit,
-			},
-			Expiration: serviceResponse.Expires,
-			Release:    serviceResponse.Release,
-			Commentary: serviceResponse.Commentary,
+			ActiveSubstance: null.Value[ActiveSubstanceObject]{},
+			Expiration:      serviceResponse.Expires,
+			Release:         serviceResponse.Release,
+			Commentary:      serviceResponse.Commentary,
 		},
 	}
 	w.WriteHeader(http.StatusOK)

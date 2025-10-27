@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"regexp"
-	"strconv"
 	"time"
 	"unicode"
 
@@ -113,45 +111,6 @@ func MapToMedicationInfo(resp *ExpectedDataMatrixAPIResponse) *clientInterface.M
 		Expires:             resp.ExpDate,
 		Release:             formatReleaseDate(resp.DrugsData.ReleaseDate),
 	}
-}
-
-func parseAmountValue(quantity string) float32 {
-	if quantity == "" {
-		return 0
-	}
-	val, err := strconv.ParseFloat(quantity, 32)
-	if err != nil {
-		return 0
-	}
-	return float32(val)
-}
-
-func parseDose(dosage string) float32 {
-	if dosage == "" {
-		return 0
-	}
-	re := regexp.MustCompile(`(\d+\.?\d*)`)
-	matches := re.FindStringSubmatch(dosage)
-	if len(matches) > 1 {
-		val, err := strconv.ParseFloat(matches[1], 32)
-		if err != nil {
-			return 0
-		}
-		return float32(val)
-	}
-	return 0
-}
-
-func extractUnit(dosage string) string {
-	if dosage == "" {
-		return ""
-	}
-	re := regexp.MustCompile(`\d+\.?\d*\s*([a-zA-Zа-яА-Я]+)`)
-	matches := re.FindStringSubmatch(dosage)
-	if len(matches) > 1 {
-		return matches[1]
-	}
-	return ""
 }
 
 func formatReleaseDate(timestamp int64) string {

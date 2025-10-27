@@ -1,5 +1,7 @@
 package http
 
+import null "github.com/guregu/null/v6"
+
 // ProducerObject represents JSON object of producer of medication.
 type ProducerObject struct {
 	Name    string `json:"name"`
@@ -21,14 +23,14 @@ type AmountObject struct {
 
 // BodyCommonObject is a common structure of JSON object.
 type BodyCommonObject struct {
-	Name              string                `json:"name"`
-	InternationalName string                `json:"internationalName"`
-	Amount            AmountObject          `json:"amount"`
-	ReleaseForm       string                `json:"releaseForm"`
-	Group             string                `json:"group"`
-	Producer          ProducerObject        `json:"producer"`
-	ActiveSubstance   ActiveSubstanceObject `json:"activeSubstance"`
-	Expiration        string                `json:"expirationDate"`
-	Release           string                `json:"releaseDate"`
-	Commentary        string                `json:"commentary"`
+	Name              string                            `json:"name"`
+	InternationalName string                            `json:"internationalName"`
+	Amount            AmountObject                      `json:"amount"`
+	ReleaseForm       string                            `json:"releaseForm"`
+	Group             string                            `json:"group"`
+	Producer          ProducerObject                    `json:"producer"`
+	ActiveSubstance   null.Value[ActiveSubstanceObject] `json:"activeSubstance"`
+	Expiration        string                            `json:"expirationDate"`
+	Release           string                            `json:"releaseDate"`
+	Commentary        string                            `json:"commentary"`
 }
