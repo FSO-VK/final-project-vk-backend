@@ -9,4 +9,6 @@ const (
 	MsgServerError      ErrorType = "Server error"
 	MsgNotFound         ErrorType = "No such endpoint"
 	MsgMethodNotAllowed ErrorType = "Method not allowed"
+	// MsgUnauthorized is a err message for unauthorized user.
+	MsgUnauthorized ErrorType = "User is not authorized"
 )
