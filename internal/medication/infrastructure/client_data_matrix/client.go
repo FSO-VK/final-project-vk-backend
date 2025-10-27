@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"time"
+	"unicode"
 
 	clientInterface "github.com/FSO-VK/final-project-vk-backend/internal/medication/application/api_client"
 	"github.com/sirupsen/logrus"
@@ -99,16 +100,16 @@ func MapToMedicationInfo(resp *ExpectedDataMatrixAPIResponse) *clientInterface.M
 
 	return &clientInterface.MedicationInfo{
 		Name:                resp.ProductName,
-		InternationalName:   "",
-		AmountValue:         parseAmountValue(resp.DrugsData.FOIV.PackageQuantity),
-		AmountUnit:          resp.DrugsData.FOIV.PackageSize,
-		ReleaseForm:         resp.DrugsData.FOIV.ProductFormName,
+		InternationalName:   resp.DrugsData.FOIV.ProductName,
+		AmountValue:         0,
+		AmountUnit:          "",
+		ReleaseForm:         formatReleaseForm(resp.DrugsData.FOIV.ProductFormName),
 		Group:               resp.Category,
 		ManufacturerName:    resp.DrugsData.FOIV.Manufacturer,
 		ManufacturerCountry: resp.DrugsData.FOIV.ManufacturerCountry,
-		ActiveSubstanceName: resp.DrugsData.FOIV.Dosage,
-		ActiveSubstanceDose: parseDose(resp.DrugsData.FOIV.Dosage),
-		ActiveSubstanceUnit: extractUnit(resp.DrugsData.FOIV.Dosage),
+		ActiveSubstanceName: "",
+		ActiveSubstanceDose: 0,
+		ActiveSubstanceUnit: "",
 		Expires:             resp.ExpDate,
 		Release:             formatReleaseDate(resp.DrugsData.ReleaseDate),
 	}
@@ -158,4 +159,22 @@ func formatReleaseDate(timestamp int64) string {
 		return ""
 	}
 	return time.Unix(timestamp/1000, 0).Format("2006-01-02")
+}
+
+func formatReleaseForm(name string) string {
+	if name == "" {
+		return ""
+	}
+
+	runes := []rune(name)
+	if len(runes) == 0 {
+		return ""
+	}
+
+	runes[0] = unicode.ToUpper(runes[0])
+	for i := 1; i < len(runes); i++ {
+		runes[i] = unicode.ToLower(runes[i])
+	}
+
+	return string(runes)
 }
