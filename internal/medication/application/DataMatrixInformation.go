@@ -3,10 +3,15 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
+)
+
+var (
+	ErrCantSetCache = errors.New("error when setting cache")
 )
 
 // DataMatrixInformation is an interface for scanned info from data matrix.
@@ -63,11 +68,14 @@ func (s *DataMatrixInformationService) Execute(
 		req.CryptoData92 = strings.TrimSuffix(req.CryptoData92, "=")
 	}
 	dataMatrixInfo, err := s.dataMatrixCache.Get(req.GTIN + req.SerialNumber + req.CryptoData91 + req.CryptoData92)
-	var needToSet bool
+	var errOut error = nil
 	if err != nil {
 		dataMatrixInfo, err = s.dataMatrixClient.GetInformationByDataMatrix(req.GTIN, req.SerialNumber, req.CryptoData91, req.CryptoData92)
 		if err == nil {
-			needToSet = true
+			err = s.dataMatrixCache.Set(req.GTIN+req.SerialNumber+req.CryptoData91+req.CryptoData92, dataMatrixInfo)
+			if err != nil {
+				errOut = ErrCantSetCache
+			}
 		}
 	}
 
@@ -75,14 +83,7 @@ func (s *DataMatrixInformationService) Execute(
 		return nil, fmt.Errorf("failed to get medication: %w", err)
 	}
 
-	if needToSet {
-		err = s.dataMatrixCache.Set(req.GTIN + req.SerialNumber + req.CryptoData91 + req.CryptoData92, dataMatrixInfo)
-		if err != nil {
-			fmt.Println("1 а где логгер? 2 тут не очень ситуация но я не думаю что нужно крашиться из-за этого")
-		}
-	}
-	
 	return &DataMatrixInformationResponse{
 		ExpDate: dataMatrixInfo.ExpDate,
-	}, nil
+	}, errOut
 }
