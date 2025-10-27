@@ -4,6 +4,7 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -38,14 +39,14 @@ func NewHandlers(
 
 // AddMedicationJSONRequest is a request for AddMedication.
 type AddMedicationJSONRequest struct {
-	Name       string `json:"name"`
-	Items      uint   `json:"items"`
-	ItemsUnit  string `json:"itemsUnit"`
-	Expiration string `json:"expiration"`
+	BodyCommonObject `json:",inline"`
 }
 
 // AddMedicationJSONResponse is a response for AddMedication.
 type AddMedicationJSONResponse struct {
+	// embedded struct
+	BodyCommonObject `json:",inline"`
+
 	ID string `json:"id"`
 }
 
@@ -86,11 +87,22 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 	}
 
 	serviceRequest := &application.AddMedicationCommand{
-		Name:         reqJSON.Name,
-		CategoriesID: nil,
-		Items:        reqJSON.Items,
-		ItemsUnit:    reqJSON.ItemsUnit,
-		Expires:      reqJSON.Expiration,
+		CommandBase: application.CommandBase{
+			Name:                reqJSON.Name,
+			InternationalName:   reqJSON.InternationalName,
+			AmountValue:         reqJSON.Amount.Value,
+			AmountUnit:          reqJSON.Amount.Unit,
+			ReleaseForm:         reqJSON.ReleaseForm,
+			Group:               reqJSON.Group,
+			ManufacturerName:    reqJSON.Producer.Name,
+			ManufacturerCountry: reqJSON.Producer.Country,
+			ActiveSubstanceName: reqJSON.ActiveSubstance.Name,
+			ActiveSubstanceDose: reqJSON.ActiveSubstance.Value,
+			ActiveSubstanceUnit: reqJSON.ActiveSubstance.Unit,
+			Expires:             reqJSON.Expiration,
+			Release:             reqJSON.Release,
+			Commentary:          reqJSON.Commentary,
+		},
 	}
 
 	serviceResponse, err := h.app.AddMedication.Execute(
@@ -110,7 +122,29 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	response := &AddMedicationJSONResponse{
-		ID: strconv.FormatUint(uint64(serviceResponse.ID), 10),
+		ID: serviceResponse.ID,
+		BodyCommonObject: BodyCommonObject{
+			Name:              serviceResponse.Name,
+			InternationalName: serviceResponse.InternationalName,
+			Amount: AmountObject{
+				Value: serviceResponse.AmountValue,
+				Unit:  serviceResponse.AmountUnit,
+			},
+			ReleaseForm: serviceResponse.ReleaseForm,
+			Group:       serviceResponse.Group,
+			Producer: ProducerObject{
+				Name:    serviceResponse.ManufacturerName,
+				Country: serviceResponse.ManufacturerCountry,
+			},
+			ActiveSubstance: ActiveSubstanceObject{
+				Name:  serviceResponse.ActiveSubstanceName,
+				Value: serviceResponse.ActiveSubstanceDose,
+				Unit:  serviceResponse.ActiveSubstanceUnit,
+			},
+			Expiration: serviceResponse.Expires,
+			Release:    serviceResponse.Release,
+			Commentary: serviceResponse.Commentary,
+		},
 	}
 	w.WriteHeader(http.StatusOK)
 	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -122,19 +156,16 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 
 // UpdateMedicationJSONRequest is a request for UpdateMedication.
 type UpdateMedicationJSONRequest struct {
-	Name       string `json:"name"`
-	Items      uint   `json:"items"`
-	ItemsUnit  string `json:"itemsUnit"`
-	Expiration string `json:"expiration"`
+	// embedded struct
+	BodyCommonObject `json:",inline"`
 }
 
 // UpdateMedicationJSONResponse is a response for UpdateMedication.
 type UpdateMedicationJSONResponse struct {
-	ID         string `json:"id"`
-	Name       string `json:"name"`
-	Items      uint   `json:"items"`
-	ItemsUnit  string `json:"itemsUnit"`
-	Expiration string `json:"expiration"`
+	// embedded struct
+	BodyCommonObject `json:",inline"`
+
+	ID string `json:"id"`
 }
 
 // UpdateMedication updates a medication.
@@ -143,21 +174,9 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 
 	vars := mux.Vars(r)
 	id := vars[SlugID]
-	idUint, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		h.logger.WithError(err).Error("Failed to parse id")
-		w.WriteHeader(http.StatusBadRequest)
-
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusBadRequest,
-			Body:       struct{}{},
-			Error:      MsgFailToParseID,
-		})
-		return
-	}
 
 	var body bytes.Buffer
-	_, err = body.ReadFrom(r.Body)
+	_, err := body.ReadFrom(r.Body)
 	defer func() {
 		_ = r.Body.Close()
 	}()
@@ -188,12 +207,23 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 	}
 
 	serviceRequest := &application.UpdateMedicationCommand{
-		ID:           uint(idUint),
-		Name:         reqJSON.Name,
-		CategoriesID: nil,
-		Items:        reqJSON.Items,
-		ItemsUnit:    reqJSON.ItemsUnit,
-		Expires:      reqJSON.Expiration,
+		ID: id,
+		CommandBase: application.CommandBase{
+			Name:                reqJSON.Name,
+			InternationalName:   reqJSON.InternationalName,
+			AmountValue:         reqJSON.Amount.Value,
+			AmountUnit:          reqJSON.Amount.Unit,
+			ReleaseForm:         reqJSON.ReleaseForm,
+			Group:               reqJSON.Group,
+			ManufacturerName:    reqJSON.Producer.Name,
+			ManufacturerCountry: reqJSON.Producer.Country,
+			ActiveSubstanceName: reqJSON.ActiveSubstance.Name,
+			ActiveSubstanceDose: reqJSON.ActiveSubstance.Value,
+			ActiveSubstanceUnit: reqJSON.ActiveSubstance.Unit,
+			Expires:             reqJSON.Expiration,
+			Release:             reqJSON.Release,
+			Commentary:          reqJSON.Commentary,
+		},
 	}
 
 	serviceResponse, err := h.app.UpdateMedication.Execute(
@@ -214,11 +244,29 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 	}
 
 	response := &UpdateMedicationJSONResponse{
-		ID:         strconv.FormatUint(uint64(serviceResponse.ID), 10),
-		Name:       serviceResponse.Name,
-		Items:      serviceResponse.Items,
-		ItemsUnit:  serviceResponse.ItemsUnit,
-		Expiration: serviceResponse.Expires,
+		ID: serviceResponse.ID,
+		BodyCommonObject: BodyCommonObject{
+			Name:              serviceResponse.Name,
+			InternationalName: serviceResponse.InternationalName,
+			Amount: AmountObject{
+				Value: serviceResponse.AmountValue,
+				Unit:  serviceResponse.AmountUnit,
+			},
+			ReleaseForm: serviceResponse.ReleaseForm,
+			Group:       serviceResponse.Group,
+			Producer: ProducerObject{
+				Name:    serviceResponse.ManufacturerName,
+				Country: serviceResponse.ManufacturerCountry,
+			},
+			ActiveSubstance: ActiveSubstanceObject{
+				Name:  serviceResponse.ActiveSubstanceName,
+				Value: serviceResponse.ActiveSubstanceDose,
+				Unit:  serviceResponse.ActiveSubstanceUnit,
+			},
+			Expiration: serviceResponse.Expires,
+			Release:    serviceResponse.Release,
+			Commentary: serviceResponse.Commentary,
+		},
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -233,36 +281,34 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars[SlugID]
-	idUint, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		h.logger.WithError(err).Error("Failed to parse id")
-		w.WriteHeader(http.StatusBadRequest)
-
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusBadRequest,
-			Body:       struct{}{},
-			Error:      MsgFailToParseID,
-		})
-		return
-	}
 
 	serviceRequest := &application.DeleteMedicationCommand{
-		ID: uint(idUint),
+		ID: id,
 	}
 
-	_, err = h.app.DeleteMedication.Execute(
+	_, err := h.app.DeleteMedication.Execute(
 		r.Context(),
 		serviceRequest,
 	)
 	if err != nil {
-		h.logger.WithError(err).Error("Failed to delete medication")
-		w.WriteHeader(http.StatusInternalServerError)
+		if errors.Is(err, application.ErrDeleteInvalidUUIDFormat) {
+			h.logger.WithError(err).Error("Failed to parse")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+				StatusCode: http.StatusBadRequest,
+				Body:       struct{}{},
+				Error:      MsgFailToParseID,
+			})
+		} else {
+			h.logger.WithError(err).Error("Failed to delete medication")
+			w.WriteHeader(http.StatusInternalServerError)
 
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusInternalServerError,
-			Body:       struct{}{},
-			Error:      MsgFailedToDeleteMedication,
-		})
+			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+				StatusCode: http.StatusInternalServerError,
+				Body:       struct{}{},
+				Error:      MsgFailedToDeleteMedication,
+			})
+		}
 
 		return
 	}

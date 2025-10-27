@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	medication "github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
+	"github.com/google/uuid"
 )
 
 // AddMedication is an interface for adding a medication.
@@ -37,16 +38,14 @@ func NewAddMedicationService(
 
 // AddMedicationCommand is a request to add a medication.
 type AddMedicationCommand struct {
-	Name         string `validate:"required"`
-	CategoriesID []uint
-	Items        uint   `validate:"required"`
-	ItemsUnit    string `validate:"required"`
-	Expires      string `validate:"required"`
+	// embedded struct
+	CommandBase
 }
 
 // AddMedicationResponse is a response to add a medication.
 type AddMedicationResponse struct {
-	ID uint
+	// embedded struct
+	ResponseBase
 }
 
 // Execute executes the AddMedication command.
@@ -64,20 +63,54 @@ func (s *AddMedicationService) Execute(
 		return nil, fmt.Errorf("failed to parse expiration: %w", err)
 	}
 
-	medication := medication.NewMedication(
-		req.Name,
-		req.Items,
-		req.CategoriesID,
-		req.ItemsUnit,
-		expiration,
-	)
+	var release time.Time
+	if req.Release != "" {
+		release, err := time.Parse(time.DateOnly, req.Release)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse release: %w", err)
+		}
+		expiration = release
+	}
 
-	addedMedication, err := s.medicationRepo.Create(ctx, medication)
+	id, err := uuid.NewV7()
 	if err != nil {
-		return nil, fmt.Errorf("failed to add medication: %w", err)
+		return nil, fmt.Errorf("failed to create uuid v7: %w", err)
+	}
+
+	drug, err := medication.Parse(
+		medication.MedicationDraft{
+			ID:             id,
+			Name:           req.Name,
+			ReleaseForm:    req.ReleaseForm,
+			AmountValue:    req.AmountValue,
+			AmountUnit:     req.AmountUnit,
+			ExpirationDate: expiration,
+
+			InternationalName: req.InternationalName,
+			Group:             req.Group,
+			Manufacturer: medication.ManufacturerDraft{
+				Name:    req.ManufacturerName,
+				Country: req.ManufacturerCountry,
+			},
+			ActiveSubstanceName:      req.ActiveSubstanceName,
+			ActiveSubstanceDoseValue: req.ActiveSubstanceDose,
+			ActiveSubstanceDoseUnit:  req.ActiveSubstanceUnit,
+			Commentary:               req.Commentary,
+			ReleaseDate:              release,
+			CreatedAt:                time.Now(),
+			UpdatedAt:                time.Now(),
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create medication: %w", err)
+	}
+
+	addedMedication, err := s.medicationRepo.Create(ctx, drug)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save medication: %w", err)
 	}
 
 	return &AddMedicationResponse{
-		ID: addedMedication.ID,
+		responseBaseMapper(addedMedication),
 	}, nil
 }
