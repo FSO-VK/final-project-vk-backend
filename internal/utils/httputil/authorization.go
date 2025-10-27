@@ -2,7 +2,7 @@ package httputil
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
@@ -15,8 +15,8 @@ const (
 )
 
 var (
-	ErrAuthNotFound    = fmt.Errorf("authentication data not found in context")
-	ErrInvalidAuthType = fmt.Errorf("invalid authentication data type in context")
+	ErrAuthNotFound    = errors.New("authentication data not found in context")
+	ErrInvalidAuthType = errors.New("invalid authentication data type in context")
 )
 
 // AuthStatus contains user id and authorization status for handlers to use.
