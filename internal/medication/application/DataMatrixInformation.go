@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	client "github.com/FSO-VK/final-project-vk-backend/internal/medication/application/api_client"
@@ -44,10 +45,7 @@ func NewDataMatrixInformationService(
 
 // DataMatrixInformationCommand is a request to get info from API.
 type DataMatrixInformationCommand struct {
-	GTIN         string `validate:"required"`
-	SerialNumber string `validate:"required"`
-	CryptoData91 string `validate:"required"`
-	CryptoData92 string `validate:"required"`
+	Data string `validate:"required"`
 }
 
 // DataMatrixInformationResponse is a response to get info from API.
@@ -65,29 +63,27 @@ func (s *DataMatrixInformationService) Execute(
 	if valErr != nil {
 		return nil, fmt.Errorf("failed to validate request: %w", valErr)
 	}
-
-	if req.CryptoData92 != "" {
-		req.CryptoData92 = strings.TrimSuffix(req.CryptoData92, "=")
+	gtin, serialNumber, cryptoData91, cryptoData92, err := parseDataMatrixString(req.Data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse data matrix: %w", err)
 	}
+	cryptoData92 = strings.TrimSuffix(cryptoData92, "=")
 	dataMatrixInfo, err := s.dataMatrixCache.Get(
 		ctx,
-		req.GTIN+req.SerialNumber+req.CryptoData91+req.CryptoData92,
+		gtin+serialNumber+cryptoData91+cryptoData92,
 	)
 	var errOut error
-	fmt.Println("1111111111111111111111111111111111111")
 	if err != nil {
-		fmt.Println("22222222222222222222222")
 		code := client.NewDataMatrixCodeInfo(
-			req.GTIN,
-			req.SerialNumber,
-			req.CryptoData91,
-			req.CryptoData92)
+			gtin,
+			serialNumber,
+			cryptoData91,
+			cryptoData92)
 		dataMatrixInfo, err = s.dataMatrixClient.GetInformationByDataMatrix(code)
 		if err == nil {
-			fmt.Println("333333333333333333333333333")
 			err = s.dataMatrixCache.Set(
 				ctx,
-				req.GTIN+req.SerialNumber+req.CryptoData91+req.CryptoData92, dataMatrixInfo,
+				gtin+serialNumber+cryptoData91+cryptoData92, dataMatrixInfo,
 			)
 			if err != nil {
 				errOut = ErrCantSetCache
@@ -117,4 +113,35 @@ func (s *DataMatrixInformationService) Execute(
 			Commentary:          "",
 		},
 	}, errOut
+}
+
+func parseDataMatrixString(data string) (gtin, serialNumber, crypto91, crypto92 string, err error) {
+	re, err := regexp.Compile(`\(01\)([^\(]+)|\(21\)([^\(]+)|\(91\)([^\(]+)|\(92\)([^\(]+)`)
+	if err != nil {
+		
+	}
+	matches := re.FindAllStringSubmatch(data, -1)
+
+	if len(matches) < 4 {
+		return "", "", "", "", fmt.Errorf("invalid data matrix format")
+	}
+
+	for _, match := range matches {
+		switch {
+		case match[1] != "":
+			gtin = match[1]
+		case match[2] != "":
+			serialNumber = match[2]
+		case match[3] != "":
+			crypto91 = match[3]
+		case match[4] != "":
+			crypto92 = match[4]
+		}
+	}
+
+	if gtin == "" || serialNumber == "" || crypto91 == "" || crypto92 == "" {
+		return "", "", "", "", fmt.Errorf("missing required data matrix fields")
+	}
+
+	return gtin, serialNumber, crypto91, crypto92, nil
 }

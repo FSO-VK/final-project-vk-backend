@@ -375,14 +375,6 @@ func (h *MedicationHandlers) GetMedicationList(w http.ResponseWriter, r *http.Re
 	})
 }
 
-// DataMatrixInformationJSONRequest is a request for DataMatrixInformation.
-type DataMatrixInformationJSONRequest struct {
-	GTIN         string `json:"gtin"`
-	SerialNumber string `json:"serialNumber"`
-	CryptoData91 string `json:"cryptoData91"`
-	CryptoData92 string `json:"cryptoData92"`
-}
-
 // DataMatrixInformationJSONResponse is a response for DataMatrixInformation.
 type DataMatrixInformationJSONResponse struct {
 	// embedded struct
@@ -391,16 +383,9 @@ type DataMatrixInformationJSONResponse struct {
 
 // DataMatrixInformation adds a medication.
 func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *http.Request) {
-	var reqJSON *DataMatrixInformationJSONRequest
-
-	var body bytes.Buffer
-	_, err := body.ReadFrom(r.Body)
-	defer func() {
-		_ = r.Body.Close()
-	}()
-
-	if err != nil {
-		h.logger.WithError(err).Error("Failed to read request body")
+	dataParam := r.URL.Query().Get("data")
+	if dataParam == "" {
+		h.logger.Error("Failed to read request body")
 		w.WriteHeader(http.StatusBadRequest)
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -412,24 +397,8 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 		return
 	}
 
-	err = json.Unmarshal(body.Bytes(), &reqJSON)
-	if err != nil {
-		h.logger.WithError(err).Error("Failed to unmarshal request body")
-		w.WriteHeader(http.StatusBadRequest)
-
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusBadRequest,
-			Error:      MsgFailedToUnmarshal,
-			Body:       nil,
-		})
-		return
-	}
-
 	serviceRequest := &application.DataMatrixInformationCommand{
-		GTIN:         reqJSON.GTIN,
-		SerialNumber: reqJSON.SerialNumber,
-		CryptoData91: reqJSON.CryptoData91,
-		CryptoData92: reqJSON.CryptoData92,
+		Data: dataParam,
 	}
 
 	serviceResponse, err := h.app.DataMatrixInformation.Execute(
