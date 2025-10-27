@@ -129,7 +129,6 @@ func parseDose(dosage string) float32 {
 	if dosage == "" {
 		return 0
 	}
-	// Парсим числовую часть из строки дозировки
 	re := regexp.MustCompile(`(\d+\.?\d*)`)
 	matches := re.FindStringSubmatch(dosage)
 	if len(matches) > 1 {
@@ -146,7 +145,6 @@ func extractUnit(dosage string) string {
 	if dosage == "" {
 		return ""
 	}
-	// Извлекаем единицы измерения (мг, г, мл и т.д.)
 	re := regexp.MustCompile(`\d+\.?\d*\s*([a-zA-Zа-яА-Я]+)`)
 	matches := re.FindStringSubmatch(dosage)
 	if len(matches) > 1 {
@@ -159,5 +157,5 @@ func formatReleaseDate(timestamp int64) string {
 	if timestamp == 0 {
 		return ""
 	}
-	return time.Unix(timestamp, 0).Format("2006-01-02")
+	return time.Unix(timestamp/1000, 0).Format("2006-01-02")
 }
