@@ -2,10 +2,9 @@ package application
 
 import (
 	"context"
-	"fmt"
-	"time"
+	"errors"
 
-	medication "github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 )
 
@@ -53,30 +52,11 @@ type GetMedicationListResponse struct {
 
 // Execute returns a list of medications.
 func (s *GetMedicationListService) Execute(
-	ctx context.Context,
-	req *GetMedicationListCommand,
+	_ context.Context,
+	_ *GetMedicationListCommand,
 ) (*GetMedicationListResponse, error) {
-	valErr := s.validator.ValidateStruct(req)
-	if valErr != nil {
-		return nil, fmt.Errorf("failed to validate request: %w", valErr)
-	}
-	medications, err := s.medicationRepo.GetListAll(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get medication list: %w", err)
-	}
-
-	listItems := make([]*MedicationListItem, 0)
-	for _, medication := range medications {
-		listItems = append(listItems, &MedicationListItem{
-			ID:        medication.ID,
-			Name:      medication.Name,
-			Items:     medication.Items,
-			ItemsUnit: medication.ItemsUnit,
-			Expires:   medication.Expires.Format(time.DateOnly),
-		})
-	}
-
-	return &GetMedicationListResponse{
-		List: listItems,
-	}, nil
+	// Temporary disabled due to not implemented
+	//
+	//nolint:err113
+	return nil, errors.New("not implemented")
 }

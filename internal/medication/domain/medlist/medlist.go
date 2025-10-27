@@ -7,7 +7,7 @@ import (
 
 // MedicationList is a domain entity that represents a user's medication list aggregate root.
 type MedicationList struct {
-	ID            uint
+	ID            uuid.UUID
 	UserID        uuid.UUID
-	MedicationsID []uint
+	MedicationsID []uuid.UUID
 }
