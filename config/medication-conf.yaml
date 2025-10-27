@@ -7,4 +7,4 @@ server:
 
 scan:
   host: ${CLIENT_API_HOST}
-  timeout: ${TIMEOUT 10s}
+  timeout: ${TIMEOUT:-10s}

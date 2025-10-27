@@ -79,7 +79,6 @@ func (s *DataMatrixInformationService) Execute(
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse data matrix: %w", err)
 	}
-	parsedData.CryptoData92 = strings.TrimSuffix(parsedData.CryptoData92, "=")
 	dataMatrixInfo, err := s.dataMatrixCache.Get(
 		ctx,
 		parsedData.GTIN+parsedData.SerialNumber+parsedData.CryptoData91+parsedData.CryptoData92,
@@ -133,6 +132,7 @@ func NewDataMatrixString(data string) (*ParsedInformation, error) {
 	if data == "" {
 		return nil, ErrEmptyInput
 	}
+	fmt.Println(data)
 
 	var gtin, serial, crypto91, crypto92 string
 	const fmtPattern = "(01)%14s(21)%13s(91)%4s(92)%44s"
@@ -162,7 +162,7 @@ func NewDataMatrixString(data string) (*ParsedInformation, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	crypto92 = strings.TrimSuffix(crypto92, "=")
 	return &ParsedInformation{
 		GTIN:         gtin,
 		SerialNumber: serial,

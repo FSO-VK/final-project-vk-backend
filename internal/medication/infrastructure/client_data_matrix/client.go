@@ -48,7 +48,6 @@ func (h *DataMatrixAPI) GetInformationByDataMatrix(
 	}
 	code := "01" + data.GTIN + "21" + data.SerialNumber + "%1D91" + data.CryptoData91 + "%1D92" + data.CryptoData92
 	url := h.cfg.Host + code
-
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
