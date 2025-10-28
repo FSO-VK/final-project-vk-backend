@@ -9,8 +9,8 @@ var (
 	ErrNoMedicationFound = errors.New("dataMatrix api: no medication found")
 	// ErrInvalidRequest is returned when the request is invalid.
 	ErrInvalidRequest = errors.New("dataMatrix api: invalid request")
-	// ErrInvalidAPIResponse is returned when the response status code is not 200 or body is not like expected.
-	ErrInvalidAPIResponse = errors.New(
+	// ErrBadResponse is returned when the response status code is not 200 or body is not like expected.
+	ErrBadResponse = errors.New(
 		"dataMatrix api: invalid response not 200 or body is not like expected",
 	)
 )

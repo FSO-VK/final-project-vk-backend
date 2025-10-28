@@ -15,7 +15,7 @@ type MedicationInfoFromAPI struct {
 
 // ExpectedDataMatrixAPIResponse is the expected response for dataMatrix API.
 type ExpectedDataMatrixAPIResponse struct {
-	CodeFounded   bool      `json:"codeFounded"`
+	CodeFound     bool      `json:"codeFounded"`
 	CheckDate     int64     `json:"checkDate"`
 	Category      string    `json:"category"`
 	ProductName   string    `json:"productName"`

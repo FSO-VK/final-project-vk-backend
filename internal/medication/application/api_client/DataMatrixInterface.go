@@ -9,8 +9,8 @@ import (
 // ErrNoMedicationFound is an error when a medication is not found.
 var ErrNoMedicationFound = errors.New("medication not found")
 
-// DataMatrixCache is an interface for data matrix cache.
-type DataMatrixCache interface {
+// DataMatrixCacher is an interface for data matrix cache.
+type DataMatrixCacher interface {
 	Get(ctx context.Context, key string) (*MedicationInfo, error)
 	Set(ctx context.Context, key string, data *MedicationInfo) error
 }

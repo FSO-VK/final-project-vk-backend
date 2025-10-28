@@ -14,7 +14,7 @@ import (
 
 var (
 	// ErrCantSetCache is an error when setting cache.
-	ErrCantSetCache = errors.New("error when setting cache")
+	ErrCantSetCache = errors.New("fail to set cache")
 	// ErrEmptyInput is an error when input is empty.
 	ErrEmptyInput = errors.New("empty input")
 )
@@ -30,14 +30,14 @@ type DataMatrixInformation interface {
 // DataMatrixInformationService is a service for get info from API.
 type DataMatrixInformationService struct {
 	dataMatrixClient client.DataMatrixClient
-	dataMatrixCache  client.DataMatrixCache
+	dataMatrixCache  client.DataMatrixCacher
 	validator        validator.Validator
 }
 
 // NewDataMatrixInformationService returns a new DataMatrixInformationService.
 func NewDataMatrixInformationService(
 	dataMatrixClient client.DataMatrixClient,
-	dataMatrixCache client.DataMatrixCache,
+	dataMatrixCache client.DataMatrixCacher,
 	valid validator.Validator,
 ) *DataMatrixInformationService {
 	return &DataMatrixInformationService{
@@ -75,13 +75,14 @@ func (s *DataMatrixInformationService) Execute(
 	if valErr != nil {
 		return nil, fmt.Errorf("failed to validate request: %w", valErr)
 	}
-	parsedData, err := NewDataMatrixString(req.Data)
+	parsedData, err := ParseDataMatrix(req.Data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse data matrix: %w", err)
 	}
+	concatenatedInfo := parsedData.GTIN + parsedData.SerialNumber + parsedData.CryptoData91 + parsedData.CryptoData92
 	dataMatrixInfo, err := s.dataMatrixCache.Get(
 		ctx,
-		parsedData.GTIN+parsedData.SerialNumber+parsedData.CryptoData91+parsedData.CryptoData92,
+		concatenatedInfo,
 	)
 	var errOut error
 	if err != nil {
@@ -94,7 +95,7 @@ func (s *DataMatrixInformationService) Execute(
 		if err == nil {
 			err = s.dataMatrixCache.Set(
 				ctx,
-				parsedData.GTIN+parsedData.SerialNumber+parsedData.CryptoData91+parsedData.CryptoData92,
+				concatenatedInfo,
 				dataMatrixInfo,
 			)
 			if err != nil {
@@ -127,12 +128,11 @@ func (s *DataMatrixInformationService) Execute(
 	}, errOut
 }
 
-// NewDataMatrixString creates validated data matrix string.
-func NewDataMatrixString(data string) (*ParsedInformation, error) {
+// ParseDataMatrix creates validated data matrix string.
+func ParseDataMatrix(data string) (*ParsedInformation, error) {
 	if data == "" {
 		return nil, ErrEmptyInput
 	}
-	fmt.Println(data)
 
 	var gtin, serial, crypto91, crypto92 string
 	const fmtPattern = "(01)%14s(21)%13s(91)%4s(92)%44s"
@@ -152,7 +152,15 @@ func NewDataMatrixString(data string) (*ParsedInformation, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	err = errors.Join(
+		validation.ValidateGTINFormat(gtin),
+		validation.ValidateSerialFormat(serial),
+		validation.ValidateCrypto91Format(crypto91),
+		validation.ValidateCrypto92Format(crypto92),
+	)
+	if err != nil {
+		return nil, err
+	}
 	err = errors.Join(
 		validation.RequiredGTIN(gtin),
 		validation.RequiredSerial(serial),

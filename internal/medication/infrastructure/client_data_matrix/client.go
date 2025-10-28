@@ -4,9 +4,12 @@ package clientdatamatrix
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 
 	clientInterface "github.com/FSO-VK/final-project-vk-backend/internal/medication/application/api_client"
 	"github.com/sirupsen/logrus"
@@ -22,7 +25,7 @@ type DataMatrixAPI struct {
 // NewDataMatrixAPI creates a new DataMatrixAPI.
 func NewDataMatrixAPI(cfg ClientConfig, logger *logrus.Entry) *DataMatrixAPI {
 	client := &http.Client{
-		Timeout:       2 * time.Second,
+		Timeout:       cfg.Timeout,
 		Transport:     nil,
 		CheckRedirect: nil,
 		Jar:           nil,
@@ -63,21 +66,21 @@ func (h *DataMatrixAPI) GetInformationByDataMatrix(
 		}
 	}()
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, ErrInvalidAPIResponse
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, ErrBadResponse
 	}
 
-	var env ExpectedDataMatrixAPIResponse
-	if err := json.NewDecoder(resp.Body).Decode(&env); err != nil {
+	var parsedResponse ExpectedDataMatrixAPIResponse
+	if err := json.NewDecoder(resp.Body).Decode(&parsedResponse); err != nil {
 		h.logger.WithError(err).Error("failed to decode API response")
-		return nil, ErrInvalidAPIResponse
+		return nil, fmt.Errorf("%w: %w", ErrBadResponse, err)
 	}
 
-	if !env.CodeFounded {
+	if !parsedResponse.CodeFound {
 		return nil, ErrNoMedicationFound
 	}
 
-	out := MapToMedicationInfo(&env)
+	out := MapToMedicationInfo(&parsedResponse)
 
 	return out, nil
 }
@@ -130,10 +133,7 @@ func formatReleaseForm(name string) string {
 		return ""
 	}
 
-	runes[0] = unicode.ToUpper(runes[0])
-	for i := 1; i < len(runes); i++ {
-		runes[i] = unicode.ToLower(runes[i])
-	}
+	firstRune, size := utf8.DecodeRuneInString(name)
 
-	return string(runes)
+	return string(unicode.ToUpper(firstRune)) + strings.ToLower(name[size:])
 }
