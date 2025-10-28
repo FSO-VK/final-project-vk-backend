@@ -54,13 +54,12 @@ func GetAuthFromCtx(r *http.Request) (*AuthStatus, error) {
 
 // AuthMiddleware implements authorization check as a struct.
 type AuthMiddleware struct {
-	checker    client.AuthChecker
-	headerName string
+	checker client.AuthChecker
 }
 
 // NewAuthMiddleware constructor for AuthMiddleware.
-func NewAuthMiddleware(checker client.AuthChecker, headerName string) *AuthMiddleware {
-	return &AuthMiddleware{checker: checker, headerName: headerName}
+func NewAuthMiddleware(checker client.AuthChecker) *AuthMiddleware {
+	return &AuthMiddleware{checker: checker}
 }
 
 // AuthMiddlewareWrapper wraps http.Handler with authorization check.

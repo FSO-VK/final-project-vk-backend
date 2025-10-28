@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
+
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medbox"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
 )
@@ -28,17 +30,20 @@ type UpdateMedication interface {
 
 // UpdateMedicationService is a service for updating a medication.
 type UpdateMedicationService struct {
-	medicationRepo medication.RepositoryForMedication
-	validator      validator.Validator
+	medicationRepo    medication.RepositoryForMedication
+	medicationBoxRepo medbox.RepositoryForMedicationBox
+	validator         validator.Validator
 }
 
 // NewUpdateMedicationService returns a new UpdateMedicationService.
 func NewUpdateMedicationService(
 	medicationRepo medication.RepositoryForMedication,
+	medicationBoxRepo medbox.RepositoryForMedicationBox,
 	valid validator.Validator,
 ) *UpdateMedicationService {
 	return &UpdateMedicationService{
 		medicationRepo: medicationRepo,
+		medicationBoxRepo:     medicationBoxRepo,
 		validator:      valid,
 	}
 }

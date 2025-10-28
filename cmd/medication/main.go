@@ -1,13 +1,17 @@
 package main
 
 import (
+	"time"
+
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
 	dataMatrixClient "github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/client_data_matrix"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/presentation/http"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
+	auth_client "github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
 	"github.com/sirupsen/logrus"
 )
 
@@ -42,12 +46,13 @@ func main() {
 		logger,
 	)
 	dataMatrixCache := memory.NewDataMatrixStorage()
+	medicationBoxRepo := memory.NewMedicationBoxStorage()
 
 	app := &application.MedicationApplication{
-		GetMedicationList: application.NewGetMedicationListService(medicationRepo, validator),
-		AddMedication:     application.NewAddMedicationService(medicationRepo, validator),
-		UpdateMedication:  application.NewUpdateMedicationService(medicationRepo, validator),
-		DeleteMedication:  application.NewDeleteMedicationService(medicationRepo, validator),
+		GetMedicationBox: application.NewGetMedicationBoxService(medicationRepo, medicationBoxRepo, validator),
+		AddMedication:     application.NewAddMedicationService(medicationRepo, medicationBoxRepo, validator),
+		UpdateMedication:  application.NewUpdateMedicationService(medicationRepo, medicationBoxRepo, validator),
+		DeleteMedication:  application.NewDeleteMedicationService(medicationRepo, medicationBoxRepo, validator),
 		DataMatrixInformation: application.NewDataMatrixInformationService(
 			dataMatrixClient,
 			dataMatrixCache,
@@ -56,7 +61,18 @@ func main() {
 	}
 
 	medicationHandlers := http.NewHandlers(app, logger)
-	router := http.Router(medicationHandlers)
+
+	authChecker := auth_client.NewHTTPAuthChecker(auth_client.ClientConfig{
+		BaseURL:      "http://0.0.0.0:8001",
+		Path:         "/session",
+		Timeout:      30 * time.Second,
+		CookieName:   "session_id",
+		CookieDomain: "/",
+	}, logger)
+
+	authMw := httputil.NewAuthMiddleware(authChecker)
+
+	router := http.Router(medicationHandlers, authMw)
 
 	server := http.NewHTTPServer(&conf.Server, logger)
 	server.Router(router)

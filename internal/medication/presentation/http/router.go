@@ -8,10 +8,11 @@ import (
 // Router returns a new HTTP router.
 func Router(
 	medicationHandlers *MedicationHandlers,
+	authMw *httputil.AuthMiddleware,
 ) *mux.Router {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/medication/all", medicationHandlers.GetMedicationList).Methods("GET")
+	r.HandleFunc("/medication/all", medicationHandlers.GetMedicationBox).Methods("GET")
 	r.HandleFunc("/medication", medicationHandlers.AddMedication).Methods("POST")
 	r.HandleFunc("/medication/{id}", medicationHandlers.UpdateMedication).Methods("PUT")
 	r.HandleFunc("/medication/{id}", medicationHandlers.DeleteMedication).Methods("DELETE")
@@ -19,6 +20,7 @@ func Router(
 
 	panicMiddleware := httputil.NewPanicRecoveryMiddleware()
 	r.Use(panicMiddleware.Middleware)
+	r.Use(authMw.AuthMiddlewareWrapper)
 
 	return r
 }

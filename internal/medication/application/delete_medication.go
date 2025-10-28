@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	medication "github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
+
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medbox"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
 )
@@ -23,17 +25,20 @@ type DeleteMedication interface {
 
 // DeleteMedicationService is a service for deleting a medication.
 type DeleteMedicationService struct {
-	medicationRepo medication.RepositoryForMedication
-	validator      validator.Validator
+	medicationRepo    medication.RepositoryForMedication
+	medicationBoxRepo medbox.RepositoryForMedicationBox
+	validator         validator.Validator
 }
 
 // NewDeleteMedicationService returns a new DeleteMedicationService.
 func NewDeleteMedicationService(
 	medicationRepo medication.RepositoryForMedication,
+	medicationBoxRepo medbox.RepositoryForMedicationBox,
 	valid validator.Validator,
 ) *DeleteMedicationService {
 	return &DeleteMedicationService{
 		medicationRepo: medicationRepo,
+		medicationBoxRepo:     medicationBoxRepo,
 		validator:      valid,
 	}
 }

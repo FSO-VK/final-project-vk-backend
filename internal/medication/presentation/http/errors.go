@@ -13,10 +13,10 @@ const (
 	MsgFailedToUpdateMedication api.ErrorType = "Failed to update medication"
 	// MsgFailedToDeleteMedication is a message for failed to delete medication.
 	MsgFailedToDeleteMedication api.ErrorType = "Failed to delete medication"
-	// MsgFailedToGetMedicationList is a message for failed to get medication list.
-	MsgFailedToGetMedicationList api.ErrorType = "Failed to get medication list"
 	// MsgFailToParseID is a message for failed to parse id.
 	MsgFailToParseID api.ErrorType = "Failed to parse id"
 	// MsgFailedToGetIfoFromScan is a message for failed to get info from scan.
 	MsgFailedToGetIfoFromScan api.ErrorType = "Failed to get info from scan"
+	// MsgFailedToGetMedicationBox is a message for failed to get info from scan.
+	MsgFailedToGetMedicationBox api.ErrorType = "Failed to get medication box"
 )

@@ -2,5 +2,5 @@
 # https://github.com/drone/envsubst?tab=readme-ov-file
 
 server:
-  host: ${AUTH_SERVER_HOST:-127.0.0.1}
-  port: ${AUTH_SERVER_PORT:-8000}
+  host: ${AUTH_SERVER_HOST:-0.0.0.0}
+  port: ${AUTH_SERVER_PORT:-8001}

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
@@ -52,10 +51,20 @@ type AddMedicationJSONResponse struct {
 
 // AddMedication adds a medication.
 func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Request) {
+	auth, err := httputil.GetAuthFromCtx(r)
+	if err != nil {
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+			StatusCode: http.StatusUnauthorized,
+			Error:      api.MsgUnauthorized,
+			Body:       nil,
+		})
+		return
+	}
+
 	var reqJSON *AddMedicationJSONRequest
 
 	var body bytes.Buffer
-	_, err := body.ReadFrom(r.Body)
+	_, err = body.ReadFrom(r.Body)
 	defer func() {
 		_ = r.Body.Close()
 	}()
@@ -87,6 +96,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 	}
 
 	serviceRequest := &application.AddMedicationCommand{
+		UserID: auth.UserID,
 		CommandBase: application.CommandBase{
 			Name:                reqJSON.Name,
 			InternationalName:   reqJSON.InternationalName,
@@ -121,6 +131,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 
 		return
 	}
+
 	response := &AddMedicationJSONResponse{
 		ID: serviceResponse.ID,
 		BodyCommonObject: BodyCommonObject{
@@ -321,49 +332,75 @@ func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Req
 	})
 }
 
-// GetMedicationListItem returns a list of medications.
-type GetMedicationListItem struct {
-	ID         string `json:"id"`
-	Name       string `json:"name"`
-	Items      uint   `json:"items"`
-	ItemsUnit  string `json:"itemsUnit"`
-	Expiration string `json:"expiration"`
+// GetMedicationBoxItem returns a Box of medications.
+type GetMedicationBoxItem struct {
+	// embedded struct
+	BodyCommonObject `json:",inline"`
 }
 
-// GetMedicationListJSONResponse returns a list of medications.
-type GetMedicationListJSONResponse struct {
-	MedicationList []GetMedicationListItem `json:"medicationList"`
+// GetMedicationBoxJSONResponse returns a Box of medications.
+type GetMedicationBoxJSONResponse struct {
+	MedicationBox []GetMedicationBoxItem `json:"medicationBox"`
 }
 
-// GetMedicationList returns a list of medications.
-func (h *MedicationHandlers) GetMedicationList(w http.ResponseWriter, r *http.Request) {
-	serviceResponse, err := h.app.GetMedicationList.Execute(
+// GetMedicationBox returns a Box of medications.
+func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Request) {
+	auth, err := httputil.GetAuthFromCtx(r)
+	if err != nil {
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+			StatusCode: http.StatusUnauthorized,
+			Error:      api.MsgUnauthorized,
+			Body:       nil,
+		})
+		return
+	}
+	command := &application.GetMedicationBoxCommand{
+			UserID: auth.UserID,
+		}
+	serviceResponse, err := h.app.GetMedicationBox.Execute(
 		r.Context(),
-		&application.GetMedicationListCommand{},
+		command,
 	)
 	if err != nil {
-		h.logger.WithError(err).Error("Failed to get medication list")
+		h.logger.WithError(err).Error("Failed to get medication Box")
 		w.WriteHeader(http.StatusInternalServerError)
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusInternalServerError,
 			Body:       struct{}{},
-			Error:      MsgFailedToGetMedicationList,
+			Error:      MsgFailedToGetMedicationBox,
 		})
 		return
 	}
 
-	response := &GetMedicationListJSONResponse{
-		MedicationList: make([]GetMedicationListItem, 0),
+	response := &GetMedicationBoxJSONResponse{
+		MedicationBox: make([]GetMedicationBoxItem, 0),
 	}
 
-	for _, item := range serviceResponse.List {
-		response.MedicationList = append(response.MedicationList, GetMedicationListItem{
-			ID:         strconv.FormatUint(uint64(item.ID), 10),
-			Name:       item.Name,
-			Items:      item.Items,
-			ItemsUnit:  item.ItemsUnit,
-			Expiration: item.Expires,
+	for _, item := range serviceResponse.Box {
+		response.MedicationBox = append(response.MedicationBox, GetMedicationBoxItem{
+			BodyCommonObject: BodyCommonObject{
+				Name:              item.Name,
+				InternationalName: item.InternationalName,
+				Amount: AmountObject{
+					Value: item.AmountValue,
+					Unit:  item.AmountUnit,
+				},
+				ReleaseForm: item.ReleaseForm,
+				Group:       item.Group,
+				Producer: ProducerObject{
+					Name:    item.ManufacturerName,
+					Country: item.ManufacturerCountry,
+				},
+				ActiveSubstance: ActiveSubstanceObject{
+					Name:  item.ActiveSubstanceName,
+					Value: item.ActiveSubstanceDose,
+					Unit:  item.ActiveSubstanceUnit,
+				},
+				Expiration: item.Expires,
+				Release:    item.Release,
+				Commentary: item.Commentary,
+			},
 		})
 	}
 

@@ -15,7 +15,6 @@ var ErrNoMedicationFound = errors.New("medication not found")
 type RepositoryForMedication interface {
 	Create(ctx context.Context, medication *Medication) (*Medication, error)
 	GetByID(ctx context.Context, medicationID uuid.UUID) (*Medication, error)
-	GetListAll(ctx context.Context) ([]*Medication, error)
 	Update(ctx context.Context, medication *Medication) (*Medication, error)
 	Delete(ctx context.Context, medicationID uuid.UUID) error
 }
