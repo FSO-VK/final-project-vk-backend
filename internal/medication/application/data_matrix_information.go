@@ -148,11 +148,6 @@ func ParseDataMatrix(data string) (*ParsedInformation, error) {
 		validation.Required(serial),
 		validation.Required(crypto91),
 		validation.Required(crypto92),
-	)
-	if err != nil {
-		return nil, err
-	}
-	err = errors.Join(
 		validation.GTIN(gtin),
 		validation.Serial(serial),
 		validation.Crypto91(crypto91),
