@@ -374,3 +374,70 @@ func (h *MedicationHandlers) GetMedicationList(w http.ResponseWriter, r *http.Re
 		Error:      "",
 	})
 }
+
+// DataMatrixInformationJSONResponse is a response for DataMatrixInformation.
+type DataMatrixInformationJSONResponse struct {
+	// embedded struct
+	BodyAPIObject `json:",inline"`
+}
+
+// DataMatrixInformation adds a medication.
+func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *http.Request) {
+	dataParam := r.URL.Query().Get("data")
+	if dataParam == "" {
+		h.logger.Error("Failed to read request body")
+		w.WriteHeader(http.StatusBadRequest)
+
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Error:      MsgFailedToReadBody,
+			Body:       nil,
+		})
+
+		return
+	}
+
+	serviceRequest := &application.DataMatrixInformationCommand{
+		Data: dataParam,
+	}
+
+	serviceResponse, err := h.app.DataMatrixInformation.Execute(
+		r.Context(),
+		serviceRequest,
+	)
+	if err != nil {
+		if errors.Is(err, application.ErrCantSetCache) {
+			h.logger.WithError(err).Error("Failed to set cache: %w", err)
+		} else {
+			h.logger.WithError(err).Error("Failed to get info from scan: %w", err)
+			w.WriteHeader(http.StatusInternalServerError)
+
+			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+				StatusCode: http.StatusInternalServerError,
+				Body:       nil,
+				Error:      MsgFailedToGetIfoFromScan,
+			})
+			return
+		}
+	}
+	response := &DataMatrixInformationJSONResponse{
+		BodyAPIObject: BodyAPIObject{
+			Name:              serviceResponse.Name,
+			InternationalName: serviceResponse.InternationalName,
+			ReleaseForm:       serviceResponse.ReleaseForm,
+			Group:             serviceResponse.Group,
+			Producer: ProducerObject{
+				Name:    serviceResponse.ManufacturerName,
+				Country: serviceResponse.ManufacturerCountry,
+			},
+			Expiration: serviceResponse.Expires,
+			Release:    serviceResponse.Release,
+		},
+	}
+	w.WriteHeader(http.StatusOK)
+	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+		StatusCode: http.StatusOK,
+		Body:       response,
+		Error:      "",
+	})
+}

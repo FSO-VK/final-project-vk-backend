@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
+	dataMatrixClient "github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/client_data_matrix"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/presentation/http"
@@ -36,12 +37,22 @@ func main() {
 	}
 	medicationRepo := memory.NewMedicationStorage()
 	validator := validator.NewValidationProvider()
+	dataMatrixClient := dataMatrixClient.NewDataMatrixAPI(
+		conf.Scan,
+		logger,
+	)
+	dataMatrixCache := memory.NewDataMatrixStorage()
 
 	app := &application.MedicationApplication{
 		GetMedicationList: application.NewGetMedicationListService(medicationRepo, validator),
 		AddMedication:     application.NewAddMedicationService(medicationRepo, validator),
 		UpdateMedication:  application.NewUpdateMedicationService(medicationRepo, validator),
 		DeleteMedication:  application.NewDeleteMedicationService(medicationRepo, validator),
+		DataMatrixInformation: application.NewDataMatrixInformationService(
+			dataMatrixClient,
+			dataMatrixCache,
+			validator,
+		),
 	}
 
 	medicationHandlers := http.NewHandlers(app, logger)

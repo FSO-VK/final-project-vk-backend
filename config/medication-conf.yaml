@@ -4,3 +4,7 @@
 server:
   host: ${MEDICATION_SERVER_HOST:-127.0.0.1}
   port: ${MEDICATION_SERVER_PORT:-8000}
+
+scan:
+  host: ${CLIENT_API_HOST}
+  timeout: ${TIMEOUT:-10s}

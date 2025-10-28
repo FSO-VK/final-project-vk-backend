@@ -15,6 +15,7 @@ func Router(
 	r.HandleFunc("/medication", medicationHandlers.AddMedication).Methods("POST")
 	r.HandleFunc("/medication/{id}", medicationHandlers.UpdateMedication).Methods("PUT")
 	r.HandleFunc("/medication/{id}", medicationHandlers.DeleteMedication).Methods("DELETE")
+	r.HandleFunc("/medication/scan", medicationHandlers.DataMatrixInformation).Methods("GET")
 
 	panicMiddleware := httputil.NewPanicRecoveryMiddleware()
 	r.Use(panicMiddleware.Middleware)

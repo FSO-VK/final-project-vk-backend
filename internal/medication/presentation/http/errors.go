@@ -17,4 +17,6 @@ const (
 	MsgFailedToGetMedicationList api.ErrorType = "Failed to get medication list"
 	// MsgFailToParseID is a message for failed to parse id.
 	MsgFailToParseID api.ErrorType = "Failed to parse id"
+	// MsgFailedToGetIfoFromScan is a message for failed to get info from scan.
+	MsgFailedToGetIfoFromScan api.ErrorType = "Failed to get info from scan"
 )
