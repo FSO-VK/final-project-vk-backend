@@ -37,15 +37,16 @@ func NewDeleteMedicationService(
 	valid validator.Validator,
 ) *DeleteMedicationService {
 	return &DeleteMedicationService{
-		medicationRepo: medicationRepo,
-		medicationBoxRepo:     medicationBoxRepo,
-		validator:      valid,
+		medicationRepo:    medicationRepo,
+		medicationBoxRepo: medicationBoxRepo,
+		validator:         valid,
 	}
 }
 
 // DeleteMedicationCommand is a request to delete a medication.
 type DeleteMedicationCommand struct {
-	ID string `validate:"required"`
+	UserID string `validate:"required"`
+	ID     string `validate:"required"`
 }
 
 // DeleteMedicationResponse is a response to delete a medication.
@@ -71,5 +72,28 @@ func (s *DeleteMedicationService) Execute(
 		return nil, fmt.Errorf("failed to delete medication: %w", err)
 	}
 
+	uuidUserID, err := uuid.Parse(req.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID: %w", err)
+	}
+	medicationBox, err := s.medicationBoxRepo.GetMedicationBox(ctx, uuidUserID)
+	if err != nil {
+		return nil, fmt.Errorf("user does not have a medication box: %w", err)
+	}
+	medicationBox.MedicationsID = removeFromSlice(medicationBox.MedicationsID, parsedUUID)
+	err = s.medicationBoxRepo.SetMedicationBox(ctx, medicationBox)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add medication to box: %w", err)
+	}
+
 	return &DeleteMedicationResponse{}, nil
+}
+
+func removeFromSlice(slice []uuid.UUID, id uuid.UUID) []uuid.UUID {
+	for i, item := range slice {
+		if item == id {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
 }

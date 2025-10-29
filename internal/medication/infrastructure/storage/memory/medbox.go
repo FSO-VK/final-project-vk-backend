@@ -63,7 +63,7 @@ func (s *MedicationBoxStorage) GetMedicationBox(
 	return nil, medbox.ErrNoMedicationBoxFound
 }
 
-// Create creates a new medication in memory.
+// CreateMedicationBox creates a new medication in memory.
 func (s *MedicationBoxStorage) CreateMedicationBox(
 	_ context.Context,
 	userID uuid.UUID,

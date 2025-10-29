@@ -43,9 +43,9 @@ func NewAddMedicationService(
 
 // AddMedicationCommand is a request to add a medication.
 type AddMedicationCommand struct {
-	UserID string `validate:"required"`
 	// embedded struct
 	CommandBase
+	UserID string `validate:"required"`
 }
 
 // AddMedicationResponse is a response to add a medication.
@@ -127,7 +127,6 @@ func (s *AddMedicationService) Execute(
 			return nil, fmt.Errorf("failed to create medication box: %w", err)
 		}
 	}
-	fmt.Println(medicationBox==nil)
 	medicationBox.MedicationsID = append(medicationBox.MedicationsID, addedMedication.GetID())
 	err = s.medicationBoxRepo.SetMedicationBox(ctx, medicationBox)
 

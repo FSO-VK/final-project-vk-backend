@@ -181,13 +181,22 @@ type UpdateMedicationJSONResponse struct {
 
 // UpdateMedication updates a medication.
 func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Request) {
+	auth, err := httputil.GetAuthFromCtx(r)
+	if err != nil {
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+			StatusCode: http.StatusUnauthorized,
+			Error:      api.MsgUnauthorized,
+			Body:       nil,
+		})
+		return
+	}
 	var reqJSON *UpdateMedicationJSONRequest
 
 	vars := mux.Vars(r)
 	id := vars[SlugID]
 
 	var body bytes.Buffer
-	_, err := body.ReadFrom(r.Body)
+	_, err = body.ReadFrom(r.Body)
 	defer func() {
 		_ = r.Body.Close()
 	}()
@@ -218,7 +227,8 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 	}
 
 	serviceRequest := &application.UpdateMedicationCommand{
-		ID: id,
+		UserID: auth.UserID,
+		ID:     id,
 		CommandBase: application.CommandBase{
 			Name:                reqJSON.Name,
 			InternationalName:   reqJSON.InternationalName,
@@ -290,14 +300,24 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 
 // DeleteMedication deletes a medication.
 func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Request) {
+	auth, err := httputil.GetAuthFromCtx(r)
+	if err != nil {
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+			StatusCode: http.StatusUnauthorized,
+			Error:      api.MsgUnauthorized,
+			Body:       nil,
+		})
+		return
+	}
 	vars := mux.Vars(r)
 	id := vars[SlugID]
 
 	serviceRequest := &application.DeleteMedicationCommand{
-		ID: id,
+		UserID: auth.UserID,
+		ID:     id,
 	}
 
-	_, err := h.app.DeleteMedication.Execute(
+	_, err = h.app.DeleteMedication.Execute(
 		r.Context(),
 		serviceRequest,
 	)
@@ -355,8 +375,8 @@ func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Req
 		return
 	}
 	command := &application.GetMedicationBoxCommand{
-			UserID: auth.UserID,
-		}
+		UserID: auth.UserID,
+	}
 	serviceResponse, err := h.app.GetMedicationBox.Execute(
 		r.Context(),
 		command,

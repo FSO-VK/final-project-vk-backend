@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
-
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medbox"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
 )
@@ -42,9 +41,9 @@ func NewUpdateMedicationService(
 	valid validator.Validator,
 ) *UpdateMedicationService {
 	return &UpdateMedicationService{
-		medicationRepo: medicationRepo,
-		medicationBoxRepo:     medicationBoxRepo,
-		validator:      valid,
+		medicationRepo:    medicationRepo,
+		medicationBoxRepo: medicationBoxRepo,
+		validator:         valid,
 	}
 }
 
@@ -52,8 +51,8 @@ func NewUpdateMedicationService(
 type UpdateMedicationCommand struct {
 	// fields embedded
 	CommandBase
-
-	ID string `validate:"required,uuid"`
+	UserID string `validate:"required"`
+	ID     string `validate:"required,uuid"`
 }
 
 // UpdateMedicationResponse is a response to update a medication.
@@ -90,6 +89,25 @@ func (s *UpdateMedicationService) Execute(
 	savedMedication, err := s.medicationRepo.Update(ctx, updatedMedication)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update medication: %w", err)
+	}
+
+	uuidUserID, err := uuid.Parse(req.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID: %w", err)
+	}
+
+	medicationBox, err := s.medicationBoxRepo.GetMedicationBox(ctx, uuidUserID)
+	if err != nil {
+		medicationBox, err = s.medicationBoxRepo.CreateMedicationBox(ctx, uuidUserID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create medication box: %w", err)
+		}
+	}
+	medicationBox.MedicationsID = append(medicationBox.MedicationsID, savedMedication.GetID())
+	err = s.medicationBoxRepo.SetMedicationBox(ctx, medicationBox)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to add medication to box: %w", err)
 	}
 
 	return &UpdateMedicationResponse{

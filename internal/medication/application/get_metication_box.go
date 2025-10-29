@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medbox"
@@ -48,6 +49,7 @@ type MedicationBoxItem struct {
 	ResponseBase
 }
 
+// ProducerObject represents JSON object of producer of medication.
 type ProducerObject struct {
 	Name    string
 	Country string
@@ -60,6 +62,7 @@ type ActiveSubstanceObject struct {
 	Unit  string
 }
 
+// AmountObject is a structure of JSON object of amount of medication.
 type AmountObject struct {
 	Value float32
 	Unit  string
@@ -87,7 +90,7 @@ func (s *GetMedicationBoxService) Execute(
 
 	medBox, err := s.medicationBoxRepo.GetMedicationBox(ctx, userUUID)
 	if err != nil {
-		if err == medbox.ErrNoMedicationBoxFound {
+		if errors.Is(err, medbox.ErrNoMedicationBoxFound) {
 			return &GetMedicationBoxResponse{
 				Box: make([]*MedicationBoxItem, 0),
 			}, nil
