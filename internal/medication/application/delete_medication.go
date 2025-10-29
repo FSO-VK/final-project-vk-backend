@@ -5,9 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	medication "github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
-
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medbox"
+	medication "github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
 )

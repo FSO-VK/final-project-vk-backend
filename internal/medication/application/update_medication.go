@@ -51,6 +51,7 @@ func NewUpdateMedicationService(
 type UpdateMedicationCommand struct {
 	// fields embedded
 	CommandBase
+
 	UserID string `validate:"required"`
 	ID     string `validate:"required,uuid"`
 }
@@ -105,7 +106,6 @@ func (s *UpdateMedicationService) Execute(
 	}
 	medicationBox.MedicationsID = append(medicationBox.MedicationsID, savedMedication.GetID())
 	err = s.medicationBoxRepo.SetMedicationBox(ctx, medicationBox)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to add medication to box: %w", err)
 	}

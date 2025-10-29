@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
-
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medbox"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
 )
@@ -45,6 +44,7 @@ func NewAddMedicationService(
 type AddMedicationCommand struct {
 	// embedded struct
 	CommandBase
+
 	UserID string `validate:"required"`
 }
 
@@ -111,6 +111,20 @@ func (s *AddMedicationService) Execute(
 		return nil, fmt.Errorf("failed to create medication: %w", err)
 	}
 
+	addedMedication, err := repositoryModifications(ctx, s, req, drug)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add medication: %w", err)
+	}
+
+	return &AddMedicationResponse{
+		responseBaseMapper(addedMedication),
+	}, nil
+}
+
+func repositoryModifications(
+	ctx context.Context, s *AddMedicationService,
+	req *AddMedicationCommand, drug *medication.Medication,
+) (*medication.Medication, error) {
 	addedMedication, err := s.medicationRepo.Create(ctx, drug)
 	if err != nil || addedMedication == nil {
 		return nil, fmt.Errorf("failed to save medication: %w", err)
@@ -129,12 +143,9 @@ func (s *AddMedicationService) Execute(
 	}
 	medicationBox.MedicationsID = append(medicationBox.MedicationsID, addedMedication.GetID())
 	err = s.medicationBoxRepo.SetMedicationBox(ctx, medicationBox)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to add medication to box: %w", err)
 	}
 
-	return &AddMedicationResponse{
-		responseBaseMapper(addedMedication),
-	}, nil
+	return addedMedication, nil
 }

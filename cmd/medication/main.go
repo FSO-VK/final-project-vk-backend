@@ -49,10 +49,14 @@ func main() {
 	medicationBoxRepo := memory.NewMedicationBoxStorage()
 
 	app := &application.MedicationApplication{
-		GetMedicationBox: application.NewGetMedicationBoxService(medicationRepo, medicationBoxRepo, validator),
-		AddMedication:     application.NewAddMedicationService(medicationRepo, medicationBoxRepo, validator),
-		UpdateMedication:  application.NewUpdateMedicationService(medicationRepo, medicationBoxRepo, validator),
-		DeleteMedication:  application.NewDeleteMedicationService(medicationRepo, medicationBoxRepo, validator),
+		GetMedicationBox: application.NewGetMedicationBoxService(
+			medicationRepo, medicationBoxRepo, validator),
+		AddMedication: application.NewAddMedicationService(
+			medicationRepo, medicationBoxRepo, validator),
+		UpdateMedication: application.NewUpdateMedicationService(
+			medicationRepo, medicationBoxRepo, validator),
+		DeleteMedication: application.NewDeleteMedicationService(
+			medicationRepo, medicationBoxRepo, validator),
 		DataMatrixInformation: application.NewDataMatrixInformationService(
 			dataMatrixClient,
 			dataMatrixCache,
