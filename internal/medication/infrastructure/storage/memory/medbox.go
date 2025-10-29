@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medbox"
@@ -41,7 +40,6 @@ func (s *MedicationBoxStorage) SetMedicationBox(
 		s.data.mu.Unlock()
 		return medbox.ErrNoMedicationBoxFound
 	}
-	fmt.Println("11111111111111111111 written")
 	s.data.Set(medicationBox.ID.String(), medicationBox)
 	return nil
 }
