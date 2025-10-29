@@ -4,7 +4,6 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -53,11 +52,7 @@ func (h *HTTPAuthChecker) CheckAuth(reqData *Request) (*Response, error) {
 		Path:  h.cfg.CookieDomain,
 	})
 	httpReq.Header.Set("Accept", "application/json")
-	// Вывод в формате curl
-	fmt.Printf("curl -X %s '%s' \\\n", httpReq.Method, httpReq.URL.String())
-	fmt.Printf("  -H 'Accept: application/json' \\\n")
-	fmt.Printf("  -H 'Cookie: %s=%s' \\\n", h.cfg.CookieName, reqData.SessionID)
-	fmt.Println("  --compressed")
+
 	resp, err := h.client.Do(httpReq)
 	if err != nil {
 		h.logger.WithError(err).Warn("auth request failed")
