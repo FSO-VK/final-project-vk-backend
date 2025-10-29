@@ -24,15 +24,15 @@ type DeleteMedication interface {
 
 // DeleteMedicationService is a service for deleting a medication.
 type DeleteMedicationService struct {
-	medicationRepo    medication.RepositoryForMedication
-	medicationBoxRepo medbox.RepositoryForMedicationBox
+	medicationRepo    medication.Repository
+	medicationBoxRepo medbox.Repository
 	validator         validator.Validator
 }
 
 // NewDeleteMedicationService returns a new DeleteMedicationService.
 func NewDeleteMedicationService(
-	medicationRepo medication.RepositoryForMedication,
-	medicationBoxRepo medbox.RepositoryForMedicationBox,
+	medicationRepo medication.Repository,
+	medicationBoxRepo medbox.Repository,
 	valid validator.Validator,
 ) *DeleteMedicationService {
 	return &DeleteMedicationService{
@@ -44,8 +44,8 @@ func NewDeleteMedicationService(
 
 // DeleteMedicationCommand is a request to delete a medication.
 type DeleteMedicationCommand struct {
-	UserID string `validate:"required"`
-	ID     string `validate:"required"`
+	UserID string `validate:"required,uuid"`
+	ID     string `validate:"required,uuid"`
 }
 
 // DeleteMedicationResponse is a response to delete a medication.
@@ -66,11 +66,6 @@ func (s *DeleteMedicationService) Execute(
 		return nil, fmt.Errorf("%w: %w", ErrDeleteInvalidUUIDFormat, err)
 	}
 
-	err = s.medicationRepo.Delete(ctx, parsedUUID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to delete medication: %w", err)
-	}
-
 	uuidUserID, err := uuid.Parse(req.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid user ID: %w", err)
@@ -79,20 +74,15 @@ func (s *DeleteMedicationService) Execute(
 	if err != nil {
 		return nil, fmt.Errorf("user does not have a medication box: %w", err)
 	}
-	medicationBox.MedicationsID = removeFromSlice(medicationBox.MedicationsID, parsedUUID)
+	medicationBox.RemoveMedication(parsedUUID)
 	err = s.medicationBoxRepo.SetMedicationBox(ctx, medicationBox)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add medication to box: %w", err)
 	}
+	err = s.medicationRepo.Delete(ctx, parsedUUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete medication: %w", err)
+	}
 
 	return &DeleteMedicationResponse{}, nil
-}
-
-func removeFromSlice(slice []uuid.UUID, id uuid.UUID) []uuid.UUID {
-	for i, item := range slice {
-		if item == id {
-			return append(slice[:i], slice[i+1:]...)
-		}
-	}
-	return slice
 }

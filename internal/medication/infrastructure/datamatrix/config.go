@@ -1,4 +1,4 @@
-package clientdatamatrix
+package datamatrix
 
 import "time"
 

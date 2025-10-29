@@ -1,17 +1,15 @@
 package main
 
 import (
-	"time"
-
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
-	dataMatrixClient "github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/client_data_matrix"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/config"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/datamatrix"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/presentation/http"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
-	auth_client "github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
+	auth "github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
 	"github.com/sirupsen/logrus"
 )
 
@@ -41,7 +39,7 @@ func main() {
 	}
 	medicationRepo := memory.NewMedicationStorage()
 	validator := validator.NewValidationProvider()
-	dataMatrixClient := dataMatrixClient.NewDataMatrixAPI(
+	dataMatrixClient := datamatrix.NewDataMatrixAPI(
 		conf.Scan,
 		logger,
 	)
@@ -66,13 +64,7 @@ func main() {
 
 	medicationHandlers := http.NewHandlers(app, logger)
 
-	authChecker := auth_client.NewHTTPAuthChecker(auth_client.ClientConfig{
-		BaseURL:      "http://0.0.0.0:8001",
-		Path:         "/session",
-		Timeout:      30 * time.Second,
-		CookieName:   "session_id",
-		CookieDomain: "/",
-	}, logger)
+	authChecker := auth.NewHTTPAuthChecker(conf.Auth, logger)
 
 	authMw := httputil.NewAuthMiddleware(authChecker)
 

@@ -21,15 +21,15 @@ type GetMedicationBox interface {
 
 // GetMedicationBoxService is a service for getting a Box of medications.
 type GetMedicationBoxService struct {
-	medicationRepo    medication.RepositoryForMedication
-	medicationBoxRepo medbox.RepositoryForMedicationBox
+	medicationRepo    medication.Repository
+	medicationBoxRepo medbox.Repository
 	validator         validator.Validator
 }
 
 // NewGetMedicationBoxService returns a new GetMedicationBoxService.
 func NewGetMedicationBoxService(
-	medicationRepo medication.RepositoryForMedication,
-	medicationBoxRepo medbox.RepositoryForMedicationBox,
+	medicationRepo medication.Repository,
+	medicationBoxRepo medbox.Repository,
 	valid validator.Validator,
 ) *GetMedicationBoxService {
 	return &GetMedicationBoxService{
@@ -41,7 +41,7 @@ func NewGetMedicationBoxService(
 
 // GetMedicationBoxCommand is a request to get a Box of medications.
 type GetMedicationBoxCommand struct {
-	UserID string
+	UserID string `validate:"required,uuid"`
 }
 
 // MedicationBoxItem contains information about one medication in the Box.
@@ -49,20 +49,20 @@ type MedicationBoxItem struct {
 	ResponseBase
 }
 
-// ProducerObject represents JSON object of producer of medication.
+// ProducerObject represents object of producer of medication.
 type ProducerObject struct {
 	Name    string
 	Country string
 }
 
-// ActiveSubstanceObject represents JSON object of active substance.
+// ActiveSubstanceObject represents object of active substance.
 type ActiveSubstanceObject struct {
 	Name  string
 	Value float32
 	Unit  string
 }
 
-// AmountObject is a structure of JSON object of amount of medication.
+// AmountObject is a structure of object of amount of medication.
 type AmountObject struct {
 	Value float32
 	Unit  string
@@ -98,8 +98,8 @@ func (s *GetMedicationBoxService) Execute(
 		return nil, fmt.Errorf("failed to get medication box: %w", err)
 	}
 
-	items := make([]*MedicationBoxItem, 0, len(medBox.MedicationsID))
-	for _, mid := range medBox.MedicationsID {
+	items := make([]*MedicationBoxItem, 0, len(medBox.GetMedicationsID()))
+	for _, mid := range medBox.GetMedicationsID() {
 		med, err := s.medicationRepo.GetByID(ctx, mid)
 		if err != nil {
 			continue

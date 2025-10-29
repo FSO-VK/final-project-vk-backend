@@ -1,5 +1,5 @@
-// Package client provides auth client for other services.
-package client
+// Package auth provides auth client for other services.
+package auth
 
 import (
 	"context"

@@ -56,7 +56,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusUnauthorized,
 			Error:      api.MsgUnauthorized,
-			Body:       nil,
+			Body:       struct{}{},
 		})
 		return
 	}
@@ -75,8 +75,8 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
-			Error:      MsgFailedToReadBody,
-			Body:       nil,
+			Error:      api.MsgBadBody,
+			Body:       struct{}{},
 		})
 
 		return
@@ -89,8 +89,8 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
-			Error:      MsgFailedToUnmarshal,
-			Body:       nil,
+			Error:      api.MsgBadBody,
+			Body:       struct{}{},
 		})
 		return
 	}
@@ -125,7 +125,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusInternalServerError,
-			Body:       nil,
+			Body:       struct{}{},
 			Error:      MsgFailedToAddMedication,
 		})
 
@@ -186,7 +186,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusUnauthorized,
 			Error:      api.MsgUnauthorized,
-			Body:       nil,
+			Body:       struct{}{},
 		})
 		return
 	}
@@ -208,7 +208,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
 			Body:       struct{}{},
-			Error:      MsgFailedToReadBody,
+			Error:      api.MsgBadBody,
 		})
 		return
 	}
@@ -221,7 +221,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
 			Body:       struct{}{},
-			Error:      MsgFailedToUnmarshal,
+			Error:      api.MsgBadBody,
 		})
 		return
 	}
@@ -305,7 +305,7 @@ func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Req
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusUnauthorized,
 			Error:      api.MsgUnauthorized,
-			Body:       nil,
+			Body:       struct{}{},
 		})
 		return
 	}
@@ -370,7 +370,7 @@ func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Req
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusUnauthorized,
 			Error:      api.MsgUnauthorized,
-			Body:       nil,
+			Body:       struct{}{},
 		})
 		return
 	}
@@ -447,8 +447,8 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusBadRequest,
-			Error:      MsgFailedToReadBody,
-			Body:       nil,
+			Error:      api.MsgBadBody,
+			Body:       struct{}{},
 		})
 
 		return
@@ -471,7 +471,7 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 
 			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 				StatusCode: http.StatusInternalServerError,
-				Body:       nil,
+				Body:       struct{}{},
 				Error:      MsgFailedToGetIfoFromScan,
 			})
 			return

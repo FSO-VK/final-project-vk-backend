@@ -22,15 +22,15 @@ type AddMedication interface {
 
 // AddMedicationService is a service for adding a medication.
 type AddMedicationService struct {
-	medicationRepo    medication.RepositoryForMedication
-	medicationBoxRepo medbox.RepositoryForMedicationBox
+	medicationRepo    medication.Repository
+	medicationBoxRepo medbox.Repository
 	validator         validator.Validator
 }
 
 // NewAddMedicationService returns a new AddMedicationService.
 func NewAddMedicationService(
-	medicationRepo medication.RepositoryForMedication,
-	medicationBoxRepo medbox.RepositoryForMedicationBox,
+	medicationRepo medication.Repository,
+	medicationBoxRepo medbox.Repository,
 	valid validator.Validator,
 ) *AddMedicationService {
 	return &AddMedicationService{
@@ -45,7 +45,7 @@ type AddMedicationCommand struct {
 	// embedded struct
 	CommandBase
 
-	UserID string `validate:"required"`
+	UserID string `validate:"required,uuid"`
 }
 
 // AddMedicationResponse is a response to add a medication.
@@ -136,12 +136,13 @@ func repositoryModifications(
 
 	medicationBox, err := s.medicationBoxRepo.GetMedicationBox(ctx, uuidUserID)
 	if err != nil {
-		medicationBox, err = s.medicationBoxRepo.CreateMedicationBox(ctx, uuidUserID)
+		medicationBoxDraft := medbox.NewMedicationBox(uuidUserID)
+		medicationBox, err = s.medicationBoxRepo.CreateMedicationBox(ctx, medicationBoxDraft)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create medication box: %w", err)
 		}
 	}
-	medicationBox.MedicationsID = append(medicationBox.MedicationsID, addedMedication.GetID())
+	medicationBox.AddMedication(addedMedication.GetID())
 	err = s.medicationBoxRepo.SetMedicationBox(ctx, medicationBox)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add medication to box: %w", err)

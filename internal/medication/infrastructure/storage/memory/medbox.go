@@ -35,12 +35,12 @@ func (s *MedicationBoxStorage) SetMedicationBox(
 	if medicationBox == nil {
 		return medbox.ErrNoMedicationBoxFound
 	}
-	_, ok := s.data.Get(medicationBox.ID.String())
+	_, ok := s.data.Get(medicationBox.GetID().String())
 	if !ok {
 		s.data.mu.Unlock()
 		return medbox.ErrNoMedicationBoxFound
 	}
-	s.data.Set(medicationBox.ID.String(), medicationBox)
+	s.data.Set(medicationBox.GetID().String(), medicationBox)
 	return nil
 }
 
@@ -54,7 +54,7 @@ func (s *MedicationBoxStorage) GetMedicationBox(
 
 	for key, medicationBox := range s.data.data {
 		_ = key
-		if medicationBox.UserID == userID {
+		if medicationBox.GetUserID() == userID {
 			return medicationBox, nil
 		}
 	}
@@ -64,18 +64,11 @@ func (s *MedicationBoxStorage) GetMedicationBox(
 // CreateMedicationBox creates a new medication in memory.
 func (s *MedicationBoxStorage) CreateMedicationBox(
 	_ context.Context,
-	userID uuid.UUID,
+	medicationBox *medbox.MedicationBox,
 ) (*medbox.MedicationBox, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	medicationBoxID := uuid.New()
-
-	medicationBox := &medbox.MedicationBox{
-		ID:            medicationBoxID,
-		UserID:        userID,
-		MedicationsID: []uuid.UUID{},
-	}
 	s.count++
-	s.data.Set(medicationBoxID.String(), medicationBox)
+	s.data.Set(medicationBox.GetID().String(), medicationBox)
 	return medicationBox, nil
 }

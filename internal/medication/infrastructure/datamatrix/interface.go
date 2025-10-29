@@ -1,4 +1,4 @@
-package clientdatamatrix
+package datamatrix
 
 // ScannedInfoFromDataMatrix is a request to find medication info in API.
 type ScannedInfoFromDataMatrix struct {

@@ -4,3 +4,10 @@
 server:
   host: ${AUTH_SERVER_HOST:-127.0.0.1}
   port: ${AUTH_SERVER_PORT:-8000}
+
+auth:
+  base_url: "http://auth:8000"
+  path: "/session"
+  timeout: 30s
+  cookie_name: "session_id"
+  cookie_domain: "myhealthbox.ddns.net"
