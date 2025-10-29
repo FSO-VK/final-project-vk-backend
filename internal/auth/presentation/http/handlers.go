@@ -309,6 +309,8 @@ func setSessionCookie(
 	c.SetExpire(expiration)
 	c.SetHTTPOnly(true)
 	c.SetSecure(true)
+	c.SetPath("/")
+	c.SetSameSite(fasthttp.CookieSameSiteStrictMode)
 
 	ctx.Response.Header.SetCookie(c)
 	return nil
