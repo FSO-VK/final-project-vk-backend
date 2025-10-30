@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medbox"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
@@ -28,18 +29,21 @@ type UpdateMedication interface {
 
 // UpdateMedicationService is a service for updating a medication.
 type UpdateMedicationService struct {
-	medicationRepo medication.RepositoryForMedication
-	validator      validator.Validator
+	medicationRepo    medication.Repository
+	medicationBoxRepo medbox.Repository
+	validator         validator.Validator
 }
 
 // NewUpdateMedicationService returns a new UpdateMedicationService.
 func NewUpdateMedicationService(
-	medicationRepo medication.RepositoryForMedication,
+	medicationRepo medication.Repository,
+	medicationBoxRepo medbox.Repository,
 	valid validator.Validator,
 ) *UpdateMedicationService {
 	return &UpdateMedicationService{
-		medicationRepo: medicationRepo,
-		validator:      valid,
+		medicationRepo:    medicationRepo,
+		medicationBoxRepo: medicationBoxRepo,
+		validator:         valid,
 	}
 }
 
@@ -48,7 +52,8 @@ type UpdateMedicationCommand struct {
 	// fields embedded
 	CommandBase
 
-	ID string `validate:"required,uuid"`
+	UserID string `validate:"required,uuid"`
+	ID     string `validate:"required,uuid"`
 }
 
 // UpdateMedicationResponse is a response to update a medication.
@@ -85,6 +90,21 @@ func (s *UpdateMedicationService) Execute(
 	savedMedication, err := s.medicationRepo.Update(ctx, updatedMedication)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update medication: %w", err)
+	}
+
+	uuidUserID, err := uuid.Parse(req.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID: %w", err)
+	}
+
+	medicationBox, err := s.medicationBoxRepo.GetMedicationBox(ctx, uuidUserID)
+	if err != nil {
+		return nil, fmt.Errorf("user has no medication box: %w", err)
+	}
+	medicationBox.AddMedication(savedMedication.GetID())
+	err = s.medicationBoxRepo.SetMedicationBox(ctx, medicationBox)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add medication to box: %w", err)
 	}
 
 	return &UpdateMedicationResponse{

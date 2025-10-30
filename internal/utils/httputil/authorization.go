@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
-	"github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
+	auth "github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
 )
 
 const (
@@ -54,13 +54,12 @@ func GetAuthFromCtx(r *http.Request) (*AuthStatus, error) {
 
 // AuthMiddleware implements authorization check as a struct.
 type AuthMiddleware struct {
-	checker    client.AuthChecker
-	headerName string
+	checker auth.AuthChecker
 }
 
 // NewAuthMiddleware constructor for AuthMiddleware.
-func NewAuthMiddleware(checker client.AuthChecker, headerName string) *AuthMiddleware {
-	return &AuthMiddleware{checker: checker, headerName: headerName}
+func NewAuthMiddleware(checker auth.AuthChecker) *AuthMiddleware {
+	return &AuthMiddleware{checker: checker}
 }
 
 // AuthMiddlewareWrapper wraps http.Handler with authorization check.
@@ -80,7 +79,7 @@ func (m *AuthMiddleware) AuthMiddlewareWrapper(next http.Handler) http.Handler {
 			return
 		}
 
-		resp, err := m.checker.CheckAuth(&client.Request{SessionID: sid})
+		resp, err := m.checker.CheckAuth(&auth.Request{SessionID: sid})
 		if err != nil {
 			_ = NetHTTPWriteJSON(w, &api.Response[ResponseUnauthorized]{
 				StatusCode: http.StatusServiceUnavailable,

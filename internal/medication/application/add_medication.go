@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medbox"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
@@ -21,18 +22,21 @@ type AddMedication interface {
 
 // AddMedicationService is a service for adding a medication.
 type AddMedicationService struct {
-	medicationRepo medication.RepositoryForMedication
-	validator      validator.Validator
+	medicationRepo    medication.Repository
+	medicationBoxRepo medbox.Repository
+	validator         validator.Validator
 }
 
 // NewAddMedicationService returns a new AddMedicationService.
 func NewAddMedicationService(
-	medicationRepo medication.RepositoryForMedication,
+	medicationRepo medication.Repository,
+	medicationBoxRepo medbox.Repository,
 	valid validator.Validator,
 ) *AddMedicationService {
 	return &AddMedicationService{
-		medicationRepo: medicationRepo,
-		validator:      valid,
+		medicationRepo:    medicationRepo,
+		medicationBoxRepo: medicationBoxRepo,
+		validator:         valid,
 	}
 }
 
@@ -40,6 +44,8 @@ func NewAddMedicationService(
 type AddMedicationCommand struct {
 	// embedded struct
 	CommandBase
+
+	UserID string `validate:"required,uuid"`
 }
 
 // AddMedicationResponse is a response to add a medication.
@@ -105,12 +111,42 @@ func (s *AddMedicationService) Execute(
 		return nil, fmt.Errorf("failed to create medication: %w", err)
 	}
 
-	addedMedication, err := s.medicationRepo.Create(ctx, drug)
+	addedMedication, err := repositoryModifications(ctx, s, req, drug)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save medication: %w", err)
+		return nil, fmt.Errorf("failed to add medication: %w", err)
 	}
 
 	return &AddMedicationResponse{
 		responseBaseMapper(addedMedication),
 	}, nil
+}
+
+func repositoryModifications(
+	ctx context.Context, s *AddMedicationService,
+	req *AddMedicationCommand, drug *medication.Medication,
+) (*medication.Medication, error) {
+	addedMedication, err := s.medicationRepo.Create(ctx, drug)
+	if err != nil || addedMedication == nil {
+		return nil, fmt.Errorf("failed to save medication: %w", err)
+	}
+	uuidUserID, err := uuid.Parse(req.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID: %w", err)
+	}
+
+	medicationBox, err := s.medicationBoxRepo.GetMedicationBox(ctx, uuidUserID)
+	if err != nil {
+		medicationBoxDraft := medbox.NewMedicationBox(uuidUserID)
+		medicationBox, err = s.medicationBoxRepo.CreateMedicationBox(ctx, medicationBoxDraft)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create medication box: %w", err)
+		}
+	}
+	medicationBox.AddMedication(addedMedication.GetID())
+	err = s.medicationBoxRepo.SetMedicationBox(ctx, medicationBox)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add medication to box: %w", err)
+	}
+
+	return addedMedication, nil
 }

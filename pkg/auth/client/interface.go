@@ -1,4 +1,4 @@
-package client
+package auth
 
 // AuthChecker is the interface for the CheckAuth method.
 type AuthChecker interface {

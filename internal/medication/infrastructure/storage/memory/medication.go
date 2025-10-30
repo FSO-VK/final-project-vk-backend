@@ -50,15 +50,6 @@ func (s *MedicationStorage) GetByID(
 	return drug, nil
 }
 
-// GetListAll returns a list of all medications.
-func (s *MedicationStorage) GetListAll(_ context.Context) ([]*medication.Medication, error) {
-	list := make([]*medication.Medication, 0)
-	for _, medication := range s.data.data {
-		list = append(list, medication)
-	}
-	return list, nil
-}
-
 // Update updates a medication in memory.
 func (s *MedicationStorage) Update(
 	_ context.Context,

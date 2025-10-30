@@ -10,12 +10,11 @@ import (
 // ErrNoMedicationFound is an error when a medication is not found.
 var ErrNoMedicationFound = errors.New("medication not found")
 
-// RepositoryForMedication is a domain repository interface that defines
+// Repository is a domain repository interface that defines
 // data access contract for medication aggregate.
-type RepositoryForMedication interface {
+type Repository interface {
 	Create(ctx context.Context, medication *Medication) (*Medication, error)
 	GetByID(ctx context.Context, medicationID uuid.UUID) (*Medication, error)
-	GetListAll(ctx context.Context) ([]*Medication, error)
 	Update(ctx context.Context, medication *Medication) (*Medication, error)
 	Delete(ctx context.Context, medicationID uuid.UUID) error
 }

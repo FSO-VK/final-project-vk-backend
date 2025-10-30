@@ -1,5 +1,5 @@
-// Package clientdatamatrix implements DataMatrixClient interface for getting medication info from dataMatrix API.
-package clientdatamatrix
+// Package datamatrix implements DataMatrixClient interface for getting medication info from dataMatrix API.
+package datamatrix
 
 import (
 	"context"
@@ -15,26 +15,26 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// DataMatrixAPI implements AuthChecker DataMatrixClient.
-type DataMatrixAPI struct {
+// APIDataMatrix implements AuthChecker DataMatrixClient.
+type APIDataMatrix struct {
 	client *http.Client
 	cfg    ClientConfig
 	logger *logrus.Entry
 }
 
 // NewDataMatrixAPI creates a new DataMatrixAPI.
-func NewDataMatrixAPI(cfg ClientConfig, logger *logrus.Entry) *DataMatrixAPI {
+func NewDataMatrixAPI(cfg ClientConfig, logger *logrus.Entry) *APIDataMatrix {
 	client := &http.Client{
 		Timeout:       cfg.Timeout,
 		Transport:     nil,
 		CheckRedirect: nil,
 		Jar:           nil,
 	}
-	return &DataMatrixAPI{client: client, cfg: cfg, logger: logger}
+	return &APIDataMatrix{client: client, cfg: cfg, logger: logger}
 }
 
 // GetInformationByDataMatrix implements DataMatrixClient interface.
-func (h *DataMatrixAPI) GetInformationByDataMatrix(
+func (h *APIDataMatrix) GetInformationByDataMatrix(
 	data *clientInterface.DataMatrixCodeInfo,
 ) (*clientInterface.MedicationInfo, error) {
 	if err := h.checkRequest(data); err != nil {
@@ -85,7 +85,7 @@ func (h *DataMatrixAPI) GetInformationByDataMatrix(
 	return out, nil
 }
 
-func (h *DataMatrixAPI) checkRequest(data *clientInterface.DataMatrixCodeInfo) error {
+func (h *APIDataMatrix) checkRequest(data *clientInterface.DataMatrixCodeInfo) error {
 	if data == nil || data.GTIN == "" || data.SerialNumber == "" ||
 		data.CryptoData91 == "" || data.CryptoData92 == "" {
 		return ErrInvalidRequest
