@@ -356,6 +356,8 @@ func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Req
 type GetMedicationBoxItem struct {
 	// embedded struct
 	BodyCommonObject `json:",inline"`
+
+	ID string `json:"id"`
 }
 
 // GetMedicationBoxJSONResponse returns a Box of medications.
@@ -365,7 +367,7 @@ type GetMedicationBoxJSONResponse struct {
 
 // GetMedicationBox returns a Box of medications.
 func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Request) {
-	auth, err := httputil.GetAuthFromCtx(r)
+	authorization, err := httputil.GetAuthFromCtx(r)
 	if err != nil {
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusUnauthorized,
@@ -375,8 +377,9 @@ func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Req
 		return
 	}
 	command := &application.GetMedicationBoxCommand{
-		UserID: auth.UserID,
+		UserID: authorization.UserID,
 	}
+
 	serviceResponse, err := h.app.GetMedicationBox.Execute(
 		r.Context(),
 		command,
@@ -397,29 +400,30 @@ func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Req
 		MedicationBox: make([]GetMedicationBoxItem, 0),
 	}
 
-	for _, item := range serviceResponse.Box {
+	for _, medication := range serviceResponse.MedicationBox {
 		response.MedicationBox = append(response.MedicationBox, GetMedicationBoxItem{
+			ID: medication.ID,
 			BodyCommonObject: BodyCommonObject{
-				Name:              item.Name,
-				InternationalName: item.InternationalName,
+				Name:              medication.Name,
+				InternationalName: medication.InternationalName,
 				Amount: AmountObject{
-					Value: item.AmountValue,
-					Unit:  item.AmountUnit,
+					Value: medication.AmountValue,
+					Unit:  medication.AmountUnit,
 				},
-				ReleaseForm: item.ReleaseForm,
-				Group:       item.Group,
+				ReleaseForm: medication.ReleaseForm,
+				Group:       medication.Group,
 				Producer: ProducerObject{
-					Name:    item.ManufacturerName,
-					Country: item.ManufacturerCountry,
+					Name:    medication.ManufacturerName,
+					Country: medication.ManufacturerCountry,
 				},
 				ActiveSubstance: ActiveSubstanceObject{
-					Name:  item.ActiveSubstanceName,
-					Value: item.ActiveSubstanceDose,
-					Unit:  item.ActiveSubstanceUnit,
+					Name:  medication.ActiveSubstanceName,
+					Value: medication.ActiveSubstanceDose,
+					Unit:  medication.ActiveSubstanceUnit,
 				},
-				Expiration: item.Expires,
-				Release:    item.Release,
-				Commentary: item.Commentary,
+				Expiration: medication.Expires,
+				Release:    medication.Release,
+				Commentary: medication.Commentary,
 			},
 		})
 	}
