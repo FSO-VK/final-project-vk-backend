@@ -73,5 +73,8 @@ func main() {
 	server := http.NewHTTPServer(&conf.Server, logger)
 	server.Router(router)
 
-	_ = server.ListenAndServe()
+	err = server.ListenAndServe()
+	if err != nil {
+		logger.Fatal(err)
+	}
 }

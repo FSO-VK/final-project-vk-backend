@@ -70,7 +70,7 @@ type AmountObject struct {
 
 // GetMedicationBoxResponse contains a Box of medications.
 type GetMedicationBoxResponse struct {
-	Box []*MedicationBoxItem
+	MedicationBox []*MedicationBoxItem
 }
 
 // Execute returns a Box of medications.
@@ -92,7 +92,7 @@ func (s *GetMedicationBoxService) Execute(
 	if err != nil {
 		if errors.Is(err, medbox.ErrNoMedicationBoxFound) {
 			return &GetMedicationBoxResponse{
-				Box: make([]*MedicationBoxItem, 0),
+				MedicationBox: make([]*MedicationBoxItem, 0),
 			}, nil
 		}
 		return nil, fmt.Errorf("failed to get medication box: %w", err)
@@ -110,6 +110,6 @@ func (s *GetMedicationBoxService) Execute(
 	}
 
 	return &GetMedicationBoxResponse{
-		Box: items,
+		MedicationBox: items,
 	}, nil
 }
