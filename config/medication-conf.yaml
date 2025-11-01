@@ -7,11 +7,11 @@ server:
 
 scan:
   host: ${CLIENT_API_HOST}
-  timeout: ${TIMEOUT:-10s}
+  timeout: ${SCAN_TIMEOUT:-10s}
 
 auth:
   baseUrl: ${BASE_URL:-http://0.0.0.0:8000}
   path: ${PATH:-/session}
-  timeout: ${TIMEOUT:-30s}
+  timeout: ${AUTH_TIMEOUT:-30s}
   cookieName: ${COOKIE_NAME:-session_id}
   cookieDomain: ${COOKIE_DOMAIN:-/}
