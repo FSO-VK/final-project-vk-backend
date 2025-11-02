@@ -1,0 +1,65 @@
+version: '3.8'
+services:
+  auth:
+    container_name: auth
+    build:
+      context: .
+      dockerfile: ./build/services/auth.Dockerfile
+    environment:
+      AUTH_SERVER_HOST: "0.0.0.0"
+      AUTH_SERVER_PORT: "8000"
+    ports:
+      - "8001:8000"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./cmd/auth
+        - action: rebuild
+          path: ./internal/auth
+        - action: rebuild
+          path: ./internal/utils
+        - action: rebuild
+          path: ./pkg
+        - action: rebuild
+          path: ./go.mod
+        - action: rebuild
+          path: ./go.sum
+        - action: sync+restart
+          path: ./config/auth-conf.yaml
+          target: /auth/auth-conf.yaml
+  medication:
+    container_name: medication
+    build:
+      context: .
+      dockerfile: ./build/services/medication.Dockerfile
+    env_file:
+      - ".env"
+    environment:
+      MEDICATION_SERVER_HOST: "0.0.0.0"
+      MEDICATION_SERVER_PORT: "8000"
+      BASE_URL: "http://auth:8000"
+      PATH: "/session"
+      COOKIE_NAME: "session_id"
+      COOKIE_DOMAIN: "auth"
+      AUTH_TIMEOUT: "30s"
+      CLIENT_API_HOST: ${CLIENT_API_HOST}
+      SCAN_TIMEOUT: "10s"
+    ports:
+      - "8002:8000"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./cmd/medication
+        - action: rebuild
+          path: ./internal/medication
+        - action: rebuild
+          path: ./internal/utils
+        - action: rebuild
+          path: ./pkg
+        - action: rebuild
+          path: ./go.mod
+        - action: rebuild
+          path: ./go.sum
+        - action: sync+restart
+          path: ./config/medication-conf.yaml
+          target: /medication/medication-conf.yaml

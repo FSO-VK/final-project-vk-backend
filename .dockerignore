@@ -1,0 +1,12 @@
+# .dockerignore
+.github
+.vscode
+.idea
+
+.env
+.gitignore
+.golangci*
+
+*.md
+
+Makefile
