@@ -29,7 +29,7 @@ type BodyCommonObject struct {
 	Producer          ProducerObject        `json:"producer"`
 	ActiveSubstance   ActiveSubstanceObject `json:"activeSubstance"`
 	Expiration        string                `json:"expirationDate"`
-	Release           string                `json:"releaseDate"`
+	Release           string                `json:"releaseDate,omitempty"`
 	Commentary        string                `json:"commentary"`
 }
 

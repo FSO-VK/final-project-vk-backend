@@ -45,6 +45,10 @@ type ResponseBase struct {
 
 // responseBaseMapper maps medication.Medication to ResponseBase.
 func responseBaseMapper(m *medication.Medication) ResponseBase {
+	var release string
+	if !m.GetReleaseDate().IsZero() {
+		release = m.GetReleaseDate().Format(time.DateOnly)
+	}
 	return ResponseBase{
 		ID:                  m.GetID().String(),
 		Name:                m.GetName().GetName(),
@@ -59,7 +63,7 @@ func responseBaseMapper(m *medication.Medication) ResponseBase {
 		ActiveSubstanceDose: m.GetActiveSubstance().GetDose().GetValue(),
 		ActiveSubstanceUnit: m.GetActiveSubstance().GetDose().GetUnit().String(),
 		Expires:             m.GetExpirationDate().Format(time.DateOnly),
-		Release:             m.GetReleaseDate().Format(time.DateOnly),
+		Release:             release,
 		Commentary:          m.GetCommentary().GetCommentary(),
 	}
 }

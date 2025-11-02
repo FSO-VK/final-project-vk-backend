@@ -71,11 +71,10 @@ func (s *AddMedicationService) Execute(
 
 	var release time.Time
 	if req.Release != "" {
-		release, err := time.Parse(time.DateOnly, req.Release)
+		release, err = time.Parse(time.DateOnly, req.Release)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse release: %w", err)
 		}
-		expiration = release
 	}
 
 	id, err := uuid.NewV7()

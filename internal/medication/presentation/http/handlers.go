@@ -94,6 +94,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 		})
 		return
 	}
+	h.logger.Debugf("request json: %+v", reqJSON)
 
 	serviceRequest := &application.AddMedicationCommand{
 		UserID: auth.UserID,
