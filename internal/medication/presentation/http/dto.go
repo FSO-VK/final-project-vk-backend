@@ -21,16 +21,16 @@ type AmountObject struct {
 
 // BodyCommonObject is a common structure of JSON object.
 type BodyCommonObject struct {
-	Name              string                `json:"name"`
-	InternationalName string                `json:"internationalName"`
-	Amount            AmountObject          `json:"amount"`
-	ReleaseForm       string                `json:"releaseForm"`
-	Group             string                `json:"group"`
-	Producer          ProducerObject        `json:"producer"`
-	ActiveSubstance   ActiveSubstanceObject `json:"activeSubstance"`
-	Expiration        string                `json:"expirationDate"`
-	Release           string                `json:"releaseDate,omitempty"`
-	Commentary        string                `json:"commentary"`
+	Name              string                  `json:"name"`
+	InternationalName string                  `json:"internationalName"`
+	Amount            AmountObject            `json:"amount"`
+	ReleaseForm       string                  `json:"releaseForm"`
+	Group             []string                `json:"group"`
+	Producer          ProducerObject          `json:"producer"`
+	ActiveSubstance   []ActiveSubstanceObject `json:"activeSubstance"`
+	Expiration        string                  `json:"expirationDate"`
+	Release           string                  `json:"releaseDate,omitempty"`
+	Commentary        string                  `json:"commentary"`
 }
 
 // BodyAPIObject is a api structure of JSON object.
@@ -38,7 +38,7 @@ type BodyAPIObject struct {
 	Name              string         `json:"name"`
 	InternationalName string         `json:"internationalName"`
 	ReleaseForm       string         `json:"releaseForm"`
-	Group             string         `json:"group"`
+	Group             []string       `json:"group"`
 	Producer          ProducerObject `json:"producer"`
 	Expiration        string         `json:"expirationDate"`
 	Release           string         `json:"releaseDate"`

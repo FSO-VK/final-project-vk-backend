@@ -76,15 +76,18 @@ func (n InternationalName) GetInternationalName() string {
 type Group string
 
 // NewMedicationGroup creates validated medication group.
-func NewMedicationGroup(group string) (Group, error) {
-	err := errors.Join(
-		validation.MaxLength(group, maxGroupNameLength),
-	)
-	if err != nil {
-		return "", fmt.Errorf("%w: %w", ErrInvalidGroup, err)
+func NewMedicationGroup(group []string) ([]Group, error) {
+	groupOut := []Group{}
+	for _, onegroup := range group {
+		err := errors.Join(
+			validation.MaxLength(onegroup, maxGroupNameLength),
+		)
+		if err != nil {
+			return []Group{}, fmt.Errorf("%w: %w", ErrInvalidGroup, err)
+		}
+		groupOut = append(groupOut, Group(onegroup))
 	}
-
-	return Group(group), nil
+	return groupOut, nil
 }
 
 // GetGroup returns the medication group name.
@@ -314,26 +317,27 @@ type ActiveSubstance struct {
 
 // NewMedicationActiveSubstance creates validated medication active substance.
 func NewMedicationActiveSubstance(
-	name string,
-	doseValue float32,
-	doseUnit string,
-) (ActiveSubstance, error) {
-	dose, err := NewMedicationAmount(
-		doseValue,
-		doseUnit,
-	)
-	err = errors.Join(
-		validation.MaxLength(name, 200),
-		err,
-	)
-	if err != nil {
-		return ActiveSubstance{}, fmt.Errorf("%w: %w", ErrInvalidActiveSubstance, err)
+	activeSubstanceDraft []ActiveSubstanceDraft,
+) ([]ActiveSubstance, error) {
+	outActiveSubstance := []ActiveSubstance{}
+	for _, oneActiveSubstance := range activeSubstanceDraft {
+		dose, err := NewMedicationAmount(
+			oneActiveSubstance.Value,
+			oneActiveSubstance.Unit,
+		)
+		err = errors.Join(
+			validation.MaxLength(oneActiveSubstance.Name, 200),
+			err,
+		)
+		if err != nil {
+			return []ActiveSubstance{}, fmt.Errorf("%w: %w", ErrInvalidActiveSubstance, err)
+		}
+		outActiveSubstance = append(outActiveSubstance, ActiveSubstance{
+			name: oneActiveSubstance.Name,
+			dose: dose,
+		})
 	}
-
-	return ActiveSubstance{
-		name: name,
-		dose: dose,
-	}, nil
+	return outActiveSubstance, nil
 }
 
 // GetName returns the name of the active substance.

@@ -13,7 +13,7 @@ type Medication struct {
 	id                uuid.UUID
 	name              Name
 	internationalName InternationalName
-	group             Group
+	group             []Group
 	manufacturer      Manufacturer
 	releaseForm       ReleaseForm
 	amount            Amount
@@ -22,7 +22,7 @@ type Medication struct {
 	// Скорее это относится к записи в аптечке человека.
 	commentary Commentary
 
-	activeSubstance ActiveSubstance
+	activeSubstance []ActiveSubstance
 	releaseDate     time.Time // дата выпуска
 	expirationDate  time.Time // срок годности
 	createdAt       time.Time
@@ -34,11 +34,11 @@ func NewMedication(
 	id uuid.UUID,
 	name Name,
 	internationalName InternationalName,
-	group Group,
+	group []Group,
 	manufacturer Manufacturer,
 	releaseForm ReleaseForm,
 	amount Amount,
-	activeSubstance ActiveSubstance,
+	activeSubstance []ActiveSubstance,
 	releaseDate time.Time,
 	expirationDate time.Time,
 	commentary Commentary,
@@ -80,12 +80,10 @@ type MedicationDraft struct {
 
 	// optional fields, nullable
 	InternationalName string
-	Group             string
+	Group             []string
 	Manufacturer      ManufacturerDraft
 
-	ActiveSubstanceName      string
-	ActiveSubstanceDoseValue float32
-	ActiveSubstanceDoseUnit  string
+	ActiveSubstance []ActiveSubstanceDraft
 
 	Commentary string
 
@@ -93,6 +91,13 @@ type MedicationDraft struct {
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+// ActiveSubstanceDraft represents a active substance draft entity.
+type ActiveSubstanceDraft struct {
+	Name  string
+	Value float32
+	Unit  string
 }
 
 type requiredFields struct {
@@ -104,9 +109,9 @@ type requiredFields struct {
 
 type optionalFields struct {
 	internationalName InternationalName
-	group             Group
+	group             []Group
 	manufacturer      Manufacturer
-	activeSubstance   ActiveSubstance
+	activeSubstance   []ActiveSubstance
 	commentary        Commentary
 }
 
@@ -157,11 +162,7 @@ func validateOptional(draft MedicationDraft) (optionalFields, error) {
 	)
 	allErrors = errors.Join(allErrors, err)
 
-	activeSubstance, err := NewMedicationActiveSubstance(
-		draft.ActiveSubstanceName,
-		draft.ActiveSubstanceDoseValue,
-		draft.ActiveSubstanceDoseUnit,
-	)
+	activeSubstance, err := NewMedicationActiveSubstance(draft.ActiveSubstance)
 	allErrors = errors.Join(allErrors, err)
 
 	commentary, err := NewMedicationCommentary(draft.Commentary)
@@ -227,8 +228,9 @@ func (m *Medication) SetInternationalName(name InternationalName) {
 }
 
 // SetGroup updates the group Value Object of the medication.
-func (m *Medication) SetGroup(group Group) {
-	m.group = group
+func (m *Medication) SetGroup(group []Group) {
+	m.group = make([]Group, len(group))
+	copy(m.group, group)
 }
 
 // SetManufacturer updates the manufacturer Value Object of the medication.
@@ -252,8 +254,9 @@ func (m *Medication) SetCommentary(commentary Commentary) {
 }
 
 // SetActiveSubstance updates the active substance Value Object of the medication.
-func (m *Medication) SetActiveSubstance(substance ActiveSubstance) {
-	m.activeSubstance = substance
+func (m *Medication) SetActiveSubstance(substance []ActiveSubstance) {
+	m.activeSubstance = make([]ActiveSubstance, len(substance))
+	copy(m.activeSubstance, substance)
 }
 
 // SetReleaseDate updates the release date of the medication.
@@ -282,8 +285,17 @@ func (m *Medication) GetInternationalName() InternationalName {
 }
 
 // GetGroup returns the group Value Object of the medication.
-func (m *Medication) GetGroup() Group {
+func (m *Medication) GetGroup() []Group {
 	return m.group
+}
+
+// GetGroupString returns the strings instead of groups.
+func (m *Medication) GetGroupString(groups []Group) []string {
+	result := make([]string, len(groups))
+	for i, v := range groups {
+		result[i] = string(v)
+	}
+	return result
 }
 
 // GetManufacturer returns the manufacturer Value Object of the medication.
@@ -307,7 +319,7 @@ func (m *Medication) GetCommentary() Commentary {
 }
 
 // GetActiveSubstance returns the active substance Value Object of the medication.
-func (m *Medication) GetActiveSubstance() ActiveSubstance {
+func (m *Medication) GetActiveSubstance() []ActiveSubstance {
 	return m.activeSubstance
 }
 

@@ -141,10 +141,7 @@ func (s *UpdateMedicationService) updateMedicationEntity(
 	allErrors = errors.Join(allErrors, err)
 
 	activeSubstance, err := medication.NewMedicationActiveSubstance(
-		req.ActiveSubstanceName,
-		req.ActiveSubstanceDose,
-		req.ActiveSubstanceUnit,
-	)
+		MapActiveSubstanceToDraft(req.ActiveSubstance))
 	allErrors = errors.Join(allErrors, err)
 
 	expiration, err := time.Parse(time.DateOnly, req.Expires)
@@ -173,4 +170,17 @@ func (s *UpdateMedicationService) updateMedicationEntity(
 	oldMedication.SetExpirationDate(expiration)
 
 	return oldMedication, nil
+}
+
+// MapActiveSubstanceToDraft maps ActiveSubstance to ActiveSubstanceDraft.
+func MapActiveSubstanceToDraft(substances []ActiveSubstance) []medication.ActiveSubstanceDraft {
+	result := make([]medication.ActiveSubstanceDraft, len(substances))
+	for i, substance := range substances {
+		result[i] = medication.ActiveSubstanceDraft{
+			Name:  substance.Name,
+			Value: substance.Value,
+			Unit:  substance.Unit,
+		}
+	}
+	return result
 }

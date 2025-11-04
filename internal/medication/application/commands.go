@@ -13,12 +13,10 @@ type CommandBase struct {
 	AmountValue         float32 `validate:"required,gte=0"`
 	AmountUnit          string  `validate:"required"`
 	ReleaseForm         string  `validate:"required"`
-	Group               string
+	Group               []string
 	ManufacturerName    string
 	ManufacturerCountry string
-	ActiveSubstanceName string
-	ActiveSubstanceDose float32
-	ActiveSubstanceUnit string
+	ActiveSubstance     []ActiveSubstance
 	Expires             string `validate:"required"`
 	Release             string
 	Commentary          string
@@ -32,12 +30,10 @@ type ResponseBase struct {
 	AmountValue         float32
 	AmountUnit          string
 	ReleaseForm         string
-	Group               string
+	Group               []string
 	ManufacturerName    string
 	ManufacturerCountry string
-	ActiveSubstanceName string
-	ActiveSubstanceDose float32
-	ActiveSubstanceUnit string
+	ActiveSubstance     []ActiveSubstance
 	Expires             string
 	Release             string
 	Commentary          string
@@ -56,14 +52,24 @@ func responseBaseMapper(m *medication.Medication) ResponseBase {
 		AmountValue:         m.GetAmount().GetValue(),
 		AmountUnit:          m.GetAmount().GetUnit().String(),
 		ReleaseForm:         m.GetReleaseForm().String(),
-		Group:               m.GetGroup().GetGroup(),
+		Group:               m.GetGroupString(m.GetGroup()),
 		ManufacturerName:    m.GetManufacturer().GetName(),
 		ManufacturerCountry: m.GetManufacturer().GetCountry(),
-		ActiveSubstanceName: m.GetActiveSubstance().GetName(),
-		ActiveSubstanceDose: m.GetActiveSubstance().GetDose().GetValue(),
-		ActiveSubstanceUnit: m.GetActiveSubstance().GetDose().GetUnit().String(),
+		ActiveSubstance:     convertToActiveSubstanceObject(m.GetActiveSubstance()),
 		Expires:             m.GetExpirationDate().Format(time.DateOnly),
 		Release:             release,
 		Commentary:          m.GetCommentary().GetCommentary(),
 	}
+}
+
+func convertToActiveSubstanceObject(substances []medication.ActiveSubstance) []ActiveSubstance {
+	result := make([]ActiveSubstance, len(substances))
+	for i, v := range substances {
+		result[i] = ActiveSubstance{
+			Name:  v.GetName(),
+			Value: v.GetDose().GetValue(),
+			Unit:  v.GetDose().GetUnit().String(),
+		}
+	}
+	return result
 }
