@@ -15,6 +15,7 @@ func Router(
 	r.HandleFunc("/vapidPublicKey", notificationHandlers.GetVapidPublicKey).Methods("GET")
 	r.HandleFunc("/subscribe", notificationHandlers.CreateSubscription).Methods("POST")
 	r.HandleFunc("/subscribe", notificationHandlers.DeleteSubscription).Methods("DELETE")
+	r.HandleFunc("/send", notificationHandlers.SendNotification).Methods("POST")
 	r.HandleFunc("/action/{id}", notificationHandlers.InteractWithNotification).Methods("POST")
 
 	panicMiddleware := httputil.NewPanicRecoveryMiddleware()

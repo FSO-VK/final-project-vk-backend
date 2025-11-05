@@ -9,3 +9,10 @@ pushClient:
   VapidPublicKey: ${VAPID_PUBLIC_KEY}
   VapidPrivateKey: ${VAPID_PRIVATE_KEY}
   timeout: ${NOTIFICATIONS_TIMEOUT:-30s}
+
+auth:
+  baseUrl: ${BASE_URL:-http://0.0.0.0:8000}
+  path: ${PATH:-/session}
+  timeout: ${AUTH_TIMEOUT:-30s}
+  cookieName: ${COOKIE_NAME:-session_id}
+  cookieDomain: ${COOKIE_DOMAIN:-/}

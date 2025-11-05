@@ -1,19 +1,13 @@
-package medbox
+package notifications
 
 import (
-	"context"
 	"errors"
-
-	"github.com/google/uuid"
 )
 
-// ErrNoMedicationBoxFound is an error when a medication box is not found.
-var ErrNoMedicationBoxFound = errors.New("medication box not found")
+// ErrNoNotificationsFound is an error when notifications is not found.
+var ErrNoNotificationsFound = errors.New("notifications not found")
 
 // Repository is a domain repository interface that defines
-// data access contract for medication box aggregate.
+// data access contract for notifications box aggregate.
 type Repository interface {
-	SetMedicationBox(ctx context.Context, medicationBox *MedicationBox) error
-	CreateMedicationBox(ctx context.Context, medicationBox *MedicationBox) (*MedicationBox, error)
-	GetMedicationBox(ctx context.Context, UserID uuid.UUID) (*MedicationBox, error)
 }

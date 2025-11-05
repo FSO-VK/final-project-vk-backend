@@ -1,45 +1,22 @@
 package http
 
-// ProducerObject represents JSON object of producer of medication.
-type ProducerObject struct {
-	Name    string `json:"name"`
-	Country string `json:"country"`
+// SubscriptionObject is info about subscription .
+type SubscriptionObject struct {
+	ID        string   `json:"id"`
+	SendInfo  SendInfo `json:"subscription"`
+	UserAgent string   `json:"ua"`
+	Browser   string   `json:"browser"`
+	OS        string   `json:"os"`
 }
 
-// ActiveSubstanceObject represents JSON object of active substance.
-type ActiveSubstanceObject struct {
-	Name  string  `json:"name,omitempty"`
-	Value float32 `json:"value,omitzero"`
-	Unit  string  `json:"unit,omitempty"`
+// SendInfo is unique info for sending notifications.
+type SendInfo struct {
+	Endpoint string `json:"endpoint"`
+	Keys     Keys   `json:"keys"`
 }
 
-// AmountObject is a structure of JSON object of amount of medication.
-type AmountObject struct {
-	Value float32 `json:"value"`
-	Unit  string  `json:"unit"`
-}
-
-// BodyCommonObject is a common structure of JSON object.
-type BodyCommonObject struct {
-	Name              string                `json:"name"`
-	InternationalName string                `json:"internationalName"`
-	Amount            AmountObject          `json:"amount"`
-	ReleaseForm       string                `json:"releaseForm"`
-	Group             string                `json:"group"`
-	Producer          ProducerObject        `json:"producer"`
-	ActiveSubstance   ActiveSubstanceObject `json:"activeSubstance"`
-	Expiration        string                `json:"expirationDate"`
-	Release           string                `json:"releaseDate,omitempty"`
-	Commentary        string                `json:"commentary"`
-}
-
-// BodyAPIObject is a api structure of JSON object.
-type BodyAPIObject struct {
-	Name              string         `json:"name"`
-	InternationalName string         `json:"internationalName"`
-	ReleaseForm       string         `json:"releaseForm"`
-	Group             string         `json:"group"`
-	Producer          ProducerObject `json:"producer"`
-	Expiration        string         `json:"expirationDate"`
-	Release           string         `json:"releaseDate"`
+// Keys is unique keys for encryption.
+type Keys struct {
+	P256dh string `json:"p256dh"`
+	Auth   string `json:"auth"`
 }
