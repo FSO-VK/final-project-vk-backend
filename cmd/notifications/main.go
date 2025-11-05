@@ -1,18 +1,15 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/application"
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/infrastructure/config"
-	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/infrastructure/datamatrix"
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/presentation/http"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	auth "github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
-	webpush "github.com/SherClockHolmes/webpush-go"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -41,34 +38,36 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	privateKey, publicKey, err := webpush.GenerateVAPIDKeys()
-	if err != nil {
-		// TODO: Handle error
-	}
-	fmt.Println("!", privateKey, publicKey)
-
 	notificationsRepo := memory.NewNotificationsStorage()
+	subscriptionsRepo := memory.NewSubscriptionsStorage()
 	validator := validator.NewValidationProvider()
-	dataMatrixClient := datamatrix.NewDataMatrixAPI(
-		conf.Scan,
-		logger,
-	)
-	dataMatrixCache := memory.NewDataMatrixStorage()
-	notificationsBoxRepo := memory.NewNotificationsBoxStorage()
+
+	// dataMatrixClient := datamatrix.NewDataMatrixAPI(
+	// 	conf.Scan,
+	// 	logger,
+	// )
+
 	app := &application.NotificationsApplication{
-		// GetMedicationBox: application.NewGetMedicationBoxService(
-		// 	medicationRepo, medicationBoxRepo, validator),
-		// AddMedication: application.NewAddMedicationService(
-		// 	medicationRepo, medicationBoxRepo, validator),
-		// UpdateMedication: application.NewUpdateMedicationService(
-		// 	medicationRepo, medicationBoxRepo, validator),
-		// DeleteMedication: application.NewDeleteMedicationService(
-		// 	medicationRepo, medicationBoxRepo, validator),
-		// DataMatrixInformation: application.NewDataMatrixInformationService(
-		// 	dataMatrixClient,
-		// 	dataMatrixCache,
-		// 	validator,
-		// ),
+		GetVapidPublicKey: application.NewGetVapidPublicKeyService(
+			application.PublicKey(conf.PushClient.PublicKey), validator),
+		CreateSubscription: application.NewCreateSubscriptionService(
+			subscriptionsRepo,
+			validator,
+		),
+		DeleteSubscription: application.NewDeleteSubscriptionService(
+			subscriptionsRepo,
+			validator,
+		),
+		SendNotification: application.NewSendNotificationService(
+			notificationsRepo,
+			subscriptionsRepo,
+			validator,
+		),
+		InteractWithNotification: application.NewInteractWithNotificationService(
+			notificationsRepo,
+			subscriptionsRepo,
+			validator,
+		),
 	}
 	notificationsHandlers := http.NewHandlers(app, logger)
 

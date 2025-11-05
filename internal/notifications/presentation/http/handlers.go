@@ -2,15 +2,12 @@
 package http
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/application"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
-	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
 
@@ -36,21 +33,17 @@ func NewHandlers(
 	}
 }
 
-// AddNotificationsJSONRequest is a request for AddNotifications.
-type AddMedicationJSONRequest struct {
-	BodyCommonObject `json:",inline"`
+// GetVapidPublicKeyJSONRequest is a request for CreateSubscription.
+type GetVapidPublicKeyJSONRequest struct {
 }
 
-// AddMedicationJSONResponse is a response for AddMedication.
-type AddMedicationJSONResponse struct {
-	// embedded struct
-	BodyCommonObject `json:",inline"`
-
-	ID string `json:"id"`
+// GetVapidPublicKeyJSONResponse is a response for CreateSubscription.
+type GetVapidPublicKeyJSONResponse struct {
+	VapidPublicKey string `json:"vapidPublicKey"`
 }
 
-// AddMedication adds a medication.
-func (h *MedicationHandlers) AddNotifications(w http.ResponseWriter, r *http.Request) {
+// GetVapidPublicKey adds a medication.
+func (h *NotificationsHandlers) GetVapidPublicKey(w http.ResponseWriter, r *http.Request) {
 	auth, err := httputil.GetAuthFromCtx(r)
 	if err != nil {
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -61,12 +54,16 @@ func (h *MedicationHandlers) AddNotifications(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	
+	fmt.Println(auth)
 }
 
+// CreateSubscriptionJSONRequest is a request for CreateSubscription.
+type  CreateSubscriptionJSONResponse struct {
+	SubscriptionObject
+}
 
-// DeleteMedication deletes a medication.
-func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Request) {
+// CreateSubscription create a subscription one time for every device.
+func (h *NotificationsHandlers) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 	auth, err := httputil.GetAuthFromCtx(r)
 	if err != nil {
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -76,25 +73,21 @@ func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Req
 		})
 		return
 	}
-	
+
+	fmt.Println(auth)
 }
 
-// GetMedicationBoxItem returns a Box of medications.
-type GetMedicationBoxItem struct {
-	// embedded struct
-	BodyCommonObject `json:",inline"`
-
-	ID string `json:"id"`
+// DeleteSubscriptionJSONRequest is a request for DeleteSubscription.
+type DeleteSubscriptionJSONRequest struct {
 }
 
-// GetMedicationBoxJSONResponse returns a Box of medications.
-type GetMedicationBoxJSONResponse struct {
-	MedicationBox []GetMedicationBoxItem `json:"medicationBox"`
+// DeleteSubscriptionJSONResponse is a response for DeleteSubscription.
+type DeleteSubscriptionJSONResponse struct {
 }
 
-// GetMedicationBox returns a Box of medications.
-func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Request) {
-	authorization, err := httputil.GetAuthFromCtx(r)
+// DeleteSubscription delete a subscription one time for every device.
+func (h *NotificationsHandlers) DeleteSubscription(w http.ResponseWriter, r *http.Request) {
+	auth, err := httputil.GetAuthFromCtx(r)
 	if err != nil {
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 			StatusCode: http.StatusUnauthorized,
@@ -103,5 +96,54 @@ func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Req
 		})
 		return
 	}
-	
+
+	fmt.Println(auth)
+}
+
+// SendNotificationJSONRequest is a request for SendNotification.
+type SendNotificationJSONRequest struct {
+	// TODO
+}
+
+// SendNotificationJSONResponse is a response for SendNotification.
+type SendNotificationJSONResponse struct {
+}
+
+// SendNotification delete a subscription one time for every device.
+func (h *NotificationsHandlers) SendNotification(w http.ResponseWriter, r *http.Request) {
+	auth, err := httputil.GetAuthFromCtx(r)
+	if err != nil {
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+			StatusCode: http.StatusUnauthorized,
+			Error:      api.MsgUnauthorized,
+			Body:       struct{}{},
+		})
+		return
+	}
+
+	fmt.Println(auth)
+}
+
+// InteractWithNotificationJSONRequest is a request for InteractWithNotification.
+type InteractWithNotificationJSONRequest struct {
+	Action string `json:"action"` // snooze, dismiss, apply
+}
+
+// InteractWithNotificationJSONResponse is a response for InteractWithNotification.
+type InteractWithNotificationJSONResponse struct {
+}
+
+// InteractWithNotification delete a subscription one time for every device.
+func (h *NotificationsHandlers) InteractWithNotification(w http.ResponseWriter, r *http.Request) {
+	auth, err := httputil.GetAuthFromCtx(r)
+	if err != nil {
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+			StatusCode: http.StatusUnauthorized,
+			Error:      api.MsgUnauthorized,
+			Body:       struct{}{},
+		})
+		return
+	}
+
+	fmt.Println(auth)
 }

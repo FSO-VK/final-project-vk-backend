@@ -4,10 +4,12 @@ package config
 import (
 	client "github.com/FSO-VK/final-project-vk-backend/internal/notifications/infrastructure/client"
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/presentation/http"
+	auth "github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
 )
 
 // Config is a configuration for the notifications service.
 type Config struct {
-	Server http.ServerConfig
-	pushClient   client.PushClient
+	Server     http.ServerConfig
+	PushClient client.PushClient
+	Auth       auth.ClientConfig
 }
