@@ -161,26 +161,13 @@ func (s *UpdateMedicationService) updateMedicationEntity(
 	oldMedication.SetName(name)
 	oldMedication.SetInternationalName(internationalName)
 	oldMedication.SetAmount(amount)
-	oldMedication.SetGroup(group)
+	oldMedication.UpdateGroup(group)
 	oldMedication.SetManufacturer(manufacturer)
-	oldMedication.SetActiveSubstance(activeSubstance)
+	oldMedication.UpdateActiveSubstance(activeSubstance)
 
 	oldMedication.SetUpdatedAt(time.Now())
 	oldMedication.SetReleaseDate(release)
 	oldMedication.SetExpirationDate(expiration)
 
 	return oldMedication, nil
-}
-
-// MapActiveSubstanceToDraft maps ActiveSubstance to ActiveSubstanceDraft.
-func MapActiveSubstanceToDraft(substances []ActiveSubstance) []medication.ActiveSubstanceDraft {
-	result := make([]medication.ActiveSubstanceDraft, len(substances))
-	for i, substance := range substances {
-		result[i] = medication.ActiveSubstanceDraft{
-			Name:  substance.Name,
-			Value: substance.Value,
-			Unit:  substance.Unit,
-		}
-	}
-	return result
 }

@@ -227,8 +227,8 @@ func (m *Medication) SetInternationalName(name InternationalName) {
 	m.internationalName = name
 }
 
-// SetGroup updates the group Value Object of the medication.
-func (m *Medication) SetGroup(group []Group) {
+// UpdateGroup updates the group Value Object of the medication.
+func (m *Medication) UpdateGroup(group []Group) {
 	m.group = make([]Group, len(group))
 	copy(m.group, group)
 }
@@ -253,8 +253,8 @@ func (m *Medication) SetCommentary(commentary Commentary) {
 	m.commentary = commentary
 }
 
-// SetActiveSubstance updates the active substance Value Object of the medication.
-func (m *Medication) SetActiveSubstance(substance []ActiveSubstance) {
+// UpdateActiveSubstance updates the active substance Value Object of the medication.
+func (m *Medication) UpdateActiveSubstance(substance []ActiveSubstance) {
 	m.activeSubstance = make([]ActiveSubstance, len(substance))
 	copy(m.activeSubstance, substance)
 }
@@ -287,15 +287,6 @@ func (m *Medication) GetInternationalName() InternationalName {
 // GetGroup returns the group Value Object of the medication.
 func (m *Medication) GetGroup() []Group {
 	return m.group
-}
-
-// GetGroupString returns the strings instead of groups.
-func (m *Medication) GetGroupString(groups []Group) []string {
-	result := make([]string, len(groups))
-	for i, v := range groups {
-		result[i] = string(v)
-	}
-	return result
 }
 
 // GetManufacturer returns the manufacturer Value Object of the medication.

@@ -76,18 +76,18 @@ func (n InternationalName) GetInternationalName() string {
 type Group string
 
 // NewMedicationGroup creates validated medication group.
-func NewMedicationGroup(group []string) ([]Group, error) {
-	groupOut := []Group{}
-	for _, onegroup := range group {
+func NewMedicationGroup(groups []string) ([]Group, error) {
+	result := []Group{}
+	for _, group := range groups {
 		err := errors.Join(
-			validation.MaxLength(onegroup, maxGroupNameLength),
+			validation.MaxLength(group, maxGroupNameLength),
 		)
 		if err != nil {
 			return []Group{}, fmt.Errorf("%w: %w", ErrInvalidGroup, err)
 		}
-		groupOut = append(groupOut, Group(onegroup))
+		result = append(result, Group(group))
 	}
-	return groupOut, nil
+	return result, nil
 }
 
 // GetGroup returns the medication group name.
@@ -317,27 +317,27 @@ type ActiveSubstance struct {
 
 // NewMedicationActiveSubstance creates validated medication active substance.
 func NewMedicationActiveSubstance(
-	activeSubstanceDraft []ActiveSubstanceDraft,
+	activeSubstances []ActiveSubstanceDraft,
 ) ([]ActiveSubstance, error) {
-	outActiveSubstance := []ActiveSubstance{}
-	for _, oneActiveSubstance := range activeSubstanceDraft {
+	result := []ActiveSubstance{}
+	for _, activeSubstance := range activeSubstances {
 		dose, err := NewMedicationAmount(
-			oneActiveSubstance.Value,
-			oneActiveSubstance.Unit,
+			activeSubstance.Value,
+			activeSubstance.Unit,
 		)
 		err = errors.Join(
-			validation.MaxLength(oneActiveSubstance.Name, 200),
+			validation.MaxLength(activeSubstance.Name, 200),
 			err,
 		)
 		if err != nil {
 			return []ActiveSubstance{}, fmt.Errorf("%w: %w", ErrInvalidActiveSubstance, err)
 		}
-		outActiveSubstance = append(outActiveSubstance, ActiveSubstance{
-			name: oneActiveSubstance.Name,
+		result = append(result, ActiveSubstance{
+			name: activeSubstance.Name,
 			dose: dose,
 		})
 	}
-	return outActiveSubstance, nil
+	return result, nil
 }
 
 // GetName returns the name of the active substance.
