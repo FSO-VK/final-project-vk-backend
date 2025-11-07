@@ -64,14 +64,14 @@ func (s *AddMedicationService) Execute(
 		return nil, fmt.Errorf("failed to validate request: %w", valErr)
 	}
 
-	expiration, err := time.Parse(time.DateOnly, req.Expires)
+	expiration, err := time.Parse(time.RFC3339, req.Expires)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse expiration: %w", err)
 	}
 
 	var release time.Time
 	if req.Release != "" {
-		release, err = time.Parse(time.DateOnly, req.Release)
+		release, err = time.Parse(time.RFC3339, req.Release)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse release: %w", err)
 		}
