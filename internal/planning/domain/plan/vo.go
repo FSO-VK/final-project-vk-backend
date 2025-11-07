@@ -32,10 +32,6 @@ type dosage struct {
 var Units = []string{"мг", "шт", "мл"}
 
 // NewDosage creates validated dosage.
-//
-// revive requires that the struct should be exported.
-//
-//nolint:revive
 func NewDosage(value float64, unit string) (dosage, error) {
 	err := errors.Join(
 		validation.Positive(value),
@@ -85,10 +81,6 @@ type schedule struct {
 // It accepts
 //   - Standard crontab specs, e.g. "* * * * ?"
 //   - Descriptors, e.g. "@midnight", "@every 1h30m"
-//
-// revive requires that the struct should be exported.
-//
-//nolint:revive
 func NewSchedule(cronExpr string) (schedule, error) {
 	s, err := cron.ParseStandard(cronExpr)
 	if err != nil {
@@ -110,10 +102,6 @@ func (s *schedule) Next(from time.Time) time.Time {
 type courseStart time.Time
 
 // NewCourseStart creates validated courseStart.
-//
-// revive requires that the struct should be exported.
-//
-//nolint:revive
 func NewCourseStart(t time.Time) (courseStart, error) {
 	if t.Before(time.Now()) {
 		return courseStart(time.Time{}), ErrInvalidCourseStart
@@ -131,10 +119,6 @@ func (c courseStart) ToTime() time.Time {
 type courseEnd time.Time
 
 // NewCourseEnd creates validated courseEnd.
-//
-// revive requires that the struct should be exported.
-//
-//nolint:revive
 func NewCourseEnd(t time.Time) (courseEnd, error) {
 	if t.Before(time.Now()) {
 		return courseEnd(time.Time{}), ErrInvalidCourseEnd

@@ -9,6 +9,7 @@ import (
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/logcon"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -51,13 +52,10 @@ type AddMedicationJSONResponse struct {
 
 // AddMedication adds a medication.
 func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Request) {
+	logger := h.getLogger(r)
 	auth, err := httputil.GetAuthFromCtx(r)
 	if err != nil {
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusUnauthorized,
-			Error:      api.MsgUnauthorized,
-			Body:       struct{}{},
-		})
+		h.writeResponseUnauthorized(w)
 		return
 	}
 
@@ -70,7 +68,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 	}()
 
 	if err != nil {
-		h.logger.WithError(err).Error("Failed to read request body")
+		logger.WithError(err).Error("Failed to read request body")
 		w.WriteHeader(http.StatusBadRequest)
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -84,7 +82,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 
 	err = json.Unmarshal(body.Bytes(), &reqJSON)
 	if err != nil {
-		h.logger.WithError(err).Error("Failed to unmarshal request body")
+		logger.WithError(err).Error("Failed to unmarshal request body")
 		w.WriteHeader(http.StatusBadRequest)
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -94,7 +92,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 		})
 		return
 	}
-	h.logger.Debugf("request json: %+v", reqJSON)
+	logger.Debugf("request json: %+v", reqJSON)
 
 	serviceRequest := &application.AddMedicationCommand{
 		UserID: auth.UserID,
@@ -119,7 +117,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 		serviceRequest,
 	)
 	if err != nil {
-		h.logger.WithError(err).Error("Failed to add medication")
+		logger.WithError(err).Error("Failed to add medication")
 		w.WriteHeader(http.StatusInternalServerError)
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -176,13 +174,11 @@ type UpdateMedicationJSONResponse struct {
 
 // UpdateMedication updates a medication.
 func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Request) {
+	logger := h.getLogger(r)
+
 	auth, err := httputil.GetAuthFromCtx(r)
 	if err != nil {
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusUnauthorized,
-			Error:      api.MsgUnauthorized,
-			Body:       struct{}{},
-		})
+		h.writeResponseUnauthorized(w)
 		return
 	}
 	var reqJSON *UpdateMedicationJSONRequest
@@ -197,7 +193,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 	}()
 
 	if err != nil {
-		h.logger.WithError(err).Error("Failed to read request body")
+		logger.WithError(err).Error("Failed to read request body")
 		w.WriteHeader(http.StatusBadRequest)
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -210,7 +206,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 
 	err = json.Unmarshal(body.Bytes(), &reqJSON)
 	if err != nil {
-		h.logger.WithError(err).Error("Failed to unmarshal request body")
+		logger.WithError(err).Error("Failed to unmarshal request body")
 		w.WriteHeader(http.StatusBadRequest)
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -244,7 +240,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 		serviceRequest,
 	)
 	if err != nil {
-		h.logger.WithError(err).Error("Failed to update medication")
+		logger.WithError(err).Error("Failed to update medication")
 		w.WriteHeader(http.StatusInternalServerError)
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -288,13 +284,11 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 
 // DeleteMedication deletes a medication.
 func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Request) {
+	logger := h.getLogger(r)
+
 	auth, err := httputil.GetAuthFromCtx(r)
 	if err != nil {
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusUnauthorized,
-			Error:      api.MsgUnauthorized,
-			Body:       struct{}{},
-		})
+		h.writeResponseUnauthorized(w)
 		return
 	}
 	vars := mux.Vars(r)
@@ -311,7 +305,7 @@ func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Req
 	)
 	if err != nil {
 		if errors.Is(err, application.ErrDeleteInvalidUUIDFormat) {
-			h.logger.WithError(err).Error("Failed to parse")
+			logger.WithError(err).Error("Failed to parse")
 			w.WriteHeader(http.StatusBadRequest)
 			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 				StatusCode: http.StatusBadRequest,
@@ -319,7 +313,7 @@ func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Req
 				Error:      MsgFailToParseID,
 			})
 		} else {
-			h.logger.WithError(err).Error("Failed to delete medication")
+			logger.WithError(err).Error("Failed to delete medication")
 			w.WriteHeader(http.StatusInternalServerError)
 
 			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -355,13 +349,11 @@ type GetMedicationBoxJSONResponse struct {
 
 // GetMedicationBox returns a Box of medications.
 func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Request) {
+	logger := h.getLogger(r)
+
 	authorization, err := httputil.GetAuthFromCtx(r)
 	if err != nil {
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusUnauthorized,
-			Error:      api.MsgUnauthorized,
-			Body:       struct{}{},
-		})
+		h.writeResponseUnauthorized(w)
 		return
 	}
 	command := &application.GetMedicationBoxCommand{
@@ -373,7 +365,7 @@ func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Req
 		command,
 	)
 	if err != nil {
-		h.logger.WithError(err).Error("Failed to get medication Box")
+		logger.WithError(err).Error("Failed to get medication Box")
 		w.WriteHeader(http.StatusInternalServerError)
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -428,9 +420,11 @@ type DataMatrixInformationJSONResponse struct {
 
 // DataMatrixInformation adds a medication.
 func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *http.Request) {
+	logger := h.getLogger(r)
+
 	dataParam := r.URL.Query().Get("data")
 	if dataParam == "" {
-		h.logger.Error("Failed to read request body")
+		logger.Error("Failed to read request body")
 		w.WriteHeader(http.StatusBadRequest)
 
 		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -452,9 +446,9 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 	)
 	if err != nil {
 		if errors.Is(err, application.ErrCantSetCache) {
-			h.logger.WithError(err).Error("Failed to set cache: %w", err)
+			logger.WithError(err).Error("Failed to set cache: %w", err)
 		} else {
-			h.logger.WithError(err).Error("Failed to get info from scan: %w", err)
+			logger.WithError(err).Error("Failed to get info from scan: %w", err)
 			w.WriteHeader(http.StatusInternalServerError)
 
 			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -484,6 +478,26 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 		StatusCode: http.StatusOK,
 		Body:       response,
 		Error:      "",
+	})
+}
+
+// getLogger returns a logger from the context if exists,
+// otherwise returns a default logger.
+func (h *MedicationHandlers) getLogger(r *http.Request) *logrus.Entry {
+	l, ok := logcon.FromContext(r.Context())
+	if !ok {
+		return h.logger
+	}
+	return l
+}
+
+// writeResponseUnauthorized writes an Unauthorized HTTP response.
+func (h *MedicationHandlers) writeResponseUnauthorized(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusUnauthorized)
+	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+		StatusCode: http.StatusUnauthorized,
+		Body:       struct{}{},
+		Error:      api.MsgUnauthorized,
 	})
 }
 
