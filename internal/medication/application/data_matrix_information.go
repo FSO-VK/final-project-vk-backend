@@ -118,9 +118,7 @@ func (s *DataMatrixInformationService) Execute(
 			Group:               dataMatrixInfo.Group,
 			ManufacturerName:    dataMatrixInfo.ManufacturerName,
 			ManufacturerCountry: dataMatrixInfo.ManufacturerCountry,
-			ActiveSubstanceName: dataMatrixInfo.ActiveSubstanceName,
-			ActiveSubstanceDose: dataMatrixInfo.ActiveSubstanceDose,
-			ActiveSubstanceUnit: dataMatrixInfo.ActiveSubstanceUnit,
+			ActiveSubstance:     MapAPIActiveSubstanceToLocal(dataMatrixInfo.ActiveSubstance),
 			Expires:             dataMatrixInfo.Expires,
 			Release:             dataMatrixInfo.Release,
 			Commentary:          "",
@@ -163,4 +161,17 @@ func ParseDataMatrix(data string) (*ParsedInformation, error) {
 		CryptoData91: crypto91,
 		CryptoData92: crypto92,
 	}, nil
+}
+
+// MapAPIActiveSubstanceToLocal maps api active substance to local active substance.
+func MapAPIActiveSubstanceToLocal(apiSubstances []client.ActiveSubstance) []ActiveSubstance {
+	result := make([]ActiveSubstance, len(apiSubstances))
+	for i, substance := range apiSubstances {
+		result[i] = ActiveSubstance{
+			Name:  substance.Name,
+			Value: substance.Value,
+			Unit:  substance.Unit,
+		}
+	}
+	return result
 }

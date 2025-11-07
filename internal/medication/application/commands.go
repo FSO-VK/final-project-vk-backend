@@ -13,12 +13,10 @@ type CommandBase struct {
 	AmountValue         float32 `validate:"required,gte=0"`
 	AmountUnit          string  `validate:"required"`
 	ReleaseForm         string  `validate:"required"`
-	Group               string
+	Group               []string
 	ManufacturerName    string
 	ManufacturerCountry string
-	ActiveSubstanceName string
-	ActiveSubstanceDose float32
-	ActiveSubstanceUnit string
+	ActiveSubstance     []ActiveSubstance
 	Expires             string `validate:"required"`
 	Release             string
 	Commentary          string
@@ -32,12 +30,10 @@ type ResponseBase struct {
 	AmountValue         float32
 	AmountUnit          string
 	ReleaseForm         string
-	Group               string
+	Group               []string
 	ManufacturerName    string
 	ManufacturerCountry string
-	ActiveSubstanceName string
-	ActiveSubstanceDose float32
-	ActiveSubstanceUnit string
+	ActiveSubstance     []ActiveSubstance
 	Expires             string
 	Release             string
 	Commentary          string
@@ -56,14 +52,46 @@ func responseBaseMapper(m *medication.Medication) ResponseBase {
 		AmountValue:         m.GetAmount().GetValue(),
 		AmountUnit:          m.GetAmount().GetUnit().String(),
 		ReleaseForm:         m.GetReleaseForm().String(),
-		Group:               m.GetGroup().GetGroup(),
+		Group:               GroupsToStrings(m.GetGroup()),
 		ManufacturerName:    m.GetManufacturer().GetName(),
 		ManufacturerCountry: m.GetManufacturer().GetCountry(),
-		ActiveSubstanceName: m.GetActiveSubstance().GetName(),
-		ActiveSubstanceDose: m.GetActiveSubstance().GetDose().GetValue(),
-		ActiveSubstanceUnit: m.GetActiveSubstance().GetDose().GetUnit().String(),
+		ActiveSubstance:     convertToActiveSubstance(m.GetActiveSubstance()),
 		Expires:             m.GetExpirationDate().Format(time.DateOnly),
 		Release:             release,
 		Commentary:          m.GetCommentary().GetCommentary(),
 	}
+}
+
+func convertToActiveSubstance(substances []medication.ActiveSubstance) []ActiveSubstance {
+	result := make([]ActiveSubstance, len(substances))
+	for i, v := range substances {
+		result[i] = ActiveSubstance{
+			Name:  v.GetName(),
+			Value: v.GetDose().GetValue(),
+			Unit:  v.GetDose().GetUnit().String(),
+		}
+	}
+	return result
+}
+
+// MapActiveSubstanceToDraft maps ActiveSubstance to ActiveSubstanceDraft.
+func MapActiveSubstanceToDraft(substances []ActiveSubstance) []medication.ActiveSubstanceDraft {
+	result := make([]medication.ActiveSubstanceDraft, len(substances))
+	for i, substance := range substances {
+		result[i] = medication.ActiveSubstanceDraft{
+			Name:  substance.Name,
+			Value: substance.Value,
+			Unit:  substance.Unit,
+		}
+	}
+	return result
+}
+
+// GroupsToStrings converts []medication.Group to []string.
+func GroupsToStrings(groups []medication.Group) []string {
+	result := make([]string, len(groups))
+	for i, v := range groups {
+		result[i] = string(v)
+	}
+	return result
 }

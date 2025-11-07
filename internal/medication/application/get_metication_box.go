@@ -55,8 +55,8 @@ type ProducerObject struct {
 	Country string
 }
 
-// ActiveSubstanceObject represents object of active substance.
-type ActiveSubstanceObject struct {
+// ActiveSubstance represents object of active substance.
+type ActiveSubstance struct {
 	Name  string
 	Value float32
 	Unit  string

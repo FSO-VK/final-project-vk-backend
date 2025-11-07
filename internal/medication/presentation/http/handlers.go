@@ -107,9 +107,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 			Group:               reqJSON.Group,
 			ManufacturerName:    reqJSON.Producer.Name,
 			ManufacturerCountry: reqJSON.Producer.Country,
-			ActiveSubstanceName: reqJSON.ActiveSubstance.Name,
-			ActiveSubstanceDose: reqJSON.ActiveSubstance.Value,
-			ActiveSubstanceUnit: reqJSON.ActiveSubstance.Unit,
+			ActiveSubstance:     convertActiveSubstances(reqJSON.ActiveSubstance),
 			Expires:             reqJSON.Expiration,
 			Release:             reqJSON.Release,
 			Commentary:          reqJSON.Commentary,
@@ -148,14 +146,10 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 				Name:    serviceResponse.ManufacturerName,
 				Country: serviceResponse.ManufacturerCountry,
 			},
-			ActiveSubstance: ActiveSubstanceObject{
-				Name:  serviceResponse.ActiveSubstanceName,
-				Value: serviceResponse.ActiveSubstanceDose,
-				Unit:  serviceResponse.ActiveSubstanceUnit,
-			},
-			Expiration: serviceResponse.Expires,
-			Release:    serviceResponse.Release,
-			Commentary: serviceResponse.Commentary,
+			ActiveSubstance: convertToActiveSubstanceObject(serviceResponse.ActiveSubstance),
+			Expiration:      serviceResponse.Expires,
+			Release:         serviceResponse.Release,
+			Commentary:      serviceResponse.Commentary,
 		},
 	}
 	w.WriteHeader(http.StatusOK)
@@ -226,7 +220,6 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 		})
 		return
 	}
-
 	serviceRequest := &application.UpdateMedicationCommand{
 		UserID: auth.UserID,
 		ID:     id,
@@ -239,9 +232,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 			Group:               reqJSON.Group,
 			ManufacturerName:    reqJSON.Producer.Name,
 			ManufacturerCountry: reqJSON.Producer.Country,
-			ActiveSubstanceName: reqJSON.ActiveSubstance.Name,
-			ActiveSubstanceDose: reqJSON.ActiveSubstance.Value,
-			ActiveSubstanceUnit: reqJSON.ActiveSubstance.Unit,
+			ActiveSubstance:     convertActiveSubstances(reqJSON.ActiveSubstance),
 			Expires:             reqJSON.Expiration,
 			Release:             reqJSON.Release,
 			Commentary:          reqJSON.Commentary,
@@ -280,14 +271,10 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 				Name:    serviceResponse.ManufacturerName,
 				Country: serviceResponse.ManufacturerCountry,
 			},
-			ActiveSubstance: ActiveSubstanceObject{
-				Name:  serviceResponse.ActiveSubstanceName,
-				Value: serviceResponse.ActiveSubstanceDose,
-				Unit:  serviceResponse.ActiveSubstanceUnit,
-			},
-			Expiration: serviceResponse.Expires,
-			Release:    serviceResponse.Release,
-			Commentary: serviceResponse.Commentary,
+			ActiveSubstance: convertToActiveSubstanceObject(serviceResponse.ActiveSubstance),
+			Expiration:      serviceResponse.Expires,
+			Release:         serviceResponse.Release,
+			Commentary:      serviceResponse.Commentary,
 		},
 	}
 
@@ -417,14 +404,10 @@ func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Req
 					Name:    medication.ManufacturerName,
 					Country: medication.ManufacturerCountry,
 				},
-				ActiveSubstance: ActiveSubstanceObject{
-					Name:  medication.ActiveSubstanceName,
-					Value: medication.ActiveSubstanceDose,
-					Unit:  medication.ActiveSubstanceUnit,
-				},
-				Expiration: medication.Expires,
-				Release:    medication.Release,
-				Commentary: medication.Commentary,
+				ActiveSubstance: convertToActiveSubstanceObject(medication.ActiveSubstance),
+				Expiration:      medication.Expires,
+				Release:         medication.Release,
+				Commentary:      medication.Commentary,
 			},
 		})
 	}
@@ -502,4 +485,26 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 		Body:       response,
 		Error:      "",
 	})
+}
+
+func convertToActiveSubstanceObject(
+	substances []application.ActiveSubstance,
+) []ActiveSubstanceObject {
+	result := make([]ActiveSubstanceObject, len(substances))
+	for i, v := range substances {
+		result[i] = ActiveSubstanceObject{
+			Name:  v.Name,
+			Value: v.Value,
+			Unit:  v.Unit,
+		}
+	}
+	return result
+}
+
+func convertActiveSubstances(substances []ActiveSubstanceObject) []application.ActiveSubstance {
+	result := make([]application.ActiveSubstance, len(substances))
+	for i, v := range substances {
+		result[i] = application.ActiveSubstance(v)
+	}
+	return result
 }
