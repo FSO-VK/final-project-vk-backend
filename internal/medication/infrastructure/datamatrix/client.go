@@ -11,7 +11,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	clientInterface "github.com/FSO-VK/final-project-vk-backend/internal/medication/application/api_client"
+	datamatrixclient "github.com/FSO-VK/final-project-vk-backend/internal/medication/application/api_client"
 	"github.com/sirupsen/logrus"
 )
 
@@ -35,8 +35,8 @@ func NewDataMatrixAPI(cfg ClientConfig, logger *logrus.Entry) *APIDataMatrix {
 
 // GetInformationByDataMatrix implements DataMatrixClient interface.
 func (h *APIDataMatrix) GetInformationByDataMatrix(
-	data *clientInterface.DataMatrixCodeInfo,
-) (*clientInterface.MedicationInfo, error) {
+	data *datamatrixclient.DataMatrixCodeInfo,
+) (*datamatrixclient.MedicationInfo, error) {
 	if err := h.checkRequest(data); err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (h *APIDataMatrix) GetInformationByDataMatrix(
 	return out, nil
 }
 
-func (h *APIDataMatrix) checkRequest(data *clientInterface.DataMatrixCodeInfo) error {
+func (h *APIDataMatrix) checkRequest(data *datamatrixclient.DataMatrixCodeInfo) error {
 	if data == nil || data.GTIN == "" || data.SerialNumber == "" ||
 		data.CryptoData91 == "" || data.CryptoData92 == "" {
 		return ErrInvalidRequest
@@ -94,23 +94,21 @@ func (h *APIDataMatrix) checkRequest(data *clientInterface.DataMatrixCodeInfo) e
 }
 
 // MapToMedicationInfo maps ExpectedDataMatrixAPIResponse to MedicationInfo.
-func MapToMedicationInfo(resp *ExpectedDataMatrixAPIResponse) *clientInterface.MedicationInfo {
+func MapToMedicationInfo(resp *ExpectedDataMatrixAPIResponse) *datamatrixclient.MedicationInfo {
 	if resp == nil {
 		return nil
 	}
 
-	return &clientInterface.MedicationInfo{
+	return &datamatrixclient.MedicationInfo{
 		Name:                resp.ProductName,
 		InternationalName:   resp.DrugsData.FOIV.ProductName,
 		AmountValue:         0,
 		AmountUnit:          "",
 		ReleaseForm:         formatReleaseForm(resp.DrugsData.FOIV.ProductFormName),
-		Group:               resp.Category,
+		Group:               []string{resp.Category},
 		ManufacturerName:    resp.DrugsData.FOIV.Manufacturer,
 		ManufacturerCountry: resp.DrugsData.FOIV.ManufacturerCountry,
-		ActiveSubstanceName: "",
-		ActiveSubstanceDose: 0,
-		ActiveSubstanceUnit: "",
+		ActiveSubstance:     []datamatrixclient.ActiveSubstance{},
 		Expires:             resp.ExpDate,
 		Release:             formatReleaseDate(resp.DrugsData.ReleaseDate),
 	}

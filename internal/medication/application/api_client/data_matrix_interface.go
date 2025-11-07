@@ -27,14 +27,19 @@ type MedicationInfo struct {
 	AmountValue         float32
 	AmountUnit          string
 	ReleaseForm         string
-	Group               string
+	Group               []string
 	ManufacturerName    string
 	ManufacturerCountry string
-	ActiveSubstanceName string
-	ActiveSubstanceDose float32
-	ActiveSubstanceUnit string
+	ActiveSubstance     []ActiveSubstance
 	Expires             string
 	Release             string
+}
+
+// ActiveSubstance contains info about active substance.
+type ActiveSubstance struct {
+	Name  string
+	Value float32
+	Unit  string
 }
 
 // DataMatrixCodeInfo contains scanned info from data matrix.

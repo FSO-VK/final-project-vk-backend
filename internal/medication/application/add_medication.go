@@ -97,13 +97,11 @@ func (s *AddMedicationService) Execute(
 				Name:    req.ManufacturerName,
 				Country: req.ManufacturerCountry,
 			},
-			ActiveSubstanceName:      req.ActiveSubstanceName,
-			ActiveSubstanceDoseValue: req.ActiveSubstanceDose,
-			ActiveSubstanceDoseUnit:  req.ActiveSubstanceUnit,
-			Commentary:               req.Commentary,
-			ReleaseDate:              release,
-			CreatedAt:                time.Now(),
-			UpdatedAt:                time.Now(),
+			ActiveSubstance: MapActiveSubstanceToDraft(req.ActiveSubstance),
+			Commentary:      req.Commentary,
+			ReleaseDate:     release,
+			CreatedAt:       time.Now(),
+			UpdatedAt:       time.Now(),
 		},
 	)
 	if err != nil {

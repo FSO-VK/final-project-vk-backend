@@ -141,10 +141,7 @@ func (s *UpdateMedicationService) updateMedicationEntity(
 	allErrors = errors.Join(allErrors, err)
 
 	activeSubstance, err := medication.NewMedicationActiveSubstance(
-		req.ActiveSubstanceName,
-		req.ActiveSubstanceDose,
-		req.ActiveSubstanceUnit,
-	)
+		MapActiveSubstanceToDraft(req.ActiveSubstance))
 	allErrors = errors.Join(allErrors, err)
 
 	expiration, err := time.Parse(time.DateOnly, req.Expires)
@@ -164,9 +161,9 @@ func (s *UpdateMedicationService) updateMedicationEntity(
 	oldMedication.SetName(name)
 	oldMedication.SetInternationalName(internationalName)
 	oldMedication.SetAmount(amount)
-	oldMedication.SetGroup(group)
+	oldMedication.UpdateGroup(group)
 	oldMedication.SetManufacturer(manufacturer)
-	oldMedication.SetActiveSubstance(activeSubstance)
+	oldMedication.UpdateActiveSubstance(activeSubstance)
 
 	oldMedication.SetUpdatedAt(time.Now())
 	oldMedication.SetReleaseDate(release)
