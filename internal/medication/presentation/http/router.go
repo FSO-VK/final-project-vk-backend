@@ -9,6 +9,7 @@ import (
 func Router(
 	medicationHandlers *MedicationHandlers,
 	authMw *httputil.AuthMiddleware,
+	loggingMw *httputil.LoggingMiddleware,
 ) *mux.Router {
 	r := mux.NewRouter()
 
@@ -20,6 +21,7 @@ func Router(
 
 	panicMiddleware := httputil.NewPanicRecoveryMiddleware()
 	r.Use(panicMiddleware.Middleware)
+	r.Use(loggingMw.MiddlewareNetHTTP)
 	r.Use(authMw.AuthMiddlewareWrapper)
 
 	return r

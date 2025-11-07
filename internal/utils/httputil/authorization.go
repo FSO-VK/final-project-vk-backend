@@ -71,6 +71,7 @@ func (m *AuthMiddleware) AuthMiddlewareWrapper(next http.Handler) http.Handler {
 		}
 
 		if sid == "" {
+			w.WriteHeader(http.StatusUnauthorized)
 			_ = NetHTTPWriteJSON(w, &api.Response[struct{}]{
 				StatusCode: http.StatusUnauthorized,
 				Body:       struct{}{},
@@ -81,6 +82,7 @@ func (m *AuthMiddleware) AuthMiddlewareWrapper(next http.Handler) http.Handler {
 
 		resp, err := m.checker.CheckAuth(&auth.Request{SessionID: sid})
 		if err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
 			_ = NetHTTPWriteJSON(w, &api.Response[ResponseUnauthorized]{
 				StatusCode: http.StatusServiceUnavailable,
 				Body:       ResponseUnauthorized{SessionID: ""},
@@ -90,6 +92,7 @@ func (m *AuthMiddleware) AuthMiddlewareWrapper(next http.Handler) http.Handler {
 		}
 
 		if !resp.IsAuthorized {
+			w.WriteHeader(http.StatusForbidden)
 			_ = NetHTTPWriteJSON(w, &api.Response[struct{}]{
 				StatusCode: http.StatusForbidden,
 				Body:       struct{}{},

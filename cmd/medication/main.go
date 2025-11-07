@@ -1,6 +1,12 @@
 package main
 
 import (
+	"context"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/datamatrix"
@@ -68,7 +74,9 @@ func main() {
 
 	authMw := httputil.NewAuthMiddleware(authChecker)
 
-	router := http.Router(medicationHandlers, authMw)
+	loggingMw := httputil.NewLoggingMiddleware(logger)
+
+	router := http.Router(medicationHandlers, authMw, loggingMw)
 
 	server := http.NewHTTPServer(&conf.Server, logger)
 	server.Router(router)
@@ -77,4 +85,26 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+	wg := sync.WaitGroup{}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		<-stop
+
+		logger.Info("Server is shutting down...")
+		err = server.Shutdown(context.Background())
+		if err != nil {
+			logger.Errorf("graceful shutdown failed: %v", err)
+		}
+	}()
+
+	wg.Wait()
+
+	logger.Info("Server stopped")
 }
