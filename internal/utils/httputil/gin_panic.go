@@ -3,36 +3,40 @@ package httputil
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"runtime"
+
+	"github.com/gin-gonic/gin"
 )
 
-type PanicRecoveryMiddleware struct {
+type GINPanicRecoveryMiddleware struct {
 	log *log.Logger
 }
 
-func NewPanicRecoveryMiddleware() *GINPanicRecoveryMiddleware {
-	// TODO: refactor
+func NewGINPanicRecoveryMiddleware() *GINPanicRecoveryMiddleware {
 	return &GINPanicRecoveryMiddleware{log: log.Default()}
 }
 
-func (p *GINPanicRecoveryMiddleware) Middleware(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func (p *GINPanicRecoveryMiddleware) Handler() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				p.log.Printf("Panic recovered: %v", err)
 
 				buf := make([]byte, 1024)
-
 				n := runtime.Stack(buf, false)
 				for n == len(buf) {
 					buf = make([]byte, len(buf)*2)
 					n = runtime.Stack(buf, false)
 				}
-				fmt.Printf("Stack trace: %s\n", buf[:n])
+
+				fmt.Printf("Stack trace:\n%s\n", buf[:n])
+
+				c.AbortWithStatusJSON(500, gin.H{
+					"error": "internal server error",
+				})
 			}
 		}()
 
-		handler.ServeHTTP(w, r)
-	})
+		c.Next()
+	}
 }

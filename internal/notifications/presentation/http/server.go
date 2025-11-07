@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,7 +21,7 @@ type ServerConfig struct {
 //nolint:gochecknoglobals
 var defaultServerConfig = &ServerConfig{
 	Host: "",
-	Port: "8080",
+	Port: "8000",
 }
 
 // Address returns the full server address in host:port format.
@@ -36,8 +36,8 @@ type MedicationHTTPServer struct {
 	logger *logrus.Entry
 }
 
-// NewHTTPServer creates a new HTTP server instance with the provided configuration and logger.
-func NewHTTPServer(conf *ServerConfig, l *logrus.Entry) *MedicationHTTPServer {
+// NewGINServer creates a new HTTP server instance with the provided configuration and logger.
+func NewGINServer(conf *ServerConfig, l *logrus.Entry) *MedicationHTTPServer {
 	if conf == nil {
 		conf = defaultServerConfig
 	}
@@ -66,7 +66,7 @@ func NewHTTPServer(conf *ServerConfig, l *logrus.Entry) *MedicationHTTPServer {
 }
 
 // Router sets the HTTP router for the server.
-func (s *MedicationHTTPServer) Router(router *mux.Router) {
+func (s *MedicationHTTPServer) Router(router *gin.Engine) {
 	s.srv.Handler = router
 }
 

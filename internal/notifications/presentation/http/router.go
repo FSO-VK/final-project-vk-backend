@@ -2,25 +2,24 @@ package http
 
 import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
-// Router returns a new HTTP router.
+// Router returns a new Gin engine with routes and Gin-native middleware.
 func Router(
 	notificationHandlers *NotificationsHandlers,
-	authMw *httputil.AuthMiddleware,
-) *mux.Router {
-	r := mux.NewRouter()
+	authMw *httputil.GinAuthMiddleware,
+) *gin.Engine {
+	r := gin.New()
 
-	r.HandleFunc("/vapidPublicKey", notificationHandlers.GetVapidPublicKey).Methods("GET")
-	r.HandleFunc("/subscribe", notificationHandlers.CreateSubscription).Methods("POST")
-	r.HandleFunc("/subscribe", notificationHandlers.DeleteSubscription).Methods("DELETE")
-	r.HandleFunc("/send", notificationHandlers.SendNotification).Methods("POST")
-	r.HandleFunc("/action/{id}", notificationHandlers.InteractWithNotification).Methods("POST")
+	r.Use(gin.Logger())
+	r.Use(httputil.NewPanicRecoveryMiddleware().Handler())
+	r.Use(authMw.Middleware())
 
-	panicMiddleware := httputil.NewPanicRecoveryMiddleware()
-	r.Use(panicMiddleware.Middleware)
-	r.Use(authMw.AuthMiddlewareWrapper)
+	r.GET("/vapidPublicKey", notificationHandlers.GetVapidPublicKeyGin)
+	r.POST("/pushSubscription", notificationHandlers.CreateSubscriptionGin)
+	r.DELETE("/pushSubscription/:id", notificationHandlers.DeleteSubscriptionGin)
+	r.POST("/send", notificationHandlers.SendNotificationGin)
 
 	return r
 }

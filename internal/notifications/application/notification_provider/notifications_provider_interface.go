@@ -1,21 +1,29 @@
-// Package notifications is a domain layer for notifications.
-package notifications
+// Package notificationprovider is a package for interface for notifications client.
+package notificationprovider
 
 import (
 	"time"
 
+	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/domain/subscriptions"
 	"github.com/google/uuid"
 )
 
-// Notification represents a push notification to be sent.
-type Notification struct {
+// PushNotificationClient is an interface for data matrix client.
+type NotificationProvider interface {
+	PushNotification(
+		pushInfo *PushNotification,
+		subscriptionInfo *subscriptions.PushSubscription,
+	) error
+}
+
+// PushNotification represents a push notification to be sent.
+type PushNotification struct {
 	id             uuid.UUID
 	subscriptionID uuid.UUID
 	userID         uuid.UUID
 	title          string
 	body           string
 	sendAt         time.Time
-	planningID     uuid.UUID
 }
 
 // NewNotification creates a new notification.
@@ -26,85 +34,73 @@ func NewNotification(
 	title string,
 	body string,
 	sendAt time.Time,
-	planningID uuid.UUID,
-) *Notification {
-	return &Notification{
+) *PushNotification {
+	return &PushNotification{
 		id:             id,
 		subscriptionID: subscriptionID,
 		userID:         userID,
 		title:          title,
 		body:           body,
 		sendAt:         sendAt,
-		planningID:     planningID,
 	}
 }
 
 // GetID returns the unique identifier of the notification.
-func (n *Notification) GetID() uuid.UUID {
+func (n *PushNotification) GetID() uuid.UUID {
 	return n.id
 }
 
 // SetID sets the unique identifier of the notification.
-func (n *Notification) SetID(id uuid.UUID) {
+func (n *PushNotification) SetID(id uuid.UUID) {
 	n.id = id
 }
 
 // GetSubscriptionID returns the subscription ID.
-func (n *Notification) GetSubscriptionID() uuid.UUID {
+func (n *PushNotification) GetSubscriptionID() uuid.UUID {
 	return n.subscriptionID
 }
 
 // SetSubscriptionID sets the subscription ID.
-func (n *Notification) SetSubscriptionID(subscriptionID uuid.UUID) {
+func (n *PushNotification) SetSubscriptionID(subscriptionID uuid.UUID) {
 	n.subscriptionID = subscriptionID
 }
 
 // GetUserID returns the user identifier.
-func (n *Notification) GetUserID() uuid.UUID {
+func (n *PushNotification) GetUserID() uuid.UUID {
 	return n.userID
 }
 
 // SetUserID sets the user identifier.
-func (n *Notification) SetUserID(userID uuid.UUID) {
+func (n *PushNotification) SetUserID(userID uuid.UUID) {
 	n.userID = userID
 }
 
 // GetTitle returns the notification title.
-func (n *Notification) GetTitle() string {
+func (n *PushNotification) GetTitle() string {
 	return n.title
 }
 
 // SetTitle sets the notification title.
-func (n *Notification) SetTitle(title string) {
+func (n *PushNotification) SetTitle(title string) {
 	n.title = title
 }
 
 // GetBody returns the notification body.
-func (n *Notification) GetBody() string {
+func (n *PushNotification) GetBody() string {
 	return n.body
 }
 
 // SetBody sets the notification body.
-func (n *Notification) SetBody(body string) {
+func (n *PushNotification) SetBody(body string) {
 	n.body = body
 }
 
 // GetSendAt returns the send time.
-func (n *Notification) GetSendAt() time.Time {
+func (n *PushNotification) GetSendAt() time.Time {
 	return n.sendAt
 }
 
 // SetSendAt sets the send time.
-func (n *Notification) SetSendAt(sendAt time.Time) {
+func (n *PushNotification) SetSendAt(sendAt time.Time) {
 	n.sendAt = sendAt
-}
-
-// GetPlanningID returns the planning ID.
-func (n *Notification) GetPlanningID() uuid.UUID {
-	return n.planningID
-}
-
-// SetPlanningID sets the planning ID.
-func (n *Notification) SetPlanningID(planningID uuid.UUID) {
-	n.planningID = planningID
 }
