@@ -482,7 +482,7 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 }
 
 // getLogger returns a logger from the context if exists,
-// otherwise returns a default logger
+// otherwise returns a default logger.
 func (h *MedicationHandlers) getLogger(r *http.Request) *logrus.Entry {
 	l, ok := logcon.FromContext(r.Context())
 	if !ok {
@@ -491,6 +491,7 @@ func (h *MedicationHandlers) getLogger(r *http.Request) *logrus.Entry {
 	return l
 }
 
+// writeResponseUnauthorized writes an Unauthorized HTTP response.
 func (h *MedicationHandlers) writeResponseUnauthorized(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusUnauthorized)
 	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
