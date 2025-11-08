@@ -211,7 +211,6 @@ type SendNotificationJSONResponse struct{}
 
 // SendNotification delete a subscription one time for every device.
 func (h *NotificationsHandlers) SendNotificationGin(c *gin.Context) {
-
 	var reqJSON SendNotificationJSONRequest
 	if err := c.ShouldBindJSON(&reqJSON); err != nil {
 		h.logger.WithError(err).Error("Failed to bind request body")
@@ -224,10 +223,10 @@ func (h *NotificationsHandlers) SendNotificationGin(c *gin.Context) {
 	}
 
 	command := &application.SendNotificationCommand{
-		UserID:         reqJSON.UserID,
-		Title:          reqJSON.Title,
-		Body:           reqJSON.Body,
-		SendAt:         reqJSON.SendAt,
+		UserID: reqJSON.UserID,
+		Title:  reqJSON.Title,
+		Body:   reqJSON.Body,
+		SendAt: reqJSON.SendAt,
 	}
 
 	_, err := h.app.SendNotification.Execute(c.Request.Context(), command)
