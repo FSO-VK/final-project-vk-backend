@@ -55,3 +55,25 @@ func (s *SubscriptionsStorage) GetSubscriptionByID(
 	}
 	return drug, nil
 }
+
+// GetSubscriptionsByUserID returns all subscriptions with the same user id.
+// GetSubscriptionsByUserID returns all subscriptions with the same user id.
+func (s *SubscriptionsStorage) GetSubscriptionsByUserID(
+	_ context.Context,
+	userID uuid.UUID,
+) ([]*subscriptions.PushSubscription, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var result []*subscriptions.PushSubscription
+	for key, subscription := range s.data.data {
+		_ = key
+		if subscription.GetUserID() == userID {
+			result = append(result, subscription)
+		}
+	}
+	if len(result) == 0 {
+		return nil, subscriptions.ErrNoSubscriptionsFound
+	}
+	return result, nil
+}

@@ -166,8 +166,8 @@ func (h *NotificationsHandlers) DeleteSubscriptionGin(c *gin.Context) {
 		return
 	}
 
-	subscriptionID := c.Param(SlugID)
-	if subscriptionID == "" {
+	slugUserID := c.Param(SlugID)
+	if slugUserID == "" {
 		h.logger.Error("Subscription ID not found in path params")
 		c.JSON(http.StatusBadRequest, api.Response[any]{
 			StatusCode: http.StatusBadRequest,
@@ -178,7 +178,7 @@ func (h *NotificationsHandlers) DeleteSubscriptionGin(c *gin.Context) {
 	}
 
 	serviceRequest := &application.DeleteSubscriptionCommand{
-		ID: subscriptionID,
+		UserID: slugUserID,
 	}
 	_, err := h.app.DeleteSubscription.Execute(c.Request.Context(), serviceRequest)
 	if err != nil {
@@ -203,7 +203,7 @@ type SendNotificationJSONRequest struct {
 	// embedded struct
 	PushNotificationObject `json:",inline"`
 
-	SubscriptionID string `json:"subscriptionId"`
+	UserID string `json:"userId"`
 }
 
 // SendNotificationJSONResponse is a response for SendNotification.
@@ -211,15 +211,6 @@ type SendNotificationJSONResponse struct{}
 
 // SendNotification delete a subscription one time for every device.
 func (h *NotificationsHandlers) SendNotificationGin(c *gin.Context) {
-	auth, err := httputil.GetAuthFromCtx(c.Request)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, api.Response[any]{
-			StatusCode: http.StatusUnauthorized,
-			Error:      api.MsgUnauthorized,
-			Body:       struct{}{},
-		})
-		return
-	}
 
 	var reqJSON SendNotificationJSONRequest
 	if err := c.ShouldBindJSON(&reqJSON); err != nil {
@@ -233,14 +224,13 @@ func (h *NotificationsHandlers) SendNotificationGin(c *gin.Context) {
 	}
 
 	command := &application.SendNotificationCommand{
-		SubscriptionID: reqJSON.SubscriptionID,
-		UserID:         auth.UserID,
+		UserID:         reqJSON.UserID,
 		Title:          reqJSON.Title,
 		Body:           reqJSON.Body,
 		SendAt:         reqJSON.SendAt,
 	}
 
-	_, err = h.app.SendNotification.Execute(c.Request.Context(), command)
+	_, err := h.app.SendNotification.Execute(c.Request.Context(), command)
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to send notification")
 		c.JSON(http.StatusInternalServerError, api.Response[any]{

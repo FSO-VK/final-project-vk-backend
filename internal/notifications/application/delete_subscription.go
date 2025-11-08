@@ -40,7 +40,7 @@ func NewDeleteSubscriptionService(
 
 // DeleteSubscriptionCommand is a request to delete a subscription.
 type DeleteSubscriptionCommand struct {
-	ID string
+	UserID string
 }
 
 // DeleteSubscriptionResponse is a response to delete a subscription.
@@ -55,18 +55,20 @@ func (s *DeleteSubscriptionService) Execute(
 	if valErr != nil {
 		return nil, fmt.Errorf("failed to validate request: %w", valErr)
 	}
-	parsedUUID, err := uuid.Parse(req.ID)
+	parsedUUID, err := uuid.Parse(req.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrDeleteInvalidUUIDFormat, err)
 	}
-	subscription, err := s.subscriptionsRepo.GetSubscriptionByID(ctx, parsedUUID)
+	subscriptions, err := s.subscriptionsRepo.GetSubscriptionsByUserID(ctx, parsedUUID)
 	if err != nil {
 		return nil, fmt.Errorf("there is no such subscription: %w", err)
 	}
-	subscription.SetIsActive(false)
-	err = s.subscriptionsRepo.SetSubscription(ctx, subscription)
-	if err != nil {
-		return nil, fmt.Errorf("failed to set subscription: %w", err)
+	for _, subscription := range subscriptions {
+		subscription.SetIsActive(false)
+		err = s.subscriptionsRepo.SetSubscription(ctx, subscription)
+		if err != nil {
+			return nil, fmt.Errorf("failed to set subscription: %w", err)
+		}
 	}
 	response := &DeleteSubscriptionResponse{}
 	return response, nil
