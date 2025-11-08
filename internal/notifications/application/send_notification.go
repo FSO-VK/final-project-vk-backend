@@ -96,7 +96,6 @@ func purse(
 	userID string,
 	sendAt string,
 ) (uuid.UUID, time.Time, error) {
-
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
 		return uuid.Nil, time.Time{}, fmt.Errorf(
