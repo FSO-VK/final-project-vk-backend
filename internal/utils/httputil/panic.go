@@ -8,16 +8,15 @@ import (
 )
 
 type PanicRecoveryMiddleware struct {
-	//nolint:unused
 	log *log.Logger
 }
 
-func NewPanicRecoveryMiddleware() *GINPanicRecoveryMiddleware {
+func NewPanicRecoveryMiddleware() *PanicRecoveryMiddleware {
 	// TODO: refactor
-	return &GINPanicRecoveryMiddleware{log: log.Default()}
+	return &PanicRecoveryMiddleware{log: log.Default()}
 }
 
-func (p *GINPanicRecoveryMiddleware) Middleware(handler http.Handler) http.Handler {
+func (p *PanicRecoveryMiddleware) Middleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
