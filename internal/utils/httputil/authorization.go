@@ -19,6 +19,10 @@ var (
 	ErrInvalidAuthType = errors.New("invalid authentication data type in context")
 )
 
+func GetAuthContextKey() interface{} {
+	return authUserValueKey
+}
+
 // AuthStatus contains user id and authorization status for handlers to use.
 type AuthStatus struct {
 	UserID       string
