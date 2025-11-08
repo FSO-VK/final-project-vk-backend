@@ -14,11 +14,13 @@ func Router(
 
 	r.Use(gin.Logger())
 	r.Use(httputil.NewPanicRecoveryMiddleware().Handler())
-	r.Use(authMw.Middleware())
-
-	r.GET("/vapidPublicKey", notificationHandlers.GetVapidPublicKeyGin)
-	r.POST("/pushSubscription", notificationHandlers.CreateSubscriptionGin)
-	r.DELETE("/pushSubscription/:id", notificationHandlers.DeleteSubscriptionGin)
+	authGroup := r.Group("/")
+	authGroup.Use(authMw.Middleware())
+	{
+		authGroup.GET("/vapidPublicKey", notificationHandlers.GetVapidPublicKeyGin)
+		authGroup.POST("/pushSubscription", notificationHandlers.CreateSubscriptionGin)
+		authGroup.DELETE("/pushSubscription/:id", notificationHandlers.DeleteSubscriptionGin)
+	}
 	r.POST("/send", notificationHandlers.SendNotificationGin)
 
 	return r

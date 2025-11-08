@@ -41,11 +41,10 @@ func NewSendNotificationService(
 
 // SendNotificationCommand is a request to send a notification.
 type SendNotificationCommand struct {
-	SubscriptionID string
-	UserID         string
-	Title          string
-	Body           string
-	SendAt         string
+	UserID string
+	Title  string
+	Body   string
+	SendAt string
 }
 
 // SendNotificationResponse is a response to send a notification.
@@ -60,33 +59,33 @@ func (s *SendNotificationService) Execute(
 	if valErr != nil {
 		return nil, fmt.Errorf("failed to validate request: %w", valErr)
 	}
-	parsedSubscriptionID, parsedUserID, parsedSendAt, err := purse(
-		req.SubscriptionID,
+	parsedUserID, parsedSendAt, err := purse(
 		req.UserID,
 		req.SendAt)
 	if err != nil {
 		return nil, err
 	}
 
-	subscription, err := s.subscriptionsRepo.GetSubscriptionByID(ctx, parsedSubscriptionID)
+	subscriptions, err := s.subscriptionsRepo.GetSubscriptionsByUserID(ctx, parsedUserID)
 	if err != nil {
 		return nil, fmt.Errorf("there is no such subscription: %w", err)
 	}
-	if subscription.GetUserID() != parsedUserID {
-		return nil, fmt.Errorf("this is not your subscription: %w", err)
-	}
-
-	notificationToSend := provider.NewNotification(
-		uuid.New(),
-		subscription.GetID(),
-		parsedUserID,
-		req.Title,
-		req.Body,
-		parsedSendAt,
-	)
-	err = s.notificationProvider.PushNotification(notificationToSend, subscription)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send notification: %w", err)
+	for _, subscription := range subscriptions {
+		if subscription.GetIsActive() {
+			continue
+		}
+		notificationToSend := provider.NewNotification(
+			uuid.New(),
+			subscription.GetID(),
+			parsedUserID,
+			req.Title,
+			req.Body,
+			parsedSendAt,
+		)
+		err = s.notificationProvider.PushNotification(notificationToSend, subscription)
+		if err != nil {
+			return nil, fmt.Errorf("failed to send notification: %w", err)
+		}
 	}
 
 	response := &SendNotificationResponse{}
@@ -94,22 +93,13 @@ func (s *SendNotificationService) Execute(
 }
 
 func purse(
-	subscriptionID string,
 	userID string,
 	sendAt string,
-) (uuid.UUID, uuid.UUID, time.Time, error) {
-	parsedSubscriptionID, err := uuid.Parse(subscriptionID)
-	if err != nil {
-		return uuid.Nil, uuid.Nil, time.Time{}, fmt.Errorf(
-			"subscription id is invalid: %w: %w",
-			ErrDeleteInvalidUUIDFormat,
-			err,
-		)
-	}
+) (uuid.UUID, time.Time, error) {
 
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
-		return uuid.Nil, uuid.Nil, time.Time{}, fmt.Errorf(
+		return uuid.Nil, time.Time{}, fmt.Errorf(
 			"user id is invalid: %w: %w",
 			ErrDeleteInvalidUUIDFormat,
 			err)
@@ -117,10 +107,10 @@ func purse(
 
 	parsedSendAt, err := time.Parse(time.RFC3339, sendAt)
 	if err != nil {
-		return uuid.Nil, uuid.Nil, time.Time{}, fmt.Errorf(
+		return uuid.Nil, time.Time{}, fmt.Errorf(
 			"invalid sendAt format: %w",
 			err)
 	}
 
-	return parsedSubscriptionID, parsedUserID, parsedSendAt, nil
+	return parsedUserID, parsedSendAt, nil
 }
