@@ -10,6 +10,7 @@ import (
 )
 
 type PanicRecoveryMiddleware struct {
+	//nolint:useful
 	log *log.Logger
 }
 
