@@ -5,12 +5,13 @@ import (
 	"sync"
 
 	subscriptions "github.com/FSO-VK/final-project-vk-backend/internal/notifications/domain/subscriptions"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/cache"
 	"github.com/google/uuid"
 )
 
 // SubscriptionsStorage is a storage for subscriptions.
 type SubscriptionsStorage struct {
-	data  *Cache[*subscriptions.PushSubscription]
+	data  *cache.Cache[*subscriptions.PushSubscription]
 	count uint
 
 	mu *sync.RWMutex
@@ -19,14 +20,14 @@ type SubscriptionsStorage struct {
 // NewSubscriptionsStorage returns a new SubscriptionsStorage.
 func NewSubscriptionsStorage() *SubscriptionsStorage {
 	return &SubscriptionsStorage{
-		data:  NewCache[*subscriptions.PushSubscription](),
+		data:  cache.NewCache[*subscriptions.PushSubscription](),
 		count: 0,
 		mu:    &sync.RWMutex{},
 	}
 }
 
-// SetSubscription creates a new subscription in memory or updates it.
-func (s *SubscriptionsStorage) SetSubscription(
+// CreateSubscription creates a new subscription in memory or updates it.
+func (s *SubscriptionsStorage) CreateSubscription(
 	_ context.Context,
 	subscription *subscriptions.PushSubscription,
 ) error {
@@ -57,7 +58,6 @@ func (s *SubscriptionsStorage) GetSubscriptionByID(
 }
 
 // GetSubscriptionsByUserID returns all subscriptions with the same user id.
-// GetSubscriptionsByUserID returns all subscriptions with the same user id.
 func (s *SubscriptionsStorage) GetSubscriptionsByUserID(
 	_ context.Context,
 	userID uuid.UUID,
@@ -66,8 +66,7 @@ func (s *SubscriptionsStorage) GetSubscriptionsByUserID(
 	defer s.mu.RUnlock()
 
 	var result []*subscriptions.PushSubscription
-	for key, subscription := range s.data.data {
-		_ = key
+	for _, subscription := range s.data.GetAll() {
 		if subscription.GetUserID() == userID {
 			result = append(result, subscription)
 		}

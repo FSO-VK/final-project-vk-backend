@@ -144,7 +144,6 @@ func (h *NotificationsHandlers) CreateSubscriptionGin(c *gin.Context) {
 				},
 			},
 			UserAgent: serviceResponse.UserAgent,
-			IsActive:  serviceResponse.IsActive,
 		},
 	}
 
@@ -216,7 +215,6 @@ func (h *NotificationsHandlers) SendNotificationGin(c *gin.Context) {
 		UserID: reqJSON.UserID,
 		Title:  reqJSON.Title,
 		Body:   reqJSON.Body,
-		SendAt: reqJSON.SendAt,
 	}
 
 	_, err := h.app.SendNotification.Execute(c.Request.Context(), command)

@@ -24,7 +24,6 @@ type PushSubscriptionInfo struct {
 	UserID    string   `json:"userId"`
 	SendInfo  SendInfo `json:"subscription"`
 	UserAgent string   `json:"ua"`
-	IsActive  bool     `json:"isActive"`
 }
 
 // PushNotificationObject is info about notification.
@@ -32,5 +31,4 @@ type PushNotificationObject struct {
 	SubscriptionID string `json:"subscriptionId"`
 	Title          string `json:"title"`
 	Body           string `json:"body"`
-	SendAt         string `json:"sendAt"`
 }

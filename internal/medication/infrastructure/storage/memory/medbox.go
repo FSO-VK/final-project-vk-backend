@@ -5,12 +5,13 @@ import (
 	"sync"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medbox"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/cache"
 	"github.com/google/uuid"
 )
 
 // MedicationBoxStorage is a storage for MedicationBoxes.
 type MedicationBoxStorage struct {
-	data  *Cache[*medbox.MedicationBox]
+	data  *cache.Cache[*medbox.MedicationBox]
 	count uint
 
 	mu *sync.RWMutex
@@ -19,7 +20,7 @@ type MedicationBoxStorage struct {
 // NewMedicationBoxStorage returns a new MedicationBoxStorage.
 func NewMedicationBoxStorage() *MedicationBoxStorage {
 	return &MedicationBoxStorage{
-		data:  NewCache[*medbox.MedicationBox](),
+		data:  cache.NewCache[*medbox.MedicationBox](),
 		count: 0,
 		mu:    &sync.RWMutex{},
 	}
@@ -37,7 +38,6 @@ func (s *MedicationBoxStorage) SetMedicationBox(
 	}
 	_, ok := s.data.Get(medicationBox.GetID().String())
 	if !ok {
-		s.data.mu.Unlock()
 		return medbox.ErrNoMedicationBoxFound
 	}
 	s.data.Set(medicationBox.GetID().String(), medicationBox)
@@ -52,8 +52,7 @@ func (s *MedicationBoxStorage) GetMedicationBox(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	for key, medicationBox := range s.data.data {
-		_ = key
+	for _, medicationBox := range s.data.GetAll() {
 		if medicationBox.GetUserID() == userID {
 			return medicationBox, nil
 		}

@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"fmt"
-	"time"
 
 	provider "github.com/FSO-VK/final-project-vk-backend/internal/notifications/application/notification_provider"
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/domain/subscriptions"
@@ -44,7 +43,6 @@ type SendNotificationCommand struct {
 	UserID string
 	Title  string
 	Body   string
-	SendAt string
 }
 
 // SendNotificationResponse is a response to send a notification.
@@ -59,11 +57,10 @@ func (s *SendNotificationService) Execute(
 	if valErr != nil {
 		return nil, fmt.Errorf("failed to validate request: %w", valErr)
 	}
-	parsedUserID, parsedSendAt, err := purse(
-		req.UserID,
-		req.SendAt)
+
+	parsedUserID, err := uuid.Parse(req.UserID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid uuid format: %w", err)
 	}
 
 	subscriptions, err := s.subscriptionsRepo.GetSubscriptionsByUserID(ctx, parsedUserID)
@@ -71,16 +68,12 @@ func (s *SendNotificationService) Execute(
 		return nil, fmt.Errorf("there is no such subscription: %w", err)
 	}
 	for _, subscription := range subscriptions {
-		if subscription.GetIsActive() {
-			continue
-		}
 		notificationToSend := provider.NewNotification(
 			uuid.New(),
 			subscription.GetID(),
 			parsedUserID,
 			req.Title,
 			req.Body,
-			parsedSendAt,
 		)
 		err = s.notificationProvider.PushNotification(notificationToSend, subscription)
 		if err != nil {
@@ -90,26 +83,4 @@ func (s *SendNotificationService) Execute(
 
 	response := &SendNotificationResponse{}
 	return response, nil
-}
-
-func purse(
-	userID string,
-	sendAt string,
-) (uuid.UUID, time.Time, error) {
-	parsedUserID, err := uuid.Parse(userID)
-	if err != nil {
-		return uuid.Nil, time.Time{}, fmt.Errorf(
-			"user id is invalid: %w: %w",
-			ErrDeleteInvalidUUIDFormat,
-			err)
-	}
-
-	parsedSendAt, err := time.Parse(time.RFC3339, sendAt)
-	if err != nil {
-		return uuid.Nil, time.Time{}, fmt.Errorf(
-			"invalid sendAt format: %w",
-			err)
-	}
-
-	return parsedUserID, parsedSendAt, nil
 }

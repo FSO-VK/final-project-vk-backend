@@ -59,7 +59,6 @@ type CreateSubscriptionResponse struct {
 	UserID    string
 	SendInfo  SendInfo
 	UserAgent string
-	IsActive  bool
 }
 
 // Execute executes the CreateSubscription command.
@@ -69,11 +68,11 @@ func (s *CreateSubscriptionService) Execute(
 ) (*CreateSubscriptionResponse, error) {
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
-		return nil, fmt.Errorf("failed to validate request: %w", valErr)
+		return nil, fmt.Errorf("request is not valid: %w", valErr)
 	}
 	parsedUUID, err := uuid.Parse(req.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrDeleteInvalidUUIDFormat, err)
+		return nil, fmt.Errorf("invalid uuid format: %w", err)
 	}
 	subscription := subscriptions.NewSubscription(
 		parsedUUID,
@@ -83,15 +82,18 @@ func (s *CreateSubscriptionService) Execute(
 		req.UserAgent,
 	)
 
-	err = s.subscriptionsRepo.SetSubscription(ctx, subscription)
+	err = s.subscriptionsRepo.CreateSubscription(ctx, subscription)
 	if err != nil {
 		return nil, fmt.Errorf("failed to set subscription: %w", err)
 	}
-	subscriptionInBase, err := s.subscriptionsRepo.GetSubscriptionByID(ctx, subscription.GetID())
+	subscriptionsInBase, err := s.subscriptionsRepo.GetSubscriptionsByUserID(
+		ctx,
+		subscription.GetUserID(),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get subscription: %w", err)
 	}
-
+	subscriptionInBase := subscriptionsInBase[len(subscriptionsInBase)-1]
 	response := &CreateSubscriptionResponse{
 		ID:     subscriptionInBase.GetID().String(),
 		UserID: subscriptionInBase.GetUserID().String(),
@@ -103,7 +105,6 @@ func (s *CreateSubscriptionService) Execute(
 			},
 		},
 		UserAgent: subscription.GetUserAgent(),
-		IsActive:  subscriptionInBase.GetIsActive(),
 	}
 
 	return response, nil

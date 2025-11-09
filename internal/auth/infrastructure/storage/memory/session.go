@@ -4,16 +4,17 @@ import (
 	"context"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/domain/session"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/cache"
 	"github.com/google/uuid"
 )
 
 type SessionStorage struct {
-	data Cache[*session.Session]
+	data cache.Cache[*session.Session]
 }
 
 func NewSessionStorage() *SessionStorage {
 	return &SessionStorage{
-		data: *NewCache[*session.Session](),
+		data: *cache.NewCache[*session.Session](),
 	}
 }
 

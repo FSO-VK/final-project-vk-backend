@@ -11,7 +11,6 @@ type PushSubscription struct {
 	userID    uuid.UUID
 	sendInfo  SendInfo
 	userAgent string
-	isActive  bool
 }
 
 // SendInfo is unique info for sending subscriptions.
@@ -45,7 +44,6 @@ func NewSubscription(
 			},
 		},
 		userAgent: userAgent,
-		isActive:  true,
 	}
 }
 
@@ -87,16 +85,6 @@ func (s *PushSubscription) GetUserAgent() string {
 // SetUserAgent sets the user agent.
 func (s *PushSubscription) SetUserAgent(userAgent string) {
 	s.userAgent = userAgent
-}
-
-// GetIsActive returns the active status.
-func (s *PushSubscription) GetIsActive() bool {
-	return s.isActive
-}
-
-// SetIsActive sets the active status.
-func (s *PushSubscription) SetIsActive(isActive bool) {
-	s.isActive = isActive
 }
 
 // GetEndpoint returns the endpoint from send info.

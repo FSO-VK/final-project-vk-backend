@@ -2,16 +2,12 @@ package application
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/domain/subscriptions"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
 )
-
-// ErrDeleteInvalidUUIDFormat represents an error when the uuid is invalid.
-var ErrDeleteInvalidUUIDFormat = errors.New("invalid UUID format")
 
 // DeleteSubscription is an interface for adding a notification.
 type DeleteSubscription interface {
@@ -57,7 +53,7 @@ func (s *DeleteSubscriptionService) Execute(
 	}
 	parsedUUID, err := uuid.Parse(req.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrDeleteInvalidUUIDFormat, err)
+		return nil, fmt.Errorf("invalid uuid format: %w", err)
 	}
 	subscriptions, err := s.subscriptionsRepo.GetSubscriptionsByUserID(ctx, parsedUUID)
 	if err != nil {

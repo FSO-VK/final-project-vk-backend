@@ -6,5 +6,6 @@ import "time"
 type PushClient struct {
 	VapidPublicKey  string
 	VapidPrivateKey string
+	Subscriber      string
 	Timeout         time.Duration // общий timeout запроса (30c)
 }

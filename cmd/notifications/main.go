@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/application"
-	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/infrastructure/client"
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/infrastructure/config"
+	client "github.com/FSO-VK/final-project-vk-backend/internal/notifications/infrastructure/push_provider"
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/presentation/http"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"

@@ -1,5 +1,5 @@
-// Package memory contains implementation of medication's repositories.
-package memory
+// Package cache contains universal cache.
+package cache
 
 import (
 	"sync"
@@ -44,4 +44,15 @@ func (s *Cache[T]) Delete(key string) {
 	delete(s.data, key)
 	s.size--
 	s.mu.Unlock()
+}
+
+// GetAll returns all values from the cache.
+func (s *Cache[T]) GetAll() []T {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	values := make([]T, 0, len(s.data))
+	for _, value := range s.data {
+		values = append(values, value)
+	}
+	return values
 }

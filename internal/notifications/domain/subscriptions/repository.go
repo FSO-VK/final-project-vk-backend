@@ -14,7 +14,6 @@ var ErrNoSubscriptionsFound = errors.New("subscriptions not found")
 // data access contract for subscriptions aggregate.
 type Repository interface {
 	GetSubscriptionsByUserID(ctx context.Context, userID uuid.UUID) ([]*PushSubscription, error)
-	GetSubscriptionByID(ctx context.Context, subscriptionID uuid.UUID) (*PushSubscription, error)
-	SetSubscription(ctx context.Context, subscription *PushSubscription) error
+	CreateSubscription(ctx context.Context, subscription *PushSubscription) error
 	DeleteSubscription(ctx context.Context, subscriptionID uuid.UUID) error
 }

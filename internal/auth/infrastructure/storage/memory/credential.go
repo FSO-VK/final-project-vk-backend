@@ -4,16 +4,17 @@ import (
 	"context"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/auth/domain/credential"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/cache"
 	"github.com/google/uuid"
 )
 
 type CredentialStorage struct {
-	data *Cache[*credential.Credential]
+	data *cache.Cache[*credential.Credential]
 }
 
 func NewCredentialStorage() *CredentialStorage {
 	return &CredentialStorage{
-		data: NewCache[*credential.Credential](),
+		data: cache.NewCache[*credential.Credential](),
 	}
 }
 
@@ -37,7 +38,7 @@ func (s *CredentialStorage) FindByEmail(
 	ctx context.Context,
 	email string,
 ) (*credential.Credential, error) {
-	for _, credential := range s.data.data {
+	for _, credential := range s.data.GetAll() {
 		if credential.Identifier == email {
 			return credential, nil
 		}

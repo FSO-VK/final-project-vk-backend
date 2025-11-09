@@ -32,7 +32,7 @@ func NewPushNotificationProvider(cfg PushClient, logger *logrus.Entry) *PushNoti
 
 // PushNotification implements NotificationProvider interface.
 func (h *PushNotificationProvider) PushNotification(
-	pushInfo *notificationProvider.PushNotification,
+	pushInfo *notificationProvider.Notification,
 	subscriptionInfo *subscriptions.PushSubscription,
 ) error {
 	if pushInfo == nil || subscriptionInfo == nil {
@@ -55,10 +55,10 @@ func (h *PushNotificationProvider) PushNotification(
 	}
 
 	notificationPayload := map[string]interface{}{
-		"title": pushInfo.GetTitle(),
-		"body":  pushInfo.GetBody(),
+		"title": pushInfo.Title,
+		"body":  pushInfo.Body,
 		"data": map[string]interface{}{
-			"userID": pushInfo.GetUserID().String(),
+			"userID": pushInfo.UserID.String(),
 		},
 	}
 
@@ -69,7 +69,7 @@ func (h *PushNotificationProvider) PushNotification(
 	}
 
 	resp, err := webpush.SendNotification(payload, webpushSubscription, &webpush.Options{
-		Subscriber:      "https://myhealthbox.ddns.net/",
+		Subscriber:      h.cfg.Subscriber,
 		VAPIDPublicKey:  h.cfg.VapidPublicKey,
 		VAPIDPrivateKey: h.cfg.VapidPrivateKey,
 		TTL:             int(h.cfg.Timeout),
@@ -86,14 +86,14 @@ func (h *PushNotificationProvider) PushNotification(
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		h.logger.WithFields(logrus.Fields{
-			"subscription_id": pushInfo.GetSubscriptionID(),
-			"user_id":         pushInfo.GetUserID(),
+			"subscription_id": pushInfo.ID,
+			"user_id":         pushInfo.UserID,
 			"status":          resp.Status,
 		}).Info("push notification sent successfully")
 		return nil
 	}
 	h.logger.WithFields(logrus.Fields{
-		"subscription_id": pushInfo.GetSubscriptionID(),
+		"subscription_id": pushInfo.ID,
 		"status_code":     resp.StatusCode,
 		"status":          resp.Status,
 	}).Warn("push notification failed to sent with non-200 status")
