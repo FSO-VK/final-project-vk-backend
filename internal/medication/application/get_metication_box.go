@@ -55,13 +55,6 @@ type ProducerObject struct {
 	Country string
 }
 
-// ActiveSubstance represents object of active substance.
-type ActiveSubstance struct {
-	Name  string
-	Value float32
-	Unit  string
-}
-
 // AmountObject is a structure of object of amount of medication.
 type AmountObject struct {
 	Value float32

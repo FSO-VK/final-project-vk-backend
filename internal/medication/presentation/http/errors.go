@@ -15,4 +15,6 @@ const (
 	MsgFailedToGetIfoFromScan api.ErrorType = "Failed to get info from scan"
 	// MsgFailedToGetMedicationBox is a message for failed to get info from scan.
 	MsgFailedToGetMedicationBox api.ErrorType = "Failed to get medication box"
+	// MsgNoMedication indicates that no medication found.
+	MsgNoMedication api.ErrorType = "No medication found by such id"
 )

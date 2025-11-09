@@ -89,6 +89,6 @@ func (r *Router) handlerNotFound(ctx *fasthttp.RequestCtx) {
 	_ = httputil.FastHTTPWriteJSON(ctx, &api.Response[struct{}]{
 		StatusCode: fasthttp.StatusNotFound,
 		Body:       struct{}{},
-		Error:      api.MsgNotFound,
+		Error:      api.MsgNoEndpoint,
 	})
 }

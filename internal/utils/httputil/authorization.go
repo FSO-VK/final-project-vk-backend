@@ -92,9 +92,9 @@ func (m *AuthMiddleware) AuthMiddlewareWrapper(next http.Handler) http.Handler {
 		}
 
 		if !resp.IsAuthorized {
-			w.WriteHeader(http.StatusForbidden)
+			w.WriteHeader(http.StatusUnauthorized)
 			_ = NetHTTPWriteJSON(w, &api.Response[struct{}]{
-				StatusCode: http.StatusForbidden,
+				StatusCode: http.StatusUnauthorized,
 				Body:       struct{}{},
 				Error:      api.MsgUnauthorized,
 			})

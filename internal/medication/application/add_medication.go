@@ -61,7 +61,7 @@ func (s *AddMedicationService) Execute(
 ) (*AddMedicationResponse, error) {
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
-		return nil, fmt.Errorf("failed to validate request: %w", valErr)
+		return nil, fmt.Errorf("%w: %w", ErrValidationFail, valErr)
 	}
 
 	expiration, err := time.Parse(time.RFC3339, req.Expires)
