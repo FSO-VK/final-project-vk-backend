@@ -1,3 +1,4 @@
+// Package memory contains cache for in memory db.
 package memory
 
 import (
@@ -5,11 +6,12 @@ import (
 	"sync"
 
 	client "github.com/FSO-VK/final-project-vk-backend/internal/medication/application/api_client"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/cache"
 )
 
 // DataMatrixStorage is a storage for medications.
 type DataMatrixStorage struct {
-	data  *Cache[*client.MedicationInfo]
+	data  *cache.Cache[*client.MedicationInfo]
 	count uint
 	mu    *sync.RWMutex
 }
@@ -17,7 +19,7 @@ type DataMatrixStorage struct {
 // NewDataMatrixStorage returns a new DataMatrixStorage.
 func NewDataMatrixStorage() *DataMatrixStorage {
 	return &DataMatrixStorage{
-		data:  NewCache[*client.MedicationInfo](),
+		data:  cache.NewCache[*client.MedicationInfo](),
 		count: 0,
 		mu:    &sync.RWMutex{},
 	}

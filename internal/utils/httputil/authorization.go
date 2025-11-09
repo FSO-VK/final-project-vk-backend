@@ -7,6 +7,7 @@ import (
 
 	"github.com/FSO-VK/final-project-vk-backend/pkg/api"
 	auth "github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -18,6 +19,10 @@ var (
 	ErrAuthNotFound    = errors.New("authentication data not found in context")
 	ErrInvalidAuthType = errors.New("invalid authentication data type in context")
 )
+
+func GetAuthContextKey() interface{} {
+	return authUserValueKey
+}
 
 // AuthStatus contains user id and authorization status for handlers to use.
 type AuthStatus struct {
@@ -65,47 +70,69 @@ func NewAuthMiddleware(checker auth.AuthChecker) *AuthMiddleware {
 // AuthMiddlewareWrapper wraps http.Handler with authorization check.
 func (m *AuthMiddleware) AuthMiddlewareWrapper(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var sid string
-		if c, err := r.Cookie(SessionCookieKey); err == nil {
-			sid = c.Value
-		}
-
-		if sid == "" {
-			w.WriteHeader(http.StatusUnauthorized)
-			_ = NetHTTPWriteJSON(w, &api.Response[struct{}]{
-				StatusCode: http.StatusUnauthorized,
-				Body:       struct{}{},
-				Error:      api.MsgUnauthorized,
-			})
+		status, body, authStatus := m.checkAuth(r)
+		if authStatus == nil {
+			w.WriteHeader(status)
+			_ = NetHTTPWriteJSON(w, body)
 			return
 		}
 
-		resp, err := m.checker.CheckAuth(&auth.Request{SessionID: sid})
-		if err != nil {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			_ = NetHTTPWriteJSON(w, &api.Response[ResponseUnauthorized]{
-				StatusCode: http.StatusServiceUnavailable,
-				Body:       ResponseUnauthorized{SessionID: ""},
-				Error:      api.MsgServerError,
-			})
-			return
-		}
-
-		if !resp.IsAuthorized {
-			w.WriteHeader(http.StatusUnauthorized)
-			_ = NetHTTPWriteJSON(w, &api.Response[struct{}]{
-				StatusCode: http.StatusUnauthorized,
-				Body:       struct{}{},
-				Error:      api.MsgUnauthorized,
-			})
-			return
-		}
-
-		r = SetAuthToCtx(r, &AuthStatus{
-			UserID:       resp.UserID,
-			IsAuthorized: resp.IsAuthorized,
-		})
-
+		r = SetAuthToCtx(r, authStatus)
 		next.ServeHTTP(w, r)
 	})
+}
+
+// Middleware wraps gin with authorization check.
+func (m *AuthMiddleware) Middleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		status, body, authStatus := m.checkAuth(c.Request)
+		if authStatus == nil {
+			c.AbortWithStatusJSON(status, body)
+			return
+		}
+
+		r := SetAuthToCtx(c.Request, authStatus)
+		c.Request = r
+		c.Next()
+	}
+}
+
+func (m *AuthMiddleware) checkAuth(r *http.Request) (int, *api.Response[any], *AuthStatus) {
+	var sid string
+	if c, err := r.Cookie(SessionCookieKey); err == nil {
+		sid = c.Value
+	}
+
+	if sid == "" {
+		resp := &api.Response[any]{
+			StatusCode: http.StatusUnauthorized,
+			Body:       struct{}{},
+			Error:      api.MsgUnauthorized,
+		}
+		return http.StatusUnauthorized, resp, nil
+	}
+
+	authResp, err := m.checker.CheckAuth(&auth.Request{SessionID: sid})
+	if err != nil {
+		resp := &api.Response[any]{
+			StatusCode: http.StatusServiceUnavailable,
+			Body:       ResponseUnauthorized{SessionID: ""},
+			Error:      api.MsgServerError,
+		}
+		return http.StatusServiceUnavailable, resp, nil
+	}
+
+	if !authResp.IsAuthorized {
+		resp := &api.Response[any]{
+			StatusCode: http.StatusForbidden,
+			Body:       struct{}{},
+			Error:      api.MsgUnauthorized,
+		}
+		return http.StatusForbidden, resp, nil
+	}
+
+	return http.StatusOK, nil, &AuthStatus{
+		UserID:       authResp.UserID,
+		IsAuthorized: authResp.IsAuthorized,
+	}
 }

@@ -5,12 +5,13 @@ import (
 	"sync"
 
 	medication "github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/cache"
 	"github.com/google/uuid"
 )
 
 // MedicationStorage is a storage for medications.
 type MedicationStorage struct {
-	data  *Cache[*medication.Medication]
+	data  *cache.Cache[*medication.Medication]
 	count uint
 
 	mu *sync.RWMutex
@@ -19,7 +20,7 @@ type MedicationStorage struct {
 // NewMedicationStorage returns a new MedicationStorage.
 func NewMedicationStorage() *MedicationStorage {
 	return &MedicationStorage{
-		data:  NewCache[*medication.Medication](),
+		data:  cache.NewCache[*medication.Medication](),
 		count: 0,
 		mu:    &sync.RWMutex{},
 	}
@@ -60,7 +61,6 @@ func (s *MedicationStorage) Update(
 
 	_, ok := s.data.Get(medicationToUpdate.GetID().String())
 	if !ok {
-		s.data.mu.Unlock()
 		return nil, medication.ErrNoMedicationFound
 	}
 	s.data.Set(medicationToUpdate.GetID().String(), medicationToUpdate)

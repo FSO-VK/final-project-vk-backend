@@ -1,0 +1,20 @@
+# for substitution expressions see:
+# https://github.com/drone/envsubst?tab=readme-ov-file
+
+server:
+  host: ${NOTIFICATIONS_SERVER_HOST:-0.0.0.0}
+  port: ${NOTIFICATIONS_SERVER_PORT:-8000}
+
+pushClient:
+  VapidPublicKey: ${VAPID_PUBLIC_KEY}
+  VapidPrivateKey: ${VAPID_PRIVATE_KEY}
+  timeout: ${NOTIFICATIONS_TIMEOUT:-30s}
+  Subscriber: ${SUBSCRIBER:-"https://myhealthbox.ddns.net/"}
+
+
+auth:
+  baseUrl: ${BASE_URL:-http://0.0.0.0:8000}
+  path: ${PATH:-/session}
+  timeout: ${AUTH_TIMEOUT:-30s}
+  cookieName: ${COOKIE_NAME:-session_id}
+  cookieDomain: ${COOKIE_DOMAIN:-/}
