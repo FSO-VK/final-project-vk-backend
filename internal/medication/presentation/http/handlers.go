@@ -118,13 +118,11 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 	)
 	if err != nil {
 		logger.WithError(err).Error("Failed to add medication")
-		w.WriteHeader(http.StatusInternalServerError)
 
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusInternalServerError,
-			Body:       struct{}{},
-			Error:      MsgFailedToAddMedication,
-		})
+		status, body := h.handleAddServiceError(err)
+
+		w.WriteHeader(status)
+		_ = httputil.NetHTTPWriteJSON(w, body)
 
 		return
 	}
@@ -241,14 +239,11 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 	)
 	if err != nil {
 		logger.WithError(err).Error("Failed to update medication")
-		w.WriteHeader(http.StatusInternalServerError)
 
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusInternalServerError,
-			Body:       struct{}{},
-			Error:      MsgFailedToUpdateMedication,
-		})
+		status, body := h.handleUpdateServiceError(err)
 
+		w.WriteHeader(status)
+		_ = httputil.NetHTTPWriteJSON(w, body)
 		return
 	}
 
@@ -304,25 +299,12 @@ func (h *MedicationHandlers) DeleteMedication(w http.ResponseWriter, r *http.Req
 		serviceRequest,
 	)
 	if err != nil {
-		if errors.Is(err, application.ErrDeleteInvalidUUIDFormat) {
-			logger.WithError(err).Error("Failed to parse")
-			w.WriteHeader(http.StatusBadRequest)
-			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-				StatusCode: http.StatusBadRequest,
-				Body:       struct{}{},
-				Error:      MsgFailToParseID,
-			})
-		} else {
-			logger.WithError(err).Error("Failed to delete medication")
-			w.WriteHeader(http.StatusInternalServerError)
+		logger.WithError(err).Error("Failed to delete medication")
 
-			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-				StatusCode: http.StatusInternalServerError,
-				Body:       struct{}{},
-				Error:      MsgFailedToDeleteMedication,
-			})
-		}
+		status, body := h.handleDeleteServiceError(err)
 
+		w.WriteHeader(status)
+		_ = httputil.NetHTTPWriteJSON(w, body)
 		return
 	}
 
@@ -366,13 +348,11 @@ func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Req
 	)
 	if err != nil {
 		logger.WithError(err).Error("Failed to get medication Box")
-		w.WriteHeader(http.StatusInternalServerError)
 
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusInternalServerError,
-			Body:       struct{}{},
-			Error:      MsgFailedToGetMedicationBox,
-		})
+		status, body := h.handlerGetServiceError(err)
+
+		w.WriteHeader(status)
+		_ = httputil.NetHTTPWriteJSON(w, body)
 		return
 	}
 
@@ -445,19 +425,12 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 		serviceRequest,
 	)
 	if err != nil {
-		if errors.Is(err, application.ErrCantSetCache) {
-			logger.WithError(err).Error("Failed to set cache: %w", err)
-		} else {
-			logger.WithError(err).Error("Failed to get info from scan: %w", err)
-			w.WriteHeader(http.StatusInternalServerError)
+		logger.WithError(err).Errorf("service: %s", err)
 
-			_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-				StatusCode: http.StatusInternalServerError,
-				Body:       struct{}{},
-				Error:      MsgFailedToGetIfoFromScan,
-			})
-			return
-		}
+		status, body := h.handleDMServiceError(err)
+		w.WriteHeader(status)
+		_ = httputil.NetHTTPWriteJSON(w, body)
+		return
 	}
 	response := &DataMatrixInformationJSONResponse{
 		BodyAPIObject: BodyAPIObject{
@@ -479,6 +452,114 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 		Body:       response,
 		Error:      "",
 	})
+}
+
+// handleAddServiceError maps service errors to HTTP status and API responses using switch.
+func (h *MedicationHandlers) handleAddServiceError(err error) (int, *api.Response[any]) {
+	switch {
+	case errors.Is(err, application.ErrValidationFail):
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		}
+	default:
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToAddMedication,
+		}
+	}
+}
+
+// handleUpdateServiceError maps service errors to HTTP status and API responses using switch.
+func (h *MedicationHandlers) handleUpdateServiceError(err error) (int, *api.Response[any]) {
+	switch {
+	case errors.Is(err, application.ErrValidationFail):
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		}
+	case errors.Is(err, application.ErrNoMedication):
+		return http.StatusNotFound, &api.Response[any]{
+			StatusCode: http.StatusNotFound,
+			Body:       struct{}{},
+			Error:      MsgNoMedication,
+		}
+	default:
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToUpdateMedication,
+		}
+	}
+}
+
+// handleDeleteServiceError maps service errors to HTTP status and API responses using switch.
+func (h *MedicationHandlers) handleDeleteServiceError(err error) (int, *api.Response[any]) {
+	switch {
+	case errors.Is(err, application.ErrValidationFail):
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		}
+	case errors.Is(err, application.ErrNoMedication):
+		return http.StatusNotFound, &api.Response[any]{
+			StatusCode: http.StatusNotFound,
+			Body:       struct{}{},
+			Error:      MsgNoMedication,
+		}
+	default:
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToDeleteMedication,
+		}
+	}
+}
+
+// handlerGetServiceError maps service errors to HTTP status and API responses using switch.
+func (h *MedicationHandlers) handlerGetServiceError(err error) (int, *api.Response[any]) {
+	switch {
+	case errors.Is(err, application.ErrValidationFail):
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		}
+	default:
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetMedicationBox,
+		}
+	}
+}
+
+// handleDMServiceError maps DataMatrix service errors to HTTP status and API responses using switch.
+func (h *MedicationHandlers) handleDMServiceError(err error) (int, *api.Response[any]) {
+	switch {
+	case errors.Is(err, application.ErrValidationFail):
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		}
+	case errors.Is(err, application.ErrCantSetCache):
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      api.MsgServerError,
+		}
+	default:
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetIfoFromScan,
+		}
+	}
 }
 
 // getLogger returns a logger from the context if exists,

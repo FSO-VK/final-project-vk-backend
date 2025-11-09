@@ -73,7 +73,7 @@ func (s *DataMatrixInformationService) Execute(
 ) (*DataMatrixInformationResponse, error) {
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
-		return nil, fmt.Errorf("failed to validate request: %w", valErr)
+		return nil, fmt.Errorf("%w: %w", ErrValidationFail, valErr)
 	}
 	parsedData, err := ParseDataMatrix(req.Data)
 	if err != nil {

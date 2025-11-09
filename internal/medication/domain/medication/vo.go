@@ -215,12 +215,12 @@ const (
 var stringToUnit = map[string]Unit{
 	"piece":        Piece,
 	"gram":         Gram,
-	"milligram":    Milligram,
+	"мг":           Milligram,
 	"milliliter":   Milliliter,
-	"pcs":          Piece,
-	"g":            Gram,
-	"mg":           Milligram,
-	"ml":           Milliliter,
+	"шт.":          Piece,
+	"г.":           Gram,
+	"мг.":          Milligram,
+	"мл.":          Milliliter,
 	"":             UnsetUnit,
 	"unknown unit": UnknownUnit,
 }
@@ -231,10 +231,10 @@ var stringToUnit = map[string]Unit{
 var unitToString = map[Unit]string{
 	UnsetUnit:   "",
 	UnknownUnit: "unknown unit",
-	Piece:       "piece",
-	Gram:        "gram",
-	Milligram:   "milligram",
-	Milliliter:  "milliliter",
+	Piece:       "шт.",
+	Gram:        "гр.",
+	Milligram:   "мг.",
+	Milliliter:  "мл.",
 }
 
 // NewMedicationUnit creates validated medication unit.

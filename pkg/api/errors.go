@@ -7,8 +7,9 @@ const (
 	MsgNoBody           ErrorType = "No request body"
 	MsgBadBody          ErrorType = "Bad request body"
 	MsgServerError      ErrorType = "Server error"
-	MsgNotFound         ErrorType = "No such endpoint"
+	MsgNoEndpoint       ErrorType = "No such endpoint"
 	MsgMethodNotAllowed ErrorType = "Method not allowed"
 	// MsgUnauthorized is a err message for unauthorized user.
 	MsgUnauthorized ErrorType = "User is not authorized"
+	MsgNotFound     ErrorType = "Not found"
 )

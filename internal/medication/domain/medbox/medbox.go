@@ -2,10 +2,14 @@
 package medbox
 
 import (
+	"errors"
 	"slices"
 
 	"github.com/google/uuid"
 )
+
+// ErrNoMedication indicates that medication is not found in medication box.
+var ErrNoMedication = errors.New("no medication in medication box")
 
 // MedicationBox is a domain entity that represents a user's medication box aggregate root.
 type MedicationBox struct {
@@ -43,9 +47,20 @@ func (m *MedicationBox) AddMedication(medicationID uuid.UUID) {
 	m.medicationsID = append(m.medicationsID, medicationID)
 }
 
+// HasMedication checks if a medication is in the medication box.
+func (m *MedicationBox) HasMedication(medicationID uuid.UUID) bool {
+	return slices.ContainsFunc(m.medicationsID, func(id uuid.UUID) bool {
+		return id == medicationID
+	})
+}
+
 // RemoveMedication removes a medication from the medication box.
-func (m *MedicationBox) RemoveMedication(medicationID uuid.UUID) {
+func (m *MedicationBox) RemoveMedication(medicationID uuid.UUID) error {
+	if !m.HasMedication(medicationID) {
+		return ErrNoMedication
+	}
 	m.medicationsID = slices.DeleteFunc(m.medicationsID, func(id uuid.UUID) bool {
 		return id == medicationID
 	})
+	return nil
 }

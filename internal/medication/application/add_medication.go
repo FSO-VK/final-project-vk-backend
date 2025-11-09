@@ -61,17 +61,17 @@ func (s *AddMedicationService) Execute(
 ) (*AddMedicationResponse, error) {
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
-		return nil, fmt.Errorf("failed to validate request: %w", valErr)
+		return nil, fmt.Errorf("%w: %w", ErrValidationFail, valErr)
 	}
 
-	expiration, err := time.Parse(time.DateOnly, req.Expires)
+	expiration, err := time.Parse(time.RFC3339, req.Expires)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse expiration: %w", err)
 	}
 
 	var release time.Time
 	if req.Release != "" {
-		release, err = time.Parse(time.DateOnly, req.Release)
+		release, err = time.Parse(time.RFC3339, req.Release)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse release: %w", err)
 		}

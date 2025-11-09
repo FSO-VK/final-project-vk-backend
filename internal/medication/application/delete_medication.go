@@ -58,7 +58,7 @@ func (s *DeleteMedicationService) Execute(
 ) (*DeleteMedicationResponse, error) {
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
-		return nil, fmt.Errorf("failed to validate request: %w", valErr)
+		return nil, fmt.Errorf("%w: %w", ErrValidationFail, valErr)
 	}
 
 	parsedUUID, err := uuid.Parse(req.ID)
@@ -74,7 +74,10 @@ func (s *DeleteMedicationService) Execute(
 	if err != nil {
 		return nil, fmt.Errorf("user does not have a medication box: %w", err)
 	}
-	medicationBox.RemoveMedication(parsedUUID)
+	err = medicationBox.RemoveMedication(parsedUUID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrNoMedication, err)
+	}
 	err = s.medicationBoxRepo.SetMedicationBox(ctx, medicationBox)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add medication to box: %w", err)

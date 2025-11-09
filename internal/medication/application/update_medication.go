@@ -69,7 +69,7 @@ func (s *UpdateMedicationService) Execute(
 ) (*UpdateMedicationResponse, error) {
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
-		return nil, fmt.Errorf("failed to validate request: %w", valErr)
+		return nil, fmt.Errorf("%w: %w", ErrValidationFail, valErr)
 	}
 
 	id, err := uuid.Parse(req.ID)
@@ -79,7 +79,7 @@ func (s *UpdateMedicationService) Execute(
 
 	oldMedication, err := s.medicationRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get medication: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrNoMedication, err)
 	}
 
 	updatedMedication, err := s.updateMedicationEntity(req, oldMedication)
@@ -101,7 +101,6 @@ func (s *UpdateMedicationService) Execute(
 	if err != nil {
 		return nil, fmt.Errorf("user has no medication box: %w", err)
 	}
-	medicationBox.AddMedication(savedMedication.GetID())
 	err = s.medicationBoxRepo.SetMedicationBox(ctx, medicationBox)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add medication to box: %w", err)
@@ -144,14 +143,17 @@ func (s *UpdateMedicationService) updateMedicationEntity(
 		MapActiveSubstanceToDraft(req.ActiveSubstance))
 	allErrors = errors.Join(allErrors, err)
 
-	expiration, err := time.Parse(time.DateOnly, req.Expires)
+	expiration, err := time.Parse(time.RFC3339, req.Expires)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse expiration: %w", err)
 	}
 
-	release, err := time.Parse(time.DateOnly, req.Release)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse release: %w", err)
+	var release time.Time
+	if req.Release != "" {
+		release, err = time.Parse(time.RFC3339, req.Release)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse release: %w", err)
+		}
 	}
 
 	if allErrors != nil {
