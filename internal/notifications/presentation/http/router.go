@@ -19,7 +19,7 @@ func Router(
 	{
 		authGroup.GET("/vapidPublicKey", notificationHandlers.GetVapidPublicKeyGin)
 		authGroup.POST("/pushSubscription", notificationHandlers.CreateSubscriptionGin)
-		authGroup.DELETE("/pushSubscription/:id", notificationHandlers.DeleteSubscriptionGin)
+		authGroup.DELETE("/pushSubscription", notificationHandlers.DeleteSubscriptionGin)
 	}
 	r.POST("/send", notificationHandlers.SendNotificationGin)
 

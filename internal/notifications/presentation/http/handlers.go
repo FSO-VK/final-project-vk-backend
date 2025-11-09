@@ -157,7 +157,8 @@ func (h *NotificationsHandlers) CreateSubscriptionGin(c *gin.Context) {
 
 // DeleteSubscription delete a subscription one time for every device.
 func (h *NotificationsHandlers) DeleteSubscriptionGin(c *gin.Context) {
-	if _, err := httputil.GetAuthFromCtx(c.Request); err != nil {
+	auth, err := httputil.GetAuthFromCtx(c.Request)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, api.Response[any]{
 			StatusCode: http.StatusUnauthorized,
 			Error:      api.MsgUnauthorized,
@@ -166,21 +167,10 @@ func (h *NotificationsHandlers) DeleteSubscriptionGin(c *gin.Context) {
 		return
 	}
 
-	slugUserID := c.Param(SlugID)
-	if slugUserID == "" {
-		h.logger.Error("Subscription ID not found in path params")
-		c.JSON(http.StatusBadRequest, api.Response[any]{
-			StatusCode: http.StatusBadRequest,
-			Error:      MsgMissingSlug,
-			Body:       struct{}{},
-		})
-		return
-	}
-
 	serviceRequest := &application.DeleteSubscriptionCommand{
-		UserID: slugUserID,
+		UserID: auth.UserID,
 	}
-	_, err := h.app.DeleteSubscription.Execute(c.Request.Context(), serviceRequest)
+	_, err = h.app.DeleteSubscription.Execute(c.Request.Context(), serviceRequest)
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to delete subscription")
 		c.JSON(http.StatusInternalServerError, api.Response[any]{
