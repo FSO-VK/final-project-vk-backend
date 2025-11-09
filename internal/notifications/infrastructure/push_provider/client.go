@@ -1,5 +1,5 @@
-// Package client implements NotificationProvider interface for sending pushing notifications.
-package client
+// Package psuhprovider implements NotificationProvider interface for sending pushing notifications.
+package psuhprovider
 
 import (
 	"context"
