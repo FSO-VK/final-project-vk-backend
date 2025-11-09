@@ -10,7 +10,7 @@ import (
 
 // SubscriptionsStorage is a storage for subscriptions.
 type SubscriptionsStorage struct {
-	data  *Cache[*subscriptions.Subscription]
+	data  *Cache[*subscriptions.PushSubscription]
 	count uint
 
 	mu *sync.RWMutex
@@ -19,30 +19,36 @@ type SubscriptionsStorage struct {
 // NewSubscriptionsStorage returns a new SubscriptionsStorage.
 func NewSubscriptionsStorage() *SubscriptionsStorage {
 	return &SubscriptionsStorage{
-		data:  NewCache[*subscriptions.Subscription](),
+		data:  NewCache[*subscriptions.PushSubscription](),
 		count: 0,
 		mu:    &sync.RWMutex{},
 	}
 }
 
-// Create creates a new medication in memory.
-func (s *SubscriptionsStorage) Create(
+// SetSubscription creates a new subscription in memory or updates it.
+func (s *SubscriptionsStorage) SetSubscription(
 	_ context.Context,
-	subscription *subscriptions.Subscription,
-) (*subscriptions.Subscription, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	subscription *subscriptions.PushSubscription,
+) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	subscriptionID := subscription.GetID().String()
+	if _, exists := s.data.Get(subscriptionID); exists {
+		s.data.Set(subscriptionID, subscription)
+		return nil
+	}
 
 	s.count++
-	s.data.Set(subscription.GetID().String(), subscription)
-	return subscription, nil
+	s.data.Set(subscriptionID, subscription)
+	return nil
 }
 
-// GetByID returns a medication by id.
-func (s *SubscriptionsStorage) GetByID(
+// GetSubscriptionByID returns a subscription by id.
+func (s *SubscriptionsStorage) GetSubscriptionByID(
 	_ context.Context,
 	subscriptionID uuid.UUID,
-) (*subscriptions.Subscription, error) {
+) (*subscriptions.PushSubscription, error) {
 	drug, ok := s.data.Get(subscriptionID.String())
 	if !ok {
 		return nil, subscriptions.ErrNoSubscriptionsFound

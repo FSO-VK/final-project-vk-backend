@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/application"
+	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/infrastructure/client"
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/presentation/http"
@@ -9,7 +10,6 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	auth "github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
-
 	"github.com/sirupsen/logrus"
 )
 
@@ -38,18 +38,17 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	notificationsRepo := memory.NewNotificationsStorage()
 	subscriptionsRepo := memory.NewSubscriptionsStorage()
 	validator := validator.NewValidationProvider()
 
-	// dataMatrixClient := datamatrix.NewDataMatrixAPI(
-	// 	conf.Scan,
-	// 	logger,
-	// )
+	pushProvider := client.NewPushNotificationProvider(
+		conf.PushClient,
+		logger,
+	)
 
 	app := &application.NotificationsApplication{
 		GetVapidPublicKey: application.NewGetVapidPublicKeyService(
-			application.PublicKey(conf.PushClient.PublicKey), validator),
+			application.PublicKey(conf.PushClient.VapidPublicKey), validator),
 		CreateSubscription: application.NewCreateSubscriptionService(
 			subscriptionsRepo,
 			validator,
@@ -59,13 +58,8 @@ func main() {
 			validator,
 		),
 		SendNotification: application.NewSendNotificationService(
-			notificationsRepo,
 			subscriptionsRepo,
-			validator,
-		),
-		InteractWithNotification: application.NewInteractWithNotificationService(
-			notificationsRepo,
-			subscriptionsRepo,
+			pushProvider,
 			validator,
 		),
 	}
@@ -73,13 +67,12 @@ func main() {
 
 	authChecker := auth.NewHTTPAuthChecker(conf.Auth, logger)
 
-	authMw := httputil.NewAuthMiddleware(authChecker)
+	authMw := httputil.NewGinAuthMiddleware(authChecker)
 
 	router := http.Router(notificationsHandlers, authMw)
 
-	server := http.NewHTTPServer(&conf.Server, logger)
+	server := http.NewGINServer(&conf.Server, logger)
 	server.Router(router)
-
 	err = server.ListenAndServe()
 	if err != nil {
 		logger.Fatal(err)

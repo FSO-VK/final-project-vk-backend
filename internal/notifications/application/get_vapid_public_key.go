@@ -35,11 +35,10 @@ func NewGetVapidPublicKeyService(
 	}
 }
 
-// GetVapidPublicKeyCommand is a request to to get public key.
-type GetVapidPublicKeyCommand struct {
-}
+// GetVapidPublicKeyCommand is a request to get public key.
+type GetVapidPublicKeyCommand struct{}
 
-// GetVapidPublicKeyResponse is a response to get public key.
+// GetVapidPublicKeyResponse is a response with public key.
 type GetVapidPublicKeyResponse struct {
 	PublicKey string
 }
