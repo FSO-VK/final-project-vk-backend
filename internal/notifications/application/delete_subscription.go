@@ -64,8 +64,7 @@ func (s *DeleteSubscriptionService) Execute(
 		return nil, fmt.Errorf("there is no such subscription: %w", err)
 	}
 	for _, subscription := range subscriptions {
-		subscription.SetIsActive(false)
-		err = s.subscriptionsRepo.SetSubscription(ctx, subscription)
+		err = s.subscriptionsRepo.DeleteSubscription(ctx, subscription.GetID())
 		if err != nil {
 			return nil, fmt.Errorf("failed to set subscription: %w", err)
 		}

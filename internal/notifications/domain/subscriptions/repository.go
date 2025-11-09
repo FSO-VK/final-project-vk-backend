@@ -16,4 +16,5 @@ type Repository interface {
 	GetSubscriptionsByUserID(ctx context.Context, userID uuid.UUID) ([]*PushSubscription, error)
 	GetSubscriptionByID(ctx context.Context, subscriptionID uuid.UUID) (*PushSubscription, error)
 	SetSubscription(ctx context.Context, subscription *PushSubscription) error
+	DeleteSubscription(ctx context.Context, subscriptionID uuid.UUID) error
 }

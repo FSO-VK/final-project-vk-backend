@@ -67,7 +67,7 @@ func main() {
 
 	authChecker := auth.NewHTTPAuthChecker(conf.Auth, logger)
 
-	authMw := httputil.NewGinAuthMiddleware(authChecker)
+	authMw := httputil.NewAuthMiddleware(authChecker)
 
 	router := http.Router(notificationsHandlers, authMw)
 

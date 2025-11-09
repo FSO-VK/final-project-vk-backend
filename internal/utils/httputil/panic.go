@@ -10,7 +10,6 @@ import (
 )
 
 type PanicRecoveryMiddleware struct {
-	//nolint:unused
 	log *log.Logger
 }
 
@@ -45,6 +44,5 @@ func recovery(p *PanicRecoveryMiddleware) {
 		}
 
 		fmt.Printf("Stack trace:\n%s\n", buf[:n])
-
 	}
 }

@@ -77,3 +77,20 @@ func (s *SubscriptionsStorage) GetSubscriptionsByUserID(
 	}
 	return result, nil
 }
+
+// DeleteSubscription removes a subscription from memory.
+func (s *SubscriptionsStorage) DeleteSubscription(
+	_ context.Context,
+	subscriptionID uuid.UUID,
+) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	id := subscriptionID.String()
+	if _, exists := s.data.Get(id); exists {
+		s.data.Delete(id)
+		s.count--
+		return nil
+	}
+	return subscriptions.ErrNoSubscriptionsFound
+}

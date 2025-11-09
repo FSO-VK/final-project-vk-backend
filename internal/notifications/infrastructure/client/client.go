@@ -42,7 +42,7 @@ func (h *PushNotificationProvider) PushNotification(
 
 	if h.cfg.Timeout > 0 {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, h.cfg.Timeout)
+		_, cancel = context.WithTimeout(ctx, h.cfg.Timeout)
 		defer cancel()
 	}
 
@@ -68,16 +68,12 @@ func (h *PushNotificationProvider) PushNotification(
 		return err
 	}
 
-	options := &webpush.Options{
-		HTTPClient:      h.client,
+	resp, err := webpush.SendNotification(payload, webpushSubscription, &webpush.Options{
 		Subscriber:      "https://myhealthbox.ddns.net/",
-		TTL:             600,
-		Urgency:         webpush.UrgencyNormal, // normal priority would not receive notification when low battery
 		VAPIDPublicKey:  h.cfg.VapidPublicKey,
 		VAPIDPrivateKey: h.cfg.VapidPrivateKey,
-	}
-
-	resp, err := webpush.SendNotificationWithContext(ctx, payload, webpushSubscription, options)
+		TTL:             int(h.cfg.Timeout),
+	})
 	if err != nil {
 		h.logger.WithError(err).Error("failed to send push notification")
 		return err
