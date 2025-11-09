@@ -75,7 +75,6 @@ func (m *AuthMiddleware) AuthMiddlewareWrapper(next http.Handler) http.Handler {
 		}
 
 		if sid == "" {
-			w.WriteHeader(http.StatusUnauthorized)
 			_ = NetHTTPWriteJSON(w, &api.Response[struct{}]{
 				StatusCode: http.StatusUnauthorized,
 				Body:       struct{}{},
