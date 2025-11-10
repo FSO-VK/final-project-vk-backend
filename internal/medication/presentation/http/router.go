@@ -14,6 +14,7 @@ func Router(
 	r := mux.NewRouter()
 
 	r.HandleFunc("/medication/all", medicationHandlers.GetMedicationBox).Methods("GET")
+	r.HandleFunc("/medication/{id}", medicationHandlers.GetMedicationByID).Methods("GET")
 	r.HandleFunc("/medication", medicationHandlers.AddMedication).Methods("POST")
 	r.HandleFunc("/medication/{id}", medicationHandlers.UpdateMedication).Methods("PUT")
 	r.HandleFunc("/medication/{id}", medicationHandlers.DeleteMedication).Methods("DELETE")

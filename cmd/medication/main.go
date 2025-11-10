@@ -55,6 +55,8 @@ func main() {
 	app := &application.MedicationApplication{
 		GetMedicationBox: application.NewGetMedicationBoxService(
 			medicationRepo, medicationBoxRepo, validator),
+		GetMedicationByID: application.NewGetMedicationByIDService(
+			medicationRepo, medicationBoxRepo, validator),
 		AddMedication: application.NewAddMedicationService(
 			medicationRepo, medicationBoxRepo, validator),
 		UpdateMedication: application.NewUpdateMedicationService(

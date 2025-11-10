@@ -5,6 +5,7 @@ package application
 // for the medication domain to be injected from main.go.
 type MedicationApplication struct {
 	GetMedicationBox      GetMedicationBox
+	GetMedicationByID     GetMedicationByID
 	AddMedication         AddMedication
 	UpdateMedication      UpdateMedication
 	DeleteMedication      DeleteMedication
