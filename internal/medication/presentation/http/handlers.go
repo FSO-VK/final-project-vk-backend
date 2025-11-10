@@ -465,7 +465,7 @@ type GetMedicationByIDJSONResponse struct {
 func (h *MedicationHandlers) GetMedicationByID(w http.ResponseWriter, r *http.Request) {
 	logger := h.getLogger(r)
 
-	authorication, err := httputil.GetAuthFromCtx(r)
+	authorization, err := httputil.GetAuthFromCtx(r)
 	if err != nil {
 		h.writeResponseUnauthorized(w)
 		return
@@ -475,7 +475,7 @@ func (h *MedicationHandlers) GetMedicationByID(w http.ResponseWriter, r *http.Re
 	id := vars[SlugID]
 
 	command := &application.GetMedicationByIDCommand{
-		UserID: authorication.UserID,
+		UserID: authorization.UserID,
 		ID:     id,
 	}
 
