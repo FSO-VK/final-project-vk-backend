@@ -13,7 +13,10 @@ import (
 
 // GetMedicationByID provides a way to get medication with given medication id.
 type GetMedicationByID interface {
-	Execute(ctx context.Context, command *GetMedicationByIDCommand) (*GetMedicationByIDResponse, error)
+	Execute(
+		ctx context.Context,
+		command *GetMedicationByIDCommand,
+	) (*GetMedicationByIDResponse, error)
 }
 
 // GetMedicationByIDService is a application service implementing GetMedicationById interface.
@@ -47,10 +50,8 @@ type GetMedicationByIDResponse struct {
 	ResponseBase
 }
 
-var (
-	// ErrFailedToGetMedication occurs when repository fails to get medication.
-	ErrFailedToGetMedication = errors.New("failed to get medication")
-)
+// ErrFailedToGetMedication occurs when repository fails to get medication.
+var ErrFailedToGetMedication = errors.New("failed to get medication")
 
 // Execute runs GetMedicationbyID usecase.
 func (s *GetMedicationByIDService) Execute(
