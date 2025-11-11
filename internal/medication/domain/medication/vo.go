@@ -135,64 +135,16 @@ func (m Manufacturer) GetCountry() string {
 
 // ReleaseForm is a Value Object representing the physical form
 // in which the medication is released.
-type ReleaseForm int
-
-// Enum values of possible medication release form.
-const (
-	UnknownForm ReleaseForm = iota
-	Tablet
-	Capsule
-	Injection
-	Ointment
-	Syrup
-	Drops
-	Inhalation
-	Patch
-)
-
-// Unexported global variable.
-//
-//nolint:gochecknoglobals
-var releaseFormToString = map[string]ReleaseForm{
-	"tablet":     Tablet,
-	"capsule":    Capsule,
-	"injection":  Injection,
-	"ointment":   Ointment,
-	"syrup":      Syrup,
-	"drops":      Drops,
-	"inhalation": Inhalation,
-	"patch":      Patch,
-}
-
-// Unexported global variable.
-//
-//nolint:gochecknoglobals
-var stringToReleaseForm = map[ReleaseForm]string{
-	UnknownForm: "unknown form",
-	Tablet:      "tablet",
-	Capsule:     "capsule",
-	Injection:   "injection",
-	Ointment:    "ointment",
-	Syrup:       "syrup",
-	Drops:       "drops",
-	Inhalation:  "inhalation",
-	Patch:       "patch",
-}
+type ReleaseForm string
 
 // NewMedicationReleaseForm creates validated medication release form.
 func NewMedicationReleaseForm(form string) (ReleaseForm, error) {
-	err := errors.Join(
-		validation.Required(form),
-	)
-	if err != nil {
-		return UnknownForm, fmt.Errorf("%w: %w", ErrInvalidReleaseForm, err)
-	}
-	return releaseFormToString[form], nil
+	return ReleaseForm(form), nil
 }
 
 // String returns the string representation of the release form.
 func (f ReleaseForm) String() string {
-	return stringToReleaseForm[f]
+	return string(f)
 }
 
 // Unit is a VO representing the unit of measurement
