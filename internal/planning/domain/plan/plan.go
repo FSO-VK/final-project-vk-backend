@@ -23,6 +23,7 @@ var (
 type Plan struct {
 	id           uuid.UUID
 	medicationID uuid.UUID
+	userID       uuid.UUID
 	// dosage is an amount of medication intake per one take.
 	dosage dosage
 	status Status
@@ -43,6 +44,7 @@ type Plan struct {
 func NewPlan(
 	id uuid.UUID,
 	medicationID uuid.UUID,
+	userID uuid.UUID,
 	dosage dosage,
 	schedule schedule,
 	start courseStart,
@@ -58,6 +60,7 @@ func NewPlan(
 	return &Plan{
 		id:           id,
 		medicationID: medicationID,
+		userID:       userID,
 		dosage:       dosage,
 		schedule:     schedule,
 		status:       StatusActive,
