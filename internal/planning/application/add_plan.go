@@ -66,12 +66,11 @@ type AddPlanCommand struct {
 }
 
 type CustomFrequency struct {
-	TakingTime     string // "15:04"
-	TimeZoneOffset string // +180 min (from UTC)
-	Frequency      string // "every x days", "daily", "weekly", "monthly", "custom"
-	FrequencyX     int
-	WeekDays       []int // [1,3,5] для пн,ср,пт (0-6, 0=воскресенье)
-	MonthDay       int   // 15 для 15-го числа каждого месяца
+	TakingTime string // "15:04"
+	Frequency  string // "every x days", "daily", "weekly", "monthly", "custom"
+	FrequencyX int
+	WeekDays   []int // [1,3,5] для пн,ср,пт (0-6, 0=воскресенье)
+	MonthDay   int   // 15 для 15-го числа каждого месяца
 }
 
 // AddPlanResponse is a response to add a plan.
@@ -111,19 +110,26 @@ func (s *AddPlanService) Execute(
 
 func convertToUTC(
 	takingTimeStr string,
-	offsetMinutesStr string,
 ) (int, int, int, error) {
-	takingTime, err := time.Parse(timeLayout, takingTimeStr)
+	var t time.Time
+	var err error
+	t, err = time.Parse(time.RFC3339Nano, takingTimeStr)
 	if err != nil {
-		return 0, 0, 0, err
+		t, err = time.Parse(time.RFC3339, takingTimeStr)
+		if err != nil {
+			t, err = time.Parse(dateLayout, takingTimeStr)
+			if err != nil {
+				return 0, 0, 0, fmt.Errorf("invalid taking time format: %w", err)
+			}
+		}
 	}
 
-	offsetMinutes, err := strconv.Atoi(offsetMinutesStr)
-	if err != nil {
-		return 0, 0, 0, fmt.Errorf("invalid timezone offset: %w", err)
-	}
+	localHour := t.Hour()
+	localMinute := t.Minute()
+	_, offsetSeconds := t.Zone()
+	offsetMinutes := offsetSeconds / 60
 
-	totalMinutes := takingTime.Hour()*60 + takingTime.Minute() - offsetMinutes
+	totalMinutes := localHour*60 + localMinute - offsetMinutes
 
 	dayOffset := 0
 	if totalMinutes < 0 {
@@ -184,7 +190,6 @@ func createPlan(req *AddPlanCommand,
 
 	hour, minute, dayOffset, err := convertToUTC(
 		req.CustomFrequency.TakingTime,
-		req.CustomFrequency.TimeZoneOffset,
 	)
 	if err != nil {
 		return plan.Plan{}, err
