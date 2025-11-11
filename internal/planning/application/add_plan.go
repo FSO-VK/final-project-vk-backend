@@ -19,6 +19,13 @@ const (
 	timeLayout = "15:04"
 )
 
+var (
+	// ErrWeekDaysRequired is an error when week days are required for weekly frequency.
+	ErrWeekDaysRequired = errors.New("week days required for weekly frequency")
+	// ErrUnsupportedFrequency is an error when frequency is unsupported.
+	ErrUnsupportedFrequency = errors.New("unsupported frequency")
+)
+
 // AddPlan is an interface for adding a notification.
 type AddPlan interface {
 	Execute(
@@ -51,20 +58,24 @@ type AddPlanCommand struct {
 	AmountValue  float64
 	AmountUnit   string
 
-	TakingTime string // "15:04"
-	TimeZone   string // +03:00 from UTC
-	Frequency  string // "daily", "weekly", "monthly", "custom"
-	WeekDays   []int  // [1,3,5] для пн,ср,пт (0-6, 0=воскресенье)
-	MonthDay   int    // 15 для 15-го числа каждого месяца
+	CustomFrequency CustomFrequency
 
 	StartDate       string
 	EndDate         string
 	IntakeCondition string
 }
 
-// AddPlanResponse is a response to add a plan.
-type AddPlanResponse struct {
+type CustomFrequency struct {
+	TakingTime     string // "15:04"
+	TimeZoneOffset string // +180 min (from UTC)
+	Frequency      string // "every x days", "daily", "weekly", "monthly", "custom"
+	FrequencyX     int
+	WeekDays       []int // [1,3,5] для пн,ср,пт (0-6, 0=воскресенье)
+	MonthDay       int   // 15 для 15-го числа каждого месяца
 }
+
+// AddPlanResponse is a response to add a plan.
+type AddPlanResponse struct{}
 
 // Execute executes the AddPlan command.
 func (s *AddPlanService) Execute(
@@ -84,56 +95,12 @@ func (s *AddPlanService) Execute(
 		return nil, fmt.Errorf("invalid uuid format: %w", err)
 	}
 
-	dosage, err := plan.NewDosage(
-		req.AmountValue,
-		req.AmountUnit,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("invalid dosage: %w", err)
-	}
-	cronString, err := generateCronExpression(req)
-
-	if err != nil {
-		return nil, fmt.Errorf("invalid cron expression: %w", err)
-	}
-
-	schedule, err := plan.NewSchedule(cronString)
-
-	parsedStart, err := time.Parse(dateLayout, req.StartDate)
-	if err != nil {
-		return nil, fmt.Errorf("invalid course end: %w", err)
-	}
-	start, err := plan.NewCourseStart(parsedStart)
-	if err != nil {
-		return nil, fmt.Errorf("invalid course start: %w", err)
-	}
-	parsedEnd, err := time.Parse(dateLayout, req.EndDate)
-	if err != nil {
-		return nil, fmt.Errorf("invalid course end: %w", err)
-	}
-	end, err := plan.NewCourseEnd(parsedEnd)
-	if err != nil {
-		return nil, fmt.Errorf("invalid course end: %w", err)
-	}
-	newPlan, err := plan.NewPlan(
-		uuid.New(),
-		parsedMedicationID,
-		parsedUser,
-		dosage,
-		schedule,
-		start,
-		end,
-		req.IntakeCondition,
-		time.Now(),
-		time.Now(),
-	)
-
+	newPlan, err := createPlan(req, parsedUser, parsedMedicationID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create plan: %w", err)
 	}
 
-	err = s.planningRepo.Save(ctx, *newPlan)
-
+	err = s.planningRepo.Save(ctx, newPlan)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save plan: %w", err)
 	}
@@ -142,23 +109,48 @@ func (s *AddPlanService) Execute(
 	return response, nil
 }
 
-func generateCronExpression(cmd *AddPlanCommand) (string, error) {
-
-	takingTime, err := time.Parse(timeLayout, cmd.TakingTime)
+func convertToUTC(
+	takingTimeStr string,
+	offsetMinutesStr string,
+) (int, int, int, error) {
+	takingTime, err := time.Parse(timeLayout, takingTimeStr)
 	if err != nil {
-		return "", err
+		return 0, 0, 0, err
 	}
 
-	minute := takingTime.Minute()
-	hour := takingTime.Hour()
+	offsetMinutes, err := strconv.Atoi(offsetMinutesStr)
+	if err != nil {
+		return 0, 0, 0, fmt.Errorf("invalid timezone offset: %w", err)
+	}
 
+	totalMinutes := takingTime.Hour()*60 + takingTime.Minute() - offsetMinutes
+
+	dayOffset := 0
+	if totalMinutes < 0 {
+		totalMinutes += 24 * 60
+		dayOffset = -1
+	} else if totalMinutes >= 24*60 {
+		totalMinutes -= 24 * 60
+		dayOffset = 1
+	}
+
+	hour := totalMinutes / 60
+	minute := totalMinutes % 60
+
+	return hour, minute, dayOffset, nil
+}
+
+func generateCronExpression(cmd *CustomFrequency, hour int, minute int) (string, error) {
 	switch cmd.Frequency {
+	case "every x days":
+		return fmt.Sprintf("%d %d */%d * *", minute, hour, cmd.FrequencyX), nil
+
 	case "daily":
 		return fmt.Sprintf("%d %d * * *", minute, hour), nil
 
 	case "weekly":
 		if len(cmd.WeekDays) == 0 {
-			return "", errors.New("week days required for weekly frequency")
+			return "", ErrWeekDaysRequired
 		}
 		days := make([]string, len(cmd.WeekDays))
 		for i, day := range cmd.WeekDays {
@@ -174,6 +166,84 @@ func generateCronExpression(cmd *AddPlanCommand) (string, error) {
 		return fmt.Sprintf("%d %d %d * *", minute, hour, cmd.MonthDay), nil
 
 	default:
-		return "", fmt.Errorf("unsupported frequency: %s", cmd.Frequency)
+		return "", ErrUnsupportedFrequency
 	}
+}
+
+func createPlan(req *AddPlanCommand,
+	parsedUser uuid.UUID,
+	parsedMedicationID uuid.UUID,
+) (plan.Plan, error) {
+	dosage, err := plan.NewDosage(
+		req.AmountValue,
+		req.AmountUnit,
+	)
+	if err != nil {
+		return plan.Plan{}, fmt.Errorf("invalid dosage: %w", err)
+	}
+
+	hour, minute, dayOffset, err := convertToUTC(
+		req.CustomFrequency.TakingTime,
+		req.CustomFrequency.TimeZoneOffset,
+	)
+	if err != nil {
+		return plan.Plan{}, err
+	}
+
+	cronString, err := generateCronExpression(
+		&req.CustomFrequency,
+		hour,
+		minute,
+	)
+	if err != nil {
+		return plan.Plan{}, fmt.Errorf("invalid cron expression: %w", err)
+	}
+
+	schedule, err := plan.NewSchedule(cronString)
+	if err != nil {
+		return plan.Plan{}, fmt.Errorf("invalid schedule: %w", err)
+	}
+
+	parsedStart, err := parseDate(req.StartDate, dayOffset)
+	if err != nil {
+		return plan.Plan{}, fmt.Errorf("invalid course start: %w", err)
+	}
+	start, err := plan.NewCourseStart(parsedStart)
+	if err != nil {
+		return plan.Plan{}, fmt.Errorf("invalid course start: %w", err)
+	}
+
+	parsedEnd, err := parseDate(req.EndDate, dayOffset)
+	if err != nil {
+		return plan.Plan{}, fmt.Errorf("invalid course end: %w", err)
+	}
+	end, err := plan.NewCourseEnd(parsedEnd)
+	if err != nil {
+		return plan.Plan{}, fmt.Errorf("invalid course end: %w", err)
+	}
+
+	newPlan, err := plan.NewPlan(
+		uuid.New(),
+		parsedMedicationID,
+		parsedUser,
+		dosage,
+		schedule,
+		start,
+		end,
+		req.IntakeCondition,
+		time.Now(),
+		time.Now(),
+	)
+	return *newPlan, err
+}
+
+func parseDate(date string, dayOffset int) (time.Time, error) {
+	parsedStart, err := time.Parse(dateLayout, date)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid course start: %w", err)
+	}
+	if dayOffset > 0 {
+		parsedStart = parsedStart.AddDate(0, 0, -1)
+	}
+	return parsedStart, nil
 }
