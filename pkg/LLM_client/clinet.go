@@ -51,7 +51,6 @@ func (h *LLMClient) Query(servicePrompt string) (string, error) {
 		h.logger.Errorf("Failed to parse template: %v", err)
 		return "", err
 	}
-
 	data := PromptData{Prompt: servicePrompt}
 
 	var buf bytes.Buffer
