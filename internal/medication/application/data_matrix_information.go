@@ -133,7 +133,7 @@ func ParseDataMatrix(data string) (*ParsedInformation, error) {
 	}
 
 	var gtin, serial, crypto91, crypto92 string
-	const fmtPattern = "(01)%14s(21)%13s(91)%4s(92)%44s"
+	const fmtPattern = "01%14s21%13s91%4s92%44s"
 
 	_, scanErr := fmt.Sscanf(data, fmtPattern, &gtin, &serial, &crypto91, &crypto92)
 
