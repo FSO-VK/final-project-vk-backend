@@ -6,7 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -14,6 +14,23 @@ import (
 
 	"github.com/google/uuid"
 )
+
+var (
+	// ErrAuthFailed is returned when the LLM server returns an unsuccessful auth status.
+	ErrAuthFailed = errors.New("llmclient: auth failed")
+	// ErrEmptyAccessToken is returned when the access token is missing in the response.
+	ErrEmptyAccessToken = errors.New("llmclient: empty access token in response")
+	// ErrBadRequestData is returned when the request data is invalid.
+	ErrBadRequestData = errors.New("llmclient: bad request data")
+)
+
+// GigaChatAuth is the response body for the GigaChat API.
+type GigaChatAuth struct {
+	//nolint:tagliatelle
+	AccessToken string `json:"access_token"`
+	//nolint:tagliatelle
+	ExpiresAt int64 `json:"expires_at"`
+}
 
 func createHTTPClient(timeout time.Duration) *http.Client {
 	return &http.Client{
@@ -42,7 +59,7 @@ func getGigaChatToken(
 		authURL,
 		bytes.NewBufferString(data.Encode()))
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+		return "", ErrBadRequestData
 	}
 
 	credentials := clientID + ":" + clientSecret
@@ -58,7 +75,7 @@ func getGigaChatToken(
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("request failed: %w", err)
+		return "", ErrAuthFailed
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
