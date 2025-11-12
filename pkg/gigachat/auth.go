@@ -103,3 +103,4 @@ func getGigaChatToken(
 
 	return authResp.AccessToken, nil
 }
+

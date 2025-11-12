@@ -10,8 +10,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -68,7 +66,7 @@ type GigachatLLMProvider struct {
 }
 
 // NewGigachatLLMProvider creates a new LLMClientProvider.
-func NewGigachatLLMProvider(cfg ClientConfig, logger *logrus.Entry) *GigachatLLMProvider {
+func NewGigachatLLMProvider(cfg ClientConfig) *GigachatLLMProvider {
 	client := &http.Client{
 		Timeout:       cfg.Timeout,
 		Transport:     nil,
@@ -92,7 +90,7 @@ func (h *GigachatLLMProvider) Query(servicePrompt string) (string, error) {
 		return "", ErrFailedToGetToken
 	}
 
-	template, err := template.ParseFiles("templates/prompt.tmpl")
+	template, err := template.ParseFiles("./pkg/gigachat/templates/prompt.tmpl")
 	if err != nil {
 		return "", ErrWithSystemPrompt
 	}
@@ -104,16 +102,15 @@ func (h *GigachatLLMProvider) Query(servicePrompt string) (string, error) {
 	}
 
 	fullPrompt := buf.String()
-
 	response, err := askGigaChat(h.cfg, token, fullPrompt)
 	if err != nil {
 		return "", ErrInvalidResponse
 	}
 
 	if err = validateIfJSON(response); err != nil {
-		return "", ErrInvalidResponse
+		//return "", ErrInvalidResponse
 	}
-	return "", nil
+	return response, nil
 }
 
 func askGigaChat(cfg ClientConfig, token string, prompt string) (string, error) {
