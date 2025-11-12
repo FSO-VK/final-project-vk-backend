@@ -1,4 +1,4 @@
-package llmclient
+package gigachat
 
 import (
 	"bytes"
@@ -17,11 +17,11 @@ import (
 
 var (
 	// ErrAuthFailed is returned when the LLM server returns an unsuccessful auth status.
-	ErrAuthFailed = errors.New("llmclient: auth failed")
+	ErrAuthFailed = errors.New("auth failed")
 	// ErrEmptyAccessToken is returned when the access token is missing in the response.
-	ErrEmptyAccessToken = errors.New("llmclient: empty access token in response")
+	ErrEmptyAccessToken = errors.New("empty access token in response")
 	// ErrBadRequestData is returned when the request data is invalid.
-	ErrBadRequestData = errors.New("llmclient: bad request data")
+	ErrBadRequestData = errors.New("bad request data")
 )
 
 // GigaChatAuth is the response body for the GigaChat API.

@@ -1,5 +1,5 @@
-// Package llmclient provides a client for the GigaChat API.
-package llmclient
+// Package gigachat provides a client for the GigaChat API.
+package gigachat
 
 import (
 	"bytes"
@@ -16,19 +16,19 @@ import (
 
 var (
 	// ErrEmptyPrompt is returned when the API request was called with an empty prompt.
-	ErrEmptyPrompt = errors.New("llmclient: empty prompt")
+	ErrEmptyPrompt = errors.New("empty prompt")
 	// ErrAPIRequestFailed is returned when the LLM API responds with non-200 OK status.
-	ErrAPIRequestFailed = errors.New("llmclient: API request failed")
+	ErrAPIRequestFailed = errors.New("API request failed")
 	// ErrAPIError is returned when the API returns an error object ("error" field in JSON).
-	ErrAPIError = errors.New("llmclient: API returned error")
+	ErrAPIError = errors.New("API returned error")
 	// ErrEmptyResponse is returned when the response body is empty or contains no data.
-	ErrEmptyResponse = errors.New("llmclient: empty response")
+	ErrEmptyResponse = errors.New("empty response")
 	// ErrFailedToGetToken is returned when the access token is missing in the response.
-	ErrFailedToGetToken = errors.New("llmclient: failed to get token")
+	ErrFailedToGetToken = errors.New("failed to get token")
 	// ErrWithSystemPrompt is returned when the access token is missing in the response.
-	ErrWithSystemPrompt = errors.New("llmclient: failed to get token")
+	ErrWithSystemPrompt = errors.New("failed to get token")
 	// ErrInvalidResponse is returned when the response is invalid.
-	ErrInvalidResponse = errors.New("llmclient: invalid response")
+	ErrInvalidResponse = errors.New("invalid response")
 )
 
 // PromptData is the data for the prompt template.
