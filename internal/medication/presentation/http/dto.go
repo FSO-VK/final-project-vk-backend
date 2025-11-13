@@ -37,6 +37,7 @@ type BodyCommonObject struct {
 type BodyAPIObject struct {
 	Name              string         `json:"name"`
 	InternationalName string         `json:"internationalName"`
+	Amount            AmountObject   `json:"amount"`
 	ReleaseForm       string         `json:"releaseForm"`
 	Group             []string       `json:"group"`
 	Producer          ProducerObject `json:"producer"`
