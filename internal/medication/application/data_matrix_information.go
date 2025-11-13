@@ -73,11 +73,11 @@ func (s *DataMatrixInformationService) Execute(
 ) (*DataMatrixInformationResponse, error) {
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
-		return nil, fmt.Errorf("%w: %w", ErrValidationFail, valErr)
+		return nil, ErrValidationFail
 	}
 	parsedData, err := ParseDataMatrix(req.Data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse data matrix: %w", err)
+		return nil, ErrValidationFail
 	}
 	concatenatedInfo := parsedData.GTIN + parsedData.SerialNumber + parsedData.CryptoData91 + parsedData.CryptoData92
 	dataMatrixInfo, err := s.dataMatrixCache.Get(
