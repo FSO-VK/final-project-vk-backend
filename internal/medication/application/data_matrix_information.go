@@ -77,7 +77,7 @@ func (s *DataMatrixInformationService) Execute(
 	}
 	parsedData, err := ParseDataMatrix(req.Data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse data matrix: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrValidationFail, err)
 	}
 	concatenatedInfo := parsedData.GTIN + parsedData.SerialNumber + parsedData.CryptoData91 + parsedData.CryptoData92
 	dataMatrixInfo, err := s.dataMatrixCache.Get(
