@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -98,12 +99,26 @@ func MapToMedicationInfo(resp *ExpectedDataMatrixAPIResponse) *datamatrixclient.
 	if resp == nil {
 		return nil
 	}
-
+	var amountUnit string
+	if strings.Contains(resp.DrugsData.FOIV.PackageSize, ".") {
+		amountUnit = "мл."
+	} else {
+		amountUnit = "шт."
+	}
+	parsedPackageSize, err := strconv.ParseFloat(resp.DrugsData.FOIV.PackageSize, 64)
+	if err != nil {
+		return nil
+	}
+	parsedPackageQuantity, err := strconv.ParseFloat(resp.DrugsData.FOIV.PackageQuantity, 64)
+	if err != nil {
+		return nil
+	}
+	amountValue := parsedPackageSize * parsedPackageQuantity
 	return &datamatrixclient.MedicationInfo{
 		Name:                resp.ProductName,
 		InternationalName:   resp.DrugsData.FOIV.ProductName,
-		AmountValue:         0,
-		AmountUnit:          "",
+		AmountValue:         float32(amountValue),
+		AmountUnit:          amountUnit,
 		ReleaseForm:         formatReleaseForm(resp.DrugsData.FOIV.ProductFormName),
 		Group:               []string{resp.Category},
 		ManufacturerName:    resp.DrugsData.FOIV.Manufacturer,

@@ -436,8 +436,12 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 		BodyAPIObject: BodyAPIObject{
 			Name:              serviceResponse.Name,
 			InternationalName: serviceResponse.InternationalName,
-			ReleaseForm:       serviceResponse.ReleaseForm,
-			Group:             serviceResponse.Group,
+			Amount: AmountObject{
+				Value: serviceResponse.AmountValue,
+				Unit:  serviceResponse.AmountUnit,
+			},
+			ReleaseForm: serviceResponse.ReleaseForm,
+			Group:       serviceResponse.Group,
 			Producer: ProducerObject{
 				Name:    serviceResponse.ManufacturerName,
 				Country: serviceResponse.ManufacturerCountry,
