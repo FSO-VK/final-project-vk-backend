@@ -70,25 +70,10 @@ func NewAuthMiddleware(checker auth.AuthChecker) *AuthMiddleware {
 // AuthMiddlewareWrapper wraps http.Handler with authorization check.
 func (m *AuthMiddleware) AuthMiddlewareWrapper(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-<<<<<<< Updated upstream
 		status, body, authStatus := m.checkAuth(r)
 		if authStatus == nil {
 			w.WriteHeader(status)
 			_ = NetHTTPWriteJSON(w, body)
-=======
-		var sid string
-		if c, err := r.Cookie(SessionCookieKey); err == nil {
-			sid = c.Value
-		}
-
-		if sid == "" {
-			
-			_ = NetHTTPWriteJSON(w, &api.Response[struct{}]{
-				StatusCode: http.StatusUnauthorized,
-				Body:       struct{}{},
-				Error:      api.MsgUnauthorized,
-			})
->>>>>>> Stashed changes
 			return
 		}
 

@@ -44,9 +44,5 @@ func recovery(p *PanicRecoveryMiddleware) {
 		}
 
 		fmt.Printf("Stack trace:\n%s\n", buf[:n])
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 	}
 }
