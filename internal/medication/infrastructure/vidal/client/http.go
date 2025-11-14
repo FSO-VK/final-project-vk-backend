@@ -1,0 +1,88 @@
+package client
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/vidal"
+)
+
+// HTTPClient is a client for vidal.ru API.
+type HTTPClient struct {
+	client *http.Client
+	config *Config
+}
+
+// NewHTTPClient creates a new HTTPClient.
+func NewHTTPClient(config Config) *HTTPClient {
+	if config.Timeout <= 0 {
+		config.Timeout = 10 * time.Second
+	}
+	return &HTTPClient{
+		client: &http.Client{
+			Transport:     nil,
+			CheckRedirect: nil,
+			Jar:           nil,
+			Timeout:       config.Timeout,
+		},
+		config: &config,
+	}
+}
+
+// GetInstruction returns a product info by bar code.
+func (c *HTTPClient) GetInstruction(
+	ctx context.Context,
+	barCode string,
+) (*vidal.ClientResponse, error) {
+	url := fmt.Sprintf("%s?filter[barCode]=%s", c.config.Endpoint, barCode)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+
+	req.Header.Set("X-Token", c.config.APIToken)
+
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("perform HTTP request: %w", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		//nolint:err113 // need to return status code, so dynamic errors is more readable.
+		return nil, fmt.Errorf("got unexpected status code: %d", res.StatusCode)
+	}
+
+	decoder := json.NewDecoder(res.Body)
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	var body Response
+	if err := decoder.Decode(&body); err != nil {
+		return nil, fmt.Errorf("decode JSON response: %w", err)
+	}
+
+	return c.handleBody(&body)
+}
+
+func (c *HTTPClient) handleBody(body *Response) (*vidal.ClientResponse, error) {
+	if !body.Success {
+		return nil, fmt.Errorf(
+			"json response status is unsuccessful: %w",
+			vidal.ErrStorageNoProduct,
+		)
+	}
+
+	if len(body.Products) == 0 {
+		return nil, vidal.ErrClientNoProduct
+	}
+
+	// it is only 1 possible product when searching by bar code
+	product := body.Products[0]
+	return &vidal.ClientResponse{
+		Product: product,
+	}, nil
+}

@@ -8,11 +8,13 @@ import (
 )
 
 var (
-	ErrValueRequired = errors.New("value can't be empty")
-	ErrValueShort    = errors.New("value is too short")
-	ErrValueLong     = errors.New("value is too long")
-	ErrValueNegative = errors.New("value can't be negative")
-	ErrValueFormat   = errors.New("value has invalid format")
+	ErrValueRequired    = errors.New("value can't be empty")
+	ErrValueShort       = errors.New("value is too short")
+	ErrValueLong        = errors.New("value is too long")
+	ErrValueNegative    = errors.New("value can't be negative")
+	ErrValueFormat      = errors.New("value has invalid format")
+	ErrValueFixedLength = errors.New("value must have fixed length")
+	ErrNoEAN13          = errors.New("value is no EAN-13")
 )
 
 func Required(value string) error {
@@ -31,14 +33,14 @@ func MinLength(value string, length int) error {
 
 func MaxLength(value string, length int) error {
 	if len(value) > length {
-		return fmt.Errorf("%w, can't be longer than %d", ErrValueLong, length)
+		return fmt.Errorf("%w: can't be longer than %d", ErrValueLong, length)
 	}
 	return nil
 }
 
 func FixedLength(value string, length int) error {
 	if len(value) != length {
-		return fmt.Errorf("%w, can't be longer than %d", ErrValueLong, length)
+		return fmt.Errorf("%w: %d", ErrValueFixedLength, length)
 	}
 	return nil
 }
@@ -107,4 +109,38 @@ func Crypto92(value string) error {
 		}
 	}
 	return nil
+}
+
+func EAN13(value string) error {
+	err := FixedLength(value, 13)
+	if err != nil {
+		return ErrNoEAN13
+	}
+
+	var ean13 [13]int
+	for i, r := range value {
+		if !unicode.IsDigit(r) {
+			return ErrNoEAN13
+		}
+		ean13[i] = int(r - '0')
+	}
+
+	if !isCorrectEAN13Checksum(ean13) {
+		return ErrNoEAN13
+	}
+	return nil
+}
+
+func isCorrectEAN13Checksum(ean13 [13]int) bool {
+	sum := 0
+	for i, v := range ean13[:12] {
+		if i%2 == 0 {
+			sum += v
+		} else {
+			sum += 3 * v
+		}
+	}
+
+	checkDigit := 10 - (sum % 10)
+	return checkDigit == ean13[12]
 }
