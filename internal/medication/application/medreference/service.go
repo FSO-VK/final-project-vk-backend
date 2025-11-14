@@ -53,15 +53,16 @@ type Instruction struct {
 
 // Product is a data structure for instruction.
 type Product struct {
-	BarCode         string
-	RusName         string
-	PharmGroups     []string
-	ImagesLink      []string
-	ActiveSubstance []string
-	IsPrescription  bool
-	ReleaseForm     string
-	Manufacturer    Manufacturer
-	Instruction     Instruction
+	BarCode           string
+	RusName           string
+	PharmGroups       []string
+	ClinicPharmGroups []string
+	ImagesLink        []string
+	ActiveSubstance   []string
+	IsPrescription    bool
+	ReleaseForm       string
+	Manufacturer      Manufacturer
+	Instruction       Instruction
 }
 
 // MedicationReferenceProvider is an interface for instruction application service.

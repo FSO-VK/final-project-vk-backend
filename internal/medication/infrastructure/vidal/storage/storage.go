@@ -24,8 +24,8 @@ func NewProductCache() *ProductCache {
 	}
 }
 
-// SetProduct sets a product in storage.
-func (p *ProductCache) SetProduct(_ context.Context, product *vidal.StorageModel) error {
+// SaveProduct sets a product in storage.
+func (p *ProductCache) SaveProduct(_ context.Context, product *vidal.StorageModel) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	for _, barcode := range product.BarCodes {

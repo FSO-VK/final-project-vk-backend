@@ -102,6 +102,11 @@ func (s *Service) productInfoToInstruction(
 		phGroups[i] = phGroup.Code
 	}
 
+	clPhGroups := make([]string, len(product.ClPhGroups))
+	for i, clPhGroup := range product.ClPhGroups {
+		clPhGroups[i] = clPhGroup.Name
+	}
+
 	images := make([]string, len(product.Images))
 	copy(images, product.Images)
 
@@ -117,7 +122,12 @@ func (s *Service) productInfoToInstruction(
 
 	var manufacturer medreference.Manufacturer
 	for _, company := range product.Companies {
-		if company.IsManufacturer {
+		if len(product.Companies) == 1 {
+			manufacturer = medreference.Manufacturer{
+				Name:    company.Company.Name,
+				Country: company.Company.Country.RusName,
+			}
+		} else if company.IsManufacturer {
 			manufacturer = medreference.Manufacturer{
 				Name:    company.Company.Name,
 				Country: company.Company.Country.RusName,
@@ -127,15 +137,16 @@ func (s *Service) productInfoToInstruction(
 	}
 
 	p := &medreference.Product{
-		BarCode:         barCode,
-		RusName:         product.RusName,
-		PharmGroups:     phGroups,
-		ImagesLink:      images,
-		ActiveSubstance: activeSubstances,
-		IsPrescription:  product.NonPrescriptionDrug,
-		ReleaseForm:     fullForm,
-		Manufacturer:    manufacturer,
-		Instruction:     instruction,
+		BarCode:           barCode,
+		RusName:           product.RusName,
+		PharmGroups:       phGroups,
+		ClinicPharmGroups: clPhGroups,
+		ImagesLink:        images,
+		ActiveSubstance:   activeSubstances,
+		IsPrescription:    product.NonPrescriptionDrug,
+		ReleaseForm:       fullForm,
+		Manufacturer:      manufacturer,
+		Instruction:       instruction,
 	}
 	return p, nil
 }

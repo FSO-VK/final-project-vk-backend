@@ -135,9 +135,9 @@ func isCorrectEAN13Checksum(ean13 [13]int) bool {
 	sum := 0
 	for i, v := range ean13[:12] {
 		if i%2 == 0 {
-			sum += 3 * v
-		} else {
 			sum += v
+		} else {
+			sum += 3 * v
 		}
 	}
 
