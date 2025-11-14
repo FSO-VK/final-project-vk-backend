@@ -1,4 +1,4 @@
-// Package instruction is an application service interface for instruction.
+// Package medreference contains service for drug reference.
 package medreference
 
 import (
@@ -6,8 +6,13 @@ import (
 	"errors"
 )
 
-var ErrBadBarCode = errors.New("invalid bar code")
+// Common errors for application layer.
+var (
+	ErrBadBarCode = errors.New("invalid bar code")
+	ErrNoProduct  = errors.New("can't get product with such bar code")
+)
 
+// Manufacturer represents a medication manufacturer.
 type Manufacturer struct {
 	Name    string
 	Country string
@@ -20,11 +25,13 @@ type Nozology struct {
 	Name string
 }
 
+// ClPhPointer is a clinical-pharmacological pointer.
 type ClPhPointer struct {
 	Code string
 	Name string
 }
 
+// Instruction is a medication instruction.
 type Instruction struct {
 	Nozologies             []Nozology
 	ClPhPointers           []ClPhPointer

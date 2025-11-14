@@ -10,15 +10,18 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/pkg/validation"
 )
 
+// Service is an implementation of medreference service.
 type Service struct {
 	storage Storage
 	client  Client
 }
 
+// NewService creates a new Service.
 func NewService(storage Storage, client Client) *Service {
 	return &Service{storage: storage, client: client}
 }
 
+// GetProductInfo returns a product info by bar code.
 func (s *Service) GetProductInfo(
 	ctx context.Context,
 	barCode string,
@@ -30,7 +33,7 @@ func (s *Service) GetProductInfo(
 
 	model, err := s.storage.GetProduct(ctx, barCode)
 	if err != nil {
-		if !errors.Is(err, ErrNoProduct) {
+		if !errors.Is(err, ErrStorageNoProduct) {
 			return nil, fmt.Errorf("get product from storage: %w", err)
 		}
 	} else {
@@ -39,13 +42,13 @@ func (s *Service) GetProductInfo(
 
 	clientResponse, err := s.client.GetInstruction(ctx, barCode)
 	if err != nil {
+		if errors.Is(err, ErrClientNoProduct) {
+			return nil, errors.Join(medreference.ErrNoProduct, err)
+		}
 		return nil, fmt.Errorf("external service: %w", err)
 	}
 
-	model, err = s.clientResponseToModel(clientResponse)
-	if err != nil {
-		return nil, fmt.Errorf("convert client response to model: %w", err)
-	}
+	model = s.clientResponseToModel(clientResponse)
 
 	err = s.storage.SaveProduct(ctx, model)
 	if err != nil {
@@ -59,16 +62,16 @@ func (s *Service) productInfoToInstruction(
 	product *StorageModel,
 	barCode string,
 ) (*medreference.Product, error) {
-	nozologies := make([]medreference.Nozology, len(product.Product.Document.Nozologies))
-	for i, nozology := range product.Product.Document.Nozologies {
+	nozologies := make([]medreference.Nozology, len(product.Document.Nozologies))
+	for i, nozology := range product.Document.Nozologies {
 		nozologies[i] = medreference.Nozology{
 			Code: nozology.Code,
 			Name: nozology.Name,
 		}
 	}
 
-	clPhPointers := make([]medreference.ClPhPointer, len(product.Product.Document.ClphPointers))
-	for i, clPhPointer := range product.Product.Document.ClphPointers {
+	clPhPointers := make([]medreference.ClPhPointer, len(product.Document.ClphPointers))
+	for i, clPhPointer := range product.Document.ClphPointers {
 		clPhPointers[i] = medreference.ClPhPointer{
 			Code: clPhPointer.Code,
 			Name: clPhPointer.Name,
@@ -78,20 +81,20 @@ func (s *Service) productInfoToInstruction(
 	instruction := medreference.Instruction{
 		Nozologies:             nozologies,
 		ClPhPointers:           clPhPointers,
-		PharmInfluence:         product.Product.Document.PhInfluence,
-		PharmKinetics:          product.Product.Document.PhKinetics,
-		Dosage:                 product.Product.Document.Dosage,
-		OverDosage:             product.Product.Document.OverDosage,
-		Interaction:            product.Product.Document.Interaction,
-		Lactation:              product.Product.Document.Lactation,
-		SideEffects:            product.Product.Document.SideEffects,
-		UsingIndication:        product.Product.Document.Indication,
-		UsingCounterIndication: product.Product.Document.ContraIndication,
-		SpecialInstruction:     product.Product.Document.SpecialInstruction,
-		RenalInsuf:             product.Product.Document.RenalInsuf,
-		HepatoInsuf:            product.Product.Document.HepatoInsuf,
-		ElderlyInsuf:           product.Product.Document.ElderlyInsuf,
-		ChildInsuf:             product.Product.Document.ChildInsuf,
+		PharmInfluence:         product.Document.PhInfluence,
+		PharmKinetics:          product.Document.PhKinetics,
+		Dosage:                 product.Document.Dosage,
+		OverDosage:             product.Document.OverDosage,
+		Interaction:            product.Document.Interaction,
+		Lactation:              product.Document.Lactation,
+		SideEffects:            product.Document.SideEffects,
+		UsingIndication:        product.Document.Indication,
+		UsingCounterIndication: product.Document.ContraIndication,
+		SpecialInstruction:     product.Document.SpecialInstruction,
+		RenalInsuf:             product.Document.RenalInsuf,
+		HepatoInsuf:            product.Document.HepatoInsuf,
+		ElderlyInsuf:           product.Document.ElderlyInsuf,
+		ChildInsuf:             product.Document.ChildInsuf,
 	}
 
 	phGroups := make([]string, len(product.PhthGroups))
@@ -113,7 +116,7 @@ func (s *Service) productInfoToInstruction(
 	}
 
 	var manufacturer medreference.Manufacturer
-	for _, company := range product.Product.Companies {
+	for _, company := range product.Companies {
 		if company.IsManufacturer {
 			manufacturer = medreference.Manufacturer{
 				Name:    company.Company.Name,
@@ -125,7 +128,7 @@ func (s *Service) productInfoToInstruction(
 
 	p := &medreference.Product{
 		BarCode:         barCode,
-		RusName:         product.Product.RusName,
+		RusName:         product.RusName,
 		PharmGroups:     phGroups,
 		ImagesLink:      images,
 		ActiveSubstance: activeSubstances,
@@ -137,7 +140,7 @@ func (s *Service) productInfoToInstruction(
 	return p, nil
 }
 
-func (s *Service) clientResponseToModel(clientResponse *ClientResponse) (*StorageModel, error) {
+func (s *Service) clientResponseToModel(clientResponse *ClientResponse) *StorageModel {
 	barCodes := make([]string, len(clientResponse.ProductPackages))
 	for i, pack := range clientResponse.ProductPackages {
 		barCodes[i] = pack.BarCode
@@ -147,5 +150,5 @@ func (s *Service) clientResponseToModel(clientResponse *ClientResponse) (*Storag
 		Product:  clientResponse.Product,
 		BarCodes: barCodes,
 	}
-	return model, nil
+	return model
 }

@@ -10,11 +10,13 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/vidal"
 )
 
+// HTTPClient is a client for vidal.ru API.
 type HTTPClient struct {
 	client *http.Client
 	config *Config
 }
 
+// NewHTTPClient creates a new HTTPClient.
 func NewHTTPClient(config Config) *HTTPClient {
 	if config.Timeout <= 0 {
 		config.Timeout = 10 * time.Second
@@ -30,6 +32,7 @@ func NewHTTPClient(config Config) *HTTPClient {
 	}
 }
 
+// GetInstruction returns a product info by bar code.
 func (c *HTTPClient) GetInstruction(
 	ctx context.Context,
 	barCode string,
@@ -37,26 +40,29 @@ func (c *HTTPClient) GetInstruction(
 	url := fmt.Sprintf("%s?filter[barCode]=%s", c.config.Endpoint, barCode)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return nil, vidal.ErrBadRequest
+		return nil, fmt.Errorf("create request: %w", err)
 	}
 
 	req.Header.Set("X-Token", c.config.APIToken)
 
 	res, err := c.client.Do(req)
 	if err != nil {
-		return nil, vidal.ErrBadTransport
+		return nil, fmt.Errorf("perform HTTP request: %w", err)
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return nil, err
+		//nolint:err113 // need to return status code, so dynamic errors is more readable.
+		return nil, fmt.Errorf("got unexpected status code: %d", res.StatusCode)
 	}
 
 	decoder := json.NewDecoder(res.Body)
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	var body Response
 	if err := decoder.Decode(&body); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decode JSON response: %w", err)
 	}
 
 	return c.handleBody(&body)
@@ -64,10 +70,17 @@ func (c *HTTPClient) GetInstruction(
 
 func (c *HTTPClient) handleBody(body *Response) (*vidal.ClientResponse, error) {
 	if !body.Success {
-		return nil, nil
+		return nil, fmt.Errorf(
+			"json response status is unsuccessful: %w",
+			vidal.ErrStorageNoProduct,
+		)
 	}
 
-	// it is only 1 product when searching by bar code
+	if len(body.Products) == 0 {
+		return nil, vidal.ErrClientNoProduct
+	}
+
+	// it is only 1 possible product when searching by bar code
 	product := body.Products[0]
 	return &vidal.ClientResponse{
 		Product: product,

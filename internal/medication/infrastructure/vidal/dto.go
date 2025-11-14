@@ -1,3 +1,4 @@
+//nolint:tagliatelle // this is a API's JSON format, can't change tags to camelCase.
 package vidal
 
 // Product represents the main product data.

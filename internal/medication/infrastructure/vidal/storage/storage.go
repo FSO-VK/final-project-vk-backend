@@ -1,3 +1,5 @@
+// Package storage contains cache for in memory db.
+// It's only for PR, after review it will be changed to a MongoDB.
 package storage
 
 import (
@@ -8,11 +10,13 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/cache"
 )
 
+// ProductCache implements a storage for API's responses.
 type ProductCache struct {
 	data *cache.Cache[*vidal.StorageModel]
 	mu   *sync.RWMutex
 }
 
+// NewProductCache creates a ProductCache.
 func NewProductCache() *ProductCache {
 	return &ProductCache{
 		data: cache.NewCache[*vidal.StorageModel](),
@@ -20,6 +24,7 @@ func NewProductCache() *ProductCache {
 	}
 }
 
+// SetProduct sets a product in storage.
 func (p *ProductCache) SetProduct(_ context.Context, product *vidal.StorageModel) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -29,11 +34,12 @@ func (p *ProductCache) SetProduct(_ context.Context, product *vidal.StorageModel
 	return nil
 }
 
+// GetProduct returns a product from storage.
 func (p *ProductCache) GetProduct(_ context.Context, barCode string) (*vidal.StorageModel, error) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	if product, ok := p.data.Get(barCode); ok {
 		return product, nil
 	}
-	return nil, vidal.ErrNoProduct
+	return nil, vidal.ErrStorageNoProduct
 }
