@@ -10,7 +10,7 @@ type Product struct {
 	UpdatedAt               string           `json:"updatedAt"`
 	IsValid                 bool             `json:"isValid"`
 	ProductURL              string           `json:"productUrl"`
-	Images                  []interface{}    `json:"images"`
+	Images                  []string         `json:"images"`
 	MoleculeNames           []MoleculeName   `json:"moleculeNames"`
 	ID                      int              `json:"id"`
 	RusName                 string           `json:"rusName"`
@@ -24,15 +24,15 @@ type Product struct {
 	Composition             string           `json:"composition"`
 	ProductTypeCode         string           `json:"productTypeCode"`
 	MarketStatus            MarketStatus     `json:"marketStatus"`
-	DateOfReRegistration    *string          `json:"dateOfReRegistration"`
+	DateOfReRegistration    string           `json:"dateOfReRegistration"`
 	GNVLS                   bool             `json:"gnvls"`
-	ListPkkn                *string          `json:"listPkkn"`
+	ListPkkn                string           `json:"listPkkn"`
 	StrongMeans             bool             `json:"strongMeans"`
 	Poison                  bool             `json:"poison"`
 	Companies               []CompanyInfo    `json:"companies"`
 	Document                Document         `json:"document"`
-	Childrens               []interface{}    `json:"childrens"`
-	Forms                   *string          `json:"forms"`
+	Children                []interface{}    `json:"childrens"`
+	Forms                   string           `json:"forms"`
 	ProductPackages         []ProductPackage `json:"productPackages"`
 	RegPreviousNumber       string           `json:"regPreviousNumber"`
 	AnalogsUpdatedAt        string           `json:"analogsUpdatedAt"`
@@ -121,10 +121,10 @@ type Document struct {
 	ArticleID          int           `json:"articleId"`
 	YearEdition        string        `json:"yearEdition"`
 	PhInfluence        string        `json:"phInfluence"`
-	PhKinetics         *string       `json:"phKinetics"`
+	PhKinetics         string        `json:"phKinetics"`
 	Dosage             string        `json:"dosage"`
-	OverDosage         *string       `json:"overDosage"`
-	Interaction        *string       `json:"interaction"`
+	OverDosage         string        `json:"overDosage"`
+	Interaction        string        `json:"interaction"`
 	Lactation          string        `json:"lactation"`
 	SideEffects        string        `json:"sideEffects"`
 	Indication         string        `json:"indication"`
@@ -132,11 +132,11 @@ type Document struct {
 	SpecialInstruction string        `json:"specialInstruction"`
 	PregnancyUsing     string        `json:"pregnancyUsing"`
 	NursingUsing       string        `json:"nursingUsing"`
-	RenalInsuf         *string       `json:"renalInsuf"`
+	RenalInsuf         string        `json:"renalInsuf"`
 	RenalInsufUsing    string        `json:"renalInsufUsing"`
 	HepatoInsuf        string        `json:"hepatoInsuf"`
 	HepatoInsufUsing   string        `json:"hepatoInsufUsing"`
-	PharmDelivery      *string       `json:"pharmDelivery"`
+	PharmDelivery      string        `json:"pharmDelivery"`
 	ElderlyInsuf       string        `json:"elderlyInsuf"`
 	ElderlyInsufUsing  string        `json:"elderlyInsufUsing"`
 	ChildInsuf         string        `json:"childInsuf"`

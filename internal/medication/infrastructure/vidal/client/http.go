@@ -30,7 +30,10 @@ func NewHTTPClient(config Config) *HTTPClient {
 	}
 }
 
-func (c *HTTPClient) GetInstruction(ctx context.Context, barCode string) (*vidal.ClientResponse,error) {
+func (c *HTTPClient) GetInstruction(
+	ctx context.Context,
+	barCode string,
+) (*vidal.ClientResponse, error) {
 	url := fmt.Sprintf("%s?filter[barCode]=%s", c.config.Endpoint, barCode)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -70,6 +73,3 @@ func (c *HTTPClient) handleBody(body *Response) (*vidal.ClientResponse, error) {
 		Product: product,
 	}, nil
 }
-
-
-

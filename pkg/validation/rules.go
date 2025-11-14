@@ -45,7 +45,6 @@ func FixedLength(value string, length int) error {
 	return nil
 }
 
-
 type Numeric interface {
 	int | int8 | int16 | int32 | int64 | uint | uint8 |
 		uint16 | uint32 | uint64 | float32 | float64
@@ -117,7 +116,7 @@ func EAN13(value string) error {
 	if err != nil {
 		return ErrNoEAN13
 	}
-	
+
 	var ean13 [13]int
 	for i, r := range value {
 		if !unicode.IsDigit(r) {
@@ -135,7 +134,7 @@ func EAN13(value string) error {
 func isCorrectEAN13Checksum(ean13 [13]int) bool {
 	sum := 0
 	for i, v := range ean13[:12] {
-		if i % 2 == 0 {
+		if i%2 == 0 {
 			sum += 3 * v
 		} else {
 			sum += v

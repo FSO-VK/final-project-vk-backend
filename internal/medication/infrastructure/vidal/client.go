@@ -10,8 +10,8 @@ type Client interface {
 }
 
 var (
-	ErrBadRequest = errors.New("bad request")
-	ErrBadTransport  = errors.New("broken transport")
+	ErrBadRequest   = errors.New("bad request")
+	ErrBadTransport = errors.New("broken transport")
 )
 
 type ClientResponse struct {
