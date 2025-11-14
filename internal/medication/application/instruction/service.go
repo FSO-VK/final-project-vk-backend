@@ -1,7 +1,14 @@
 // Package instruction is an application service interface for instruction.
 package instruction
 
-import "context"
+import (
+	"context"
+	"errors"
+)
+
+var (
+	ErrBadBarCode      = errors.New("invalid bar code")
+)
 
 // Instruction is a data structure for instruction.
 type Instruction struct{}

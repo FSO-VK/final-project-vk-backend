@@ -1,10 +1,15 @@
 package vidal
 
-import "context"
+import (
+	"context"
+	"errors"
+)
+
+var ErrNoProduct = errors.New("no product found")
 
 type Storage interface {
-	SaveProductInfo(ctx context.Context, product *Product) error
-	GetProductInfo(ctx context.Context, barCode string) (*Product, error)
+	SaveProduct(ctx context.Context, product *StorageModel) error
+	GetProduct(ctx context.Context, barCode string) (*StorageModel, error)
 }
 
 type StorageModel struct {
