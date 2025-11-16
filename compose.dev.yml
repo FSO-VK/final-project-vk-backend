@@ -101,3 +101,20 @@ services:
         - action: sync+restart
           path: ./config/notifications-conf.yaml
           target: /notifications/notifications-conf.yaml
+  mongodb:
+    container_name: mongodb
+    image: mongo:8.2.1
+    env_file:
+      - .env
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=user
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=${MONGO_DATABASE}
+      - MONGO_INITDB_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_PASSWORD=${MONGO_PASSWORD}
+    ports:
+      - "27017:27017"
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data/db
