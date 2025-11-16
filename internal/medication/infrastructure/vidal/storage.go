@@ -3,10 +3,13 @@ package vidal
 import (
 	"context"
 	"errors"
+	"time"
 )
 
-// ErrStorageNoProduct occurs when a product is not found in storage.
-var ErrStorageNoProduct = errors.New("no product found")
+var (
+	// ErrStorageNoProduct occurs when a product is not found in storage.
+	ErrStorageNoProduct = errors.New("no product found")
+)
 
 // Storage is an interface for storage.
 type Storage interface {
@@ -18,5 +21,6 @@ type Storage interface {
 type StorageModel struct {
 	Product
 
-	BarCodes []string
+	BarCodes  []string
+	CreatedAt time.Time
 }
