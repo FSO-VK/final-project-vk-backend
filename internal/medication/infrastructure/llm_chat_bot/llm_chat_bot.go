@@ -129,9 +129,10 @@ func getFieldNamesList(instr any) (string, error) {
 		return "", ErrInvalidInstruction
 	}
 
-	var fieldNames []string
+	numFields := t.NumField()
+	fieldNames := make([]string, 0, numFields)
 
-	for i := 0; i < t.NumField(); i++ {
+	for i := range numFields {
 		fieldNames = append(fieldNames, t.Field(i).Name)
 	}
 
