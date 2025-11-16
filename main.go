@@ -20,20 +20,20 @@ func main() {
 	}
 	provider := gigachat.NewGigachatLLMProvider(cfg)
 
-	// Demo 1: распознавание планирования из голосового
-	userText := "Я буду принимать Нурофен по 2 таблетки в 7 вечера, в течении месяца"
-	fmt.Println("=== Demo 1: RecognizePlanningFromText ===")
-	fmt.Println("user plan text:", userText)
-	pretty, err := gigachat.RecognizePlanningFromText(provider, userText)
-	if err != nil {
-		fmt.Println("Error:", err)
-	} else {
-		fmt.Println("LLM response:\n", pretty)
-	}
+	// // Demo 1: распознавание планирования из голосового
+	// userText := "Я буду принимать Нурофен по 2 таблетки в 7 вечера, в течении месяца"
+	// fmt.Println("=== Demo 1: RecognizePlanningFromText ===")
+	// fmt.Println("user plan text:", userText)
+	// pretty, err := gigachat.RecognizePlanningFromText(provider, userText)
+	// if err != nil {
+	// 	fmt.Println("Error:", err)
+	// } else {
+	// 	fmt.Println("LLM response:\n", pretty)
+	// }
 
 	// Demo 2: two-step question based on instruction
 	instruction := gigachat.InstructionDocument
-	userQuestion := "А какие есть противопоказания у Омепразола"
+	userQuestion := "Какие противопоказания по принятию и употреблению?"
 	fmt.Println("\n=== Demo 2: AskInstructionTwoStep ===")
 	fmt.Println("User question:", userQuestion)
 	ans, err := gigachat.AskInstructionTwoStep(provider, instruction, userQuestion)
