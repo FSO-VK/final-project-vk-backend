@@ -3,12 +3,11 @@ package llmchatbot
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"reflect"
+	"strings"
 	"text/template"
 
-	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application/medreference"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/llm"
 )
 
@@ -49,7 +48,7 @@ type InstructionConsultationPrompt struct {
 
 // AskInstructionTwoStep asks the LLM a question about the instruction.
 func (s *LLMChatBot) AskInstructionTwoStep(
-	instruction medreference.Instruction,
+	instruction any,
 	userQuestion string,
 ) (string, error) {
 	template, err := template.ParseFiles(
@@ -59,7 +58,7 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 		return "", ErrWithSystemPrompt
 	}
 
-	instructionFields, err := newEmptyInstructionJSON()
+	instructionFields, err := getFieldNamesList(instruction)
 	if err != nil {
 		return "", err
 	}
@@ -74,16 +73,13 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 		return "", ErrWithSystemPrompt
 	}
 
-	firstPrompt := buf.String()
-	resp1, err := s.llmProvider.Query(firstPrompt)
+	selectInstructionFieldPrompt := buf.String()
+	LLMChosenInstructionField, err := s.llmProvider.Query(selectInstructionFieldPrompt)
 	if err != nil {
 		return "", err
 	}
 
-	if resp1 == "" {
-		return "", ErrEmptyResponse
-	}
-	instructionPart, err := getFieldValue(instruction, resp1)
+	instructionPart, err := getFieldValue(instruction, LLMChosenInstructionField)
 	if err != nil {
 		return "", err
 	}
@@ -94,18 +90,18 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 	if err != nil {
 		return "", ErrWithSystemPrompt
 	}
-	dataSecond := InstructionConsultationPrompt{
+	instructionConsultationPromptData := InstructionConsultationPrompt{
 		UserQuestion:    userQuestion,
 		InstructionText: instructionPart,
 	}
 
 	var bufSecond bytes.Buffer
-	if err := templateSecond.Execute(&bufSecond, dataSecond); err != nil {
+	if err := templateSecond.Execute(&bufSecond, instructionConsultationPromptData); err != nil {
 		return "", ErrWithSystemPrompt
 	}
 
-	lastPrompt := buf.String()
-	finalResponse, err := s.llmProvider.Query(lastPrompt)
+	LLMFinalResponse := buf.String()
+	finalResponse, err := s.llmProvider.Query(LLMFinalResponse)
 	if err != nil {
 		return "", err
 	}
@@ -127,29 +123,17 @@ func getFieldValue(doc interface{}, fieldName string) (string, error) {
 	return field.String(), nil
 }
 
-func newEmptyInstructionJSON() (string, error) {
-	emptyInstruction := medreference.Instruction{
-		Nozologies:             []medreference.Nozology{},
-		ClPhPointers:           []medreference.ClPhPointer{},
-		PharmInfluence:         "",
-		PharmKinetics:          "",
-		Dosage:                 "",
-		OverDosage:             "",
-		Interaction:            "",
-		Lactation:              "",
-		SideEffects:            "",
-		UsingIndication:        "",
-		UsingCounterIndication: "",
-		SpecialInstruction:     "",
-		RenalInsuf:             "",
-		HepatoInsuf:            "",
-		ElderlyInsuf:           "",
-		ChildInsuf:             "",
+func getFieldNamesList(instr any) (string, error) {
+	t := reflect.TypeOf(instr)
+	if t.Kind() != reflect.Struct {
+		return "", ErrInvalidInstruction
 	}
-	//nolint:musttag // nolint because we don't need actual json tags, it is just for giving LLM names of structure fields
-	instructionJSON, err := json.Marshal(emptyInstruction)
-	if err != nil {
-		return "", err
+
+	var fieldNames []string
+
+	for i := 0; i < t.NumField(); i++ {
+		fieldNames = append(fieldNames, t.Field(i).Name)
 	}
-	return string(instructionJSON), nil
+
+	return strings.Join(fieldNames, "\n"), nil
 }
