@@ -27,3 +27,15 @@ vidal:
     user: ${MEDICATION_MONGO_USER}
     password: ${MEDICATION_MONGO_PASSWORD}
     log: true
+
+gigachat:
+  llmBaseURL: ${GIGACHAT_LLM_BASE_URL:-https://gigachat.devices.sberbank.ru/api/v1/chat/completions}
+  authBaseURL: ${GIGACHAT_AUTH_BASE_URL:-https://ngw.devices.sberbank.ru:9443/api/v2/oauth}
+  clientID: ${GIGACHAT_CLIENT_ID}
+  clientSecret: ${GIGACHAT_CLIENT_SECRET}
+  modelName: ${GIGACHAT_MODEL_NAME:-GigaChat}
+  role: ${GIGACHAT_ROLE:-user}
+  temperature: ${GIGACHAT_TEMPERATURE:-0.1}
+  maxTokens: ${GIGACHAT_MAX_TOKENS:-2000}
+  timeout: ${GIGACHAT_TIMEOUT:-30s}
+  baseSystemPromptPath: ${GIGACHAT_BASE_SYSTEM_PROMPT_PATH:-./templates/prompt.tmpl}
