@@ -89,7 +89,7 @@ func (h *GigachatLLMProvider) Query(servicePrompt string) (string, error) {
 		return "", ErrFailedToGetToken
 	}
 
-	template, err := template.ParseFiles("./pkg/gigachat/templates/prompt.tmpl")
+	template, err := template.ParseFiles("./gigachat_prompt/prompt.tmpl")
 	if err != nil {
 		return "", ErrWithSystemPrompt
 	}
@@ -183,4 +183,34 @@ func parseGigaChatResponse(resp *http.Response) (string, error) {
 	}
 
 	return "", ErrEmptyResponse
+}
+
+// UseSystemPrompt is Query but with additional system prompt.
+func (h *GigachatLLMProvider) UseSystemPrompt(
+	servicePrompt string,
+	additionalPromptPath string,
+) (string, error) {
+	if servicePrompt == "" {
+		return "", ErrEmptyPrompt
+	}
+
+	template, err := template.ParseFiles(additionalPromptPath)
+	if err != nil {
+		return "", ErrWithSystemPrompt
+	}
+	data := PromptData{Prompt: servicePrompt}
+
+	var buf bytes.Buffer
+	if err := template.Execute(&buf, data); err != nil {
+		return "", ErrWithSystemPrompt
+	}
+
+	fullPrompt := buf.String()
+
+	response, err := h.Query(fullPrompt)
+	if err != nil {
+		return "", ErrInvalidResponse
+	}
+
+	return response, nil
 }
