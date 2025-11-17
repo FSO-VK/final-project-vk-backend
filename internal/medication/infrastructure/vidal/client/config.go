@@ -6,6 +6,6 @@ import "time"
 // Config is a configuration of client.
 type Config struct {
 	Endpoint string
-	APIToken string
+	APIToken string `koanf:"api_token"`
 	Timeout  time.Duration
 }

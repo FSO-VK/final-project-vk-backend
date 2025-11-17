@@ -63,7 +63,9 @@ services:
         - action: sync+restart
           path: ./config/medication-conf.yaml
           target: /medication/medication-conf.yaml
-
+    depends_on:
+      mongodb:
+        condition: service_started
   notifications:
     container_name: notifications
     build:
@@ -116,5 +118,5 @@ services:
       - "27017:27017"
     volumes:
       - type: bind
-        source: ./data
+        source: ../data_mongodb
         target: /data/db

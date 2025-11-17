@@ -1,9 +1,11 @@
+// Package mongo is an implementation of vidal storage for MongoDB.
 package mongo
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/vidal"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/logcon"
@@ -15,6 +17,7 @@ import (
 
 const productCollection = "products"
 
+// Storage implements vidal.Storage for a MongoDB.
 type Storage struct {
 	client   *mongo.Client
 	database *mongo.Database
@@ -22,13 +25,13 @@ type Storage struct {
 	log      *logrus.Entry
 }
 
+// NewStorage creates a new MongoDB storage.
 func NewStorage(config *Config, log *logrus.Entry) (*Storage, error) {
 	uri := fmt.Sprintf(
-		"mongodb://%s:%s@%s:%s/%s",
+		"mongodb://%s:%s@%s/%s",
 		config.User,
 		config.Password,
-		config.Host,
-		config.Port,
+		net.JoinHostPort(config.Host, config.Port), // required if using IPv6
 		config.Database,
 	)
 
@@ -62,27 +65,29 @@ func NewStorage(config *Config, log *logrus.Entry) (*Storage, error) {
 	return s, nil
 }
 
+// SaveProduct saves a product in MongoDB.
 func (s *Storage) SaveProduct(ctx context.Context, product *vidal.StorageModel) error {
-	s.debugLog(ctx, "save product")
-	
+	s.debugLog(ctx, "save product: %v", product)
+
 	coll := s.database.Collection(productCollection)
-	_, err := coll.InsertOne(ctx, product)
+	saved, err := coll.InsertOne(ctx, product)
 	if err != nil {
 		return fmt.Errorf("insert product: %w", err)
 	}
 
-	s.debugLog(ctx, "saved")
+	s.debugLog(ctx, "saved: %t", saved.Acknowledged)
 	return nil
 }
 
+// GetProduct loads a product from MongoDB.
 func (s *Storage) GetProduct(ctx context.Context, barCode string) (*vidal.StorageModel, error) {
-	s.debugLog(ctx, "get product by bar code %s", barCode)
+	s.debugLog(ctx, "load product by bar code %s", barCode)
 	coll := s.database.Collection(productCollection)
 
 	var result vidal.StorageModel
 	err := coll.FindOne(
 		ctx,
-		bson.D{{Key: "BarCodes", Value: barCode}},
+		bson.D{{Key: "barCodes", Value: barCode}},
 	).Decode(&result)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -90,25 +95,9 @@ func (s *Storage) GetProduct(ctx context.Context, barCode string) (*vidal.Storag
 		}
 		return nil, fmt.Errorf("find product decode: %w", err)
 	}
-	s.debugLog(ctx, "got product")
+	s.debugLog(ctx, "loaded: %v", result)
 
 	return &result, nil
-}
-
-// initConfig performs initial configuration of the database.
-func (s *Storage) initConfig() error {
-	coll := s.database.Collection(productCollection)
-
-	index := mongo.IndexModel{
-		Keys: bson.D{{Key: "BarCodes", Value: 1}},
-	}
-	idxName, err := coll.Indexes().CreateOne(context.Background(), index)
-	if err != nil {
-		return fmt.Errorf("create index %s: %w", idxName, err)
-	}
-
-	s.debugLog(context.Background(), "index")
-	return nil
 }
 
 // Close gracefully closes MongoDB connection.
@@ -116,6 +105,23 @@ func (s *Storage) Close(ctx context.Context) error {
 	if s.client != nil {
 		return s.client.Disconnect(ctx)
 	}
+	return nil
+}
+
+// initConfig performs initial configuration of the database.
+func (s *Storage) initConfig() error {
+	coll := s.database.Collection(productCollection)
+
+	index := mongo.IndexModel{
+		Keys:    bson.D{{Key: "barCodes", Value: 1}},
+		Options: nil,
+	}
+	idxName, err := coll.Indexes().CreateOne(context.Background(), index)
+	if err != nil {
+		return fmt.Errorf("create index %s: %w", idxName, err)
+	}
+
+	s.debugLog(context.Background(), "index")
 	return nil
 }
 

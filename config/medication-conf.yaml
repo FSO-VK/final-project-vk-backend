@@ -15,3 +15,15 @@ auth:
   timeout: ${AUTH_TIMEOUT:-30s}
   cookieName: ${COOKIE_NAME:-session_id}
   cookieDomain: ${COOKIE_DOMAIN:-/}
+vidal:
+  client:
+    endpoint: ${VIDAL_API_HOST:-https://www.vidal.ru/api/rest/v1/product/list}
+    api_token: ${VIDAL_API_TOKEN:-test}
+    timeout: ${CLIENT_API_TIMEOUT:-10s}
+  storage:
+    host: ${MEDICATION_MONGO_HOST:-mongodb}
+    port: ${MEDICATION_MONGO_PORT:-27017}
+    database: ${MONGO_DATABASE}
+    user: ${MONGO_USER}
+    password: ${MONGO_PASSWORD}
+    log: true

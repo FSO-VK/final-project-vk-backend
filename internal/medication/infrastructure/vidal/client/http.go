@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -43,12 +44,13 @@ func (c *HTTPClient) GetInstruction(
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 
-	req.Header.Set("X-Token", c.config.APIToken)
-
+	req.Header.Set("X-Token", "test")
+	log.Printf("response %+v", req)
 	res, err := c.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("perform HTTP request: %w", err)
 	}
+	log.Printf("response %+v", res)
 
 	if res.StatusCode != http.StatusOK {
 		//nolint:err113 // need to return status code, so dynamic errors is more readable.
@@ -64,6 +66,7 @@ func (c *HTTPClient) GetInstruction(
 	if err := decoder.Decode(&body); err != nil {
 		return nil, fmt.Errorf("decode JSON response: %w", err)
 	}
+	log.Printf("response body %+v", body)
 
 	return c.handleBody(&body)
 }
