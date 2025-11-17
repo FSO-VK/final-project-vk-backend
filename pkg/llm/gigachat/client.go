@@ -89,7 +89,7 @@ func (h *GigachatLLMProvider) Query(servicePrompt string) (string, error) {
 		return "", ErrFailedToGetToken
 	}
 
-	template, err := template.ParseFiles("./gigachat_prompt/prompt.tmpl")
+	template, err := template.ParseFiles(h.cfg.BaseSystemPromptPath)
 	if err != nil {
 		return "", ErrWithSystemPrompt
 	}
