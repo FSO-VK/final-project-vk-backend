@@ -44,7 +44,7 @@ func (c *HTTPClient) GetInstruction(
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 
-	req.Header.Set("X-Token", "test")
+	req.Header.Set("X-Token", c.config.APIToken)
 	log.Printf("response %+v", req)
 	res, err := c.client.Do(req)
 	if err != nil {

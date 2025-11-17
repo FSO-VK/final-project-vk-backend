@@ -111,12 +111,11 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=user
       - MONGO_INITDB_ROOT_PASSWORD=password
-      - MONGO_INITDB_DATABASE=${MONGO_DATABASE}
-      - MONGO_INITDB_USERNAME=${MONGO_USER}
-      - MONGO_INITDB_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MEDICATION_MONGO_DATABASE}
     ports:
       - "27017:27017"
     volumes:
       - type: bind
         source: ../data_mongodb
         target: /data/db
+      - ./build/databases/:/docker-entrypoint-initdb.d:ro

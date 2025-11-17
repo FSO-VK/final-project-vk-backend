@@ -12,6 +12,7 @@ require (
 	github.com/knadh/koanf/v2 v2.3.0
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/sirupsen/logrus v1.9.3
+	go.mongodb.org/mongo-driver/v2 v2.4.0
 )
 
 require (
@@ -38,7 +39,6 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/quic-go/quic-go v0.54.0 // indirect
@@ -49,7 +49,6 @@ require (
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
-	go.mongodb.org/mongo-driver/v2 v2.4.0 // indirect
 	go.uber.org/mock v0.5.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.3 // indirect
 	golang.org/x/arch v0.20.0 // indirect
@@ -66,7 +65,6 @@ require (
 	github.com/knadh/koanf/parsers/yaml v1.1.0
 	github.com/knadh/koanf/providers/rawbytes v1.0.0
 	github.com/valyala/fasthttp v1.66.0
-	go.mongodb.org/mongo-driver v1.17.6
 	golang.org/x/crypto v0.43.0
 	golang.org/x/sys v0.37.0 // indirect
 )
