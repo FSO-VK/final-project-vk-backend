@@ -1,0 +1,140 @@
+// Package llmchatbot is a package for LLM chat bot.
+package llmchatbot
+
+import (
+	"bytes"
+	"errors"
+	"reflect"
+	"strings"
+	"text/template"
+
+	"github.com/FSO-VK/final-project-vk-backend/pkg/llm"
+)
+
+var (
+	// ErrEmptyResponse is returned when the response body is empty or contains no data.
+	ErrEmptyResponse = errors.New("empty response")
+	// ErrWithSystemPrompt is returned when the access token is missing in the response.
+	ErrWithSystemPrompt = errors.New("failed to get token")
+	// ErrInvalidInstruction is returned when the instruction is invalid.
+	ErrInvalidInstruction = errors.New("invalid instruction")
+)
+
+// LLMChatBot is a service for getting a Box of medications.
+type LLMChatBot struct {
+	llmProvider llm.Provider
+}
+
+// NewLLMChatBot returns a new LLMChatBot.
+func NewLLMChatBot(
+	llmProvider llm.Provider,
+) *LLMChatBot {
+	return &LLMChatBot{
+		llmProvider: llmProvider,
+	}
+}
+
+// SelectInstructionFieldPrompt is a prompt for the LLM to select the instruction field.
+type SelectInstructionFieldPrompt struct {
+	UserQuestion      string
+	InstructionFields string
+}
+
+// InstructionConsultationPrompt is a prompt for the LLM to get the instruction consultation.
+type InstructionConsultationPrompt struct {
+	UserQuestion    string
+	InstructionText string
+}
+
+// AskInstructionTwoStep asks the LLM a question about the instruction.
+func (s *LLMChatBot) AskInstructionTwoStep(
+	instruction any,
+	userQuestion string,
+) (string, error) {
+	template, err := template.ParseFiles(
+		"./internal/medication/infrastructure/llm_chat_bot/templates/select_instruction_field.tmpl",
+	)
+	if err != nil {
+		return "", ErrWithSystemPrompt
+	}
+
+	instructionFields, err := getFieldNamesList(instruction)
+	if err != nil {
+		return "", err
+	}
+
+	data := SelectInstructionFieldPrompt{
+		UserQuestion:      userQuestion,
+		InstructionFields: instructionFields,
+	}
+
+	var buf bytes.Buffer
+	if err := template.Execute(&buf, data); err != nil {
+		return "", ErrWithSystemPrompt
+	}
+
+	selectInstructionFieldPrompt := buf.String()
+	LLMChosenInstructionField, err := s.llmProvider.Query(selectInstructionFieldPrompt)
+	if err != nil {
+		return "", err
+	}
+
+	instructionPart, err := getFieldValue(instruction, LLMChosenInstructionField)
+	if err != nil {
+		return "", err
+	}
+
+	templateSecond, err := template.ParseFiles(
+		"./internal/medication/infrastructure/llm_chat_bot/templates/instruction_consultation.tmpl",
+	)
+	if err != nil {
+		return "", ErrWithSystemPrompt
+	}
+	instructionConsultationPromptData := InstructionConsultationPrompt{
+		UserQuestion:    userQuestion,
+		InstructionText: instructionPart,
+	}
+
+	var bufSecond bytes.Buffer
+	if err := templateSecond.Execute(&bufSecond, instructionConsultationPromptData); err != nil {
+		return "", ErrWithSystemPrompt
+	}
+
+	LLMFinalResponse := buf.String()
+	finalResponse, err := s.llmProvider.Query(LLMFinalResponse)
+	if err != nil {
+		return "", err
+	}
+	return finalResponse, nil
+}
+
+func getFieldValue(doc interface{}, fieldName string) (string, error) {
+	r := reflect.ValueOf(doc)
+
+	if r.Kind() != reflect.Struct {
+		return "", ErrInvalidInstruction
+	}
+
+	field := r.FieldByName(fieldName)
+	if !field.IsValid() {
+		return "", ErrInvalidInstruction
+	}
+
+	return field.String(), nil
+}
+
+func getFieldNamesList(instr any) (string, error) {
+	t := reflect.TypeOf(instr)
+	if t.Kind() != reflect.Struct {
+		return "", ErrInvalidInstruction
+	}
+
+	numFields := t.NumField()
+	fieldNames := make([]string, 0, numFields)
+
+	for i := range numFields {
+		fieldNames = append(fieldNames, t.Field(i).Name)
+	}
+
+	return strings.Join(fieldNames, "\n"), nil
+}

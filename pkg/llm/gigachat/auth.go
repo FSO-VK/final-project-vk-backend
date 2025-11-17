@@ -66,8 +66,8 @@ func getGigaChatToken(
 	basicAuth := base64.StdEncoding.EncodeToString([]byte(credentials))
 
 	req.Header.Set("Authorization", "Basic "+basicAuth)
-	//nolint:canonicalheader
-	req.Header.Set("RqUID", uuid.New().String()) // ну а у гигачата вот такой хедер неправильный
+	//nolint:canonicalheader // RqUID is sber header we need to send
+	req.Header.Set("RqUID", uuid.New().String())
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 

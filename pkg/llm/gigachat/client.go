@@ -9,9 +9,6 @@ import (
 	"html/template"
 	"io"
 	"net/http"
-	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -68,7 +65,7 @@ type GigachatLLMProvider struct {
 }
 
 // NewGigachatLLMProvider creates a new LLMClientProvider.
-func NewGigachatLLMProvider(cfg ClientConfig, logger *logrus.Entry) *GigachatLLMProvider {
+func NewGigachatLLMProvider(cfg ClientConfig) *GigachatLLMProvider {
 	client := &http.Client{
 		Timeout:       cfg.Timeout,
 		Transport:     nil,
@@ -92,7 +89,7 @@ func (h *GigachatLLMProvider) Query(servicePrompt string) (string, error) {
 		return "", ErrFailedToGetToken
 	}
 
-	template, err := template.ParseFiles("templates/prompt.tmpl")
+	template, err := template.ParseFiles(h.cfg.BaseSystemPromptPath)
 	if err != nil {
 		return "", ErrWithSystemPrompt
 	}
@@ -110,10 +107,10 @@ func (h *GigachatLLMProvider) Query(servicePrompt string) (string, error) {
 		return "", ErrInvalidResponse
 	}
 
-	if err = validateIfJSON(response); err != nil {
+	if response != "" {
 		return "", ErrInvalidResponse
 	}
-	return "", nil
+	return response, nil
 }
 
 func askGigaChat(cfg ClientConfig, token string, prompt string) (string, error) {
@@ -188,16 +185,32 @@ func parseGigaChatResponse(resp *http.Response) (string, error) {
 	return "", ErrEmptyResponse
 }
 
-func validateIfJSON(response string) error {
-	resp := strings.TrimSpace(response)
-	if resp == "" {
-		return ErrEmptyResponse
+// UseSystemPrompt is Query but with additional system prompt.
+func (h *GigachatLLMProvider) UseSystemPrompt(
+	servicePrompt string,
+	additionalPromptPath string,
+) (string, error) {
+	if servicePrompt == "" {
+		return "", ErrEmptyPrompt
 	}
 
-	var js map[string]interface{}
-	if err := json.Unmarshal([]byte(resp), &js); err != nil {
-		return ErrInvalidResponse
+	template, err := template.ParseFiles(additionalPromptPath)
+	if err != nil {
+		return "", ErrWithSystemPrompt
+	}
+	data := PromptData{Prompt: servicePrompt}
+
+	var buf bytes.Buffer
+	if err := template.Execute(&buf, data); err != nil {
+		return "", ErrWithSystemPrompt
 	}
 
-	return nil
+	fullPrompt := buf.String()
+
+	response, err := h.Query(fullPrompt)
+	if err != nil {
+		return "", ErrInvalidResponse
+	}
+
+	return response, nil
 }
