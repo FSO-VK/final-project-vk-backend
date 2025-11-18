@@ -3,6 +3,7 @@ package vidal
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 // ErrStorageNoProduct occurs when a product is not found in storage.
@@ -18,5 +19,6 @@ type Storage interface {
 type StorageModel struct {
 	Product
 
-	BarCodes []string
+	BarCodes  []string  `bson:"barCodes"`
+	CreatedAt time.Time `bson:"createdAt"`
 }

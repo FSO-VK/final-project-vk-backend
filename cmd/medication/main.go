@@ -11,6 +11,9 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/datamatrix"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/storage/memory"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/vidal"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/vidal/client"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/vidal/storage/mongo"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/presentation/http"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
@@ -50,6 +53,15 @@ func main() {
 		logger,
 	)
 	dataMatrixCache := memory.NewDataMatrixStorage()
+	vidalClient := client.NewHTTPClient(conf.Vidal.Client)
+	vidalCache, err := mongo.NewStorage(&conf.Vidal.Storage, logger)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	medReference := vidal.NewService(
+		vidalCache,
+		vidalClient,
+	)
 	medicationBoxRepo := memory.NewMedicationBoxStorage()
 
 	app := &application.MedicationApplication{
@@ -66,6 +78,7 @@ func main() {
 		DataMatrixInformation: application.NewDataMatrixInformationService(
 			dataMatrixClient,
 			dataMatrixCache,
+			medReference,
 			validator,
 		),
 	}
@@ -82,11 +95,6 @@ func main() {
 
 	server := http.NewHTTPServer(&conf.Server, logger)
 	server.Router(router)
-
-	err = server.ListenAndServe()
-	if err != nil {
-		logger.Fatal(err)
-	}
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -105,6 +113,11 @@ func main() {
 			logger.Errorf("graceful shutdown failed: %v", err)
 		}
 	}()
+
+	err = server.ListenAndServe()
+	if err != nil {
+		logger.Fatal(err)
+	}
 
 	wg.Wait()
 

@@ -63,7 +63,9 @@ services:
         - action: sync+restart
           path: ./config/medication-conf.yaml
           target: /medication/medication-conf.yaml
-
+    depends_on:
+      mongodb:
+        condition: service_started
   notifications:
     container_name: notifications
     build:
@@ -101,3 +103,21 @@ services:
         - action: sync+restart
           path: ./config/notifications-conf.yaml
           target: /notifications/notifications-conf.yaml
+  mongodb:
+    container_name: mongodb
+    build:
+      context: .
+      dockerfile: ./build/databases/medication-mongodb.Dockerfile
+    env_file:
+      - .env
+    environment:
+      # this variables are essential for start initialization.
+      - MONGO_INITDB_ROOT_USERNAME=user
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=${MEDICATION_MONGO_DATABASE}
+    ports:
+      - "27017:27017"
+    volumes:
+      - type: bind
+        source: ../data_mongodb
+        target: /data/db

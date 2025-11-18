@@ -114,19 +114,19 @@ func Crypto92(value string) error {
 func EAN13(value string) error {
 	err := FixedLength(value, 13)
 	if err != nil {
-		return ErrNoEAN13
+		return fmt.Errorf("%w: %s", ErrNoEAN13, value)
 	}
 
 	var ean13 [13]int
 	for i, r := range value {
 		if !unicode.IsDigit(r) {
-			return ErrNoEAN13
+			return fmt.Errorf("%w: %s", ErrNoEAN13, value)
 		}
 		ean13[i] = int(r - '0')
 	}
 
 	if !isCorrectEAN13Checksum(ean13) {
-		return ErrNoEAN13
+		return fmt.Errorf("%w: %s", ErrNoEAN13, value)
 	}
 	return nil
 }

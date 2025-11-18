@@ -6,7 +6,7 @@ server:
   port: ${MEDICATION_SERVER_PORT:-8000}
 
 scan:
-  host: ${CLIENT_API_HOST}
+  host: ${MEDICATION_SCAN_ENDPOINT}
   timeout: ${SCAN_TIMEOUT:-10s}
 
 auth:
@@ -15,6 +15,18 @@ auth:
   timeout: ${AUTH_TIMEOUT:-30s}
   cookieName: ${COOKIE_NAME:-session_id}
   cookieDomain: ${COOKIE_DOMAIN:-/}
+vidal:
+  client:
+    endpoint: ${MEDICATION_VIDAL_API_ENDPOINT:-https://www.vidal.ru/api/rest/v1/product/list}
+    api_token: ${MEDICATION_VIDAL_API_TOKEN}
+    timeout: ${MEDICATION_VIDAL_API_TIMEOUT:-10s}
+  storage:
+    host: ${MEDICATION_MONGO_HOST:-mongodb}
+    port: ${MEDICATION_MONGO_PORT:-27017}
+    database: ${MEDICATION_MONGO_DATABASE}
+    user: ${MEDICATION_MONGO_USER}
+    password: ${MEDICATION_MONGO_PASSWORD}
+    log: true
 
 gigachat:
   llmBaseURL: ${GIGACHAT_LLM_BASE_URL:-https://gigachat.devices.sberbank.ru/api/v1/chat/completions}

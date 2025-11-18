@@ -10,3 +10,6 @@
 *.md
 
 Makefile
+
+# docker volume
+/data

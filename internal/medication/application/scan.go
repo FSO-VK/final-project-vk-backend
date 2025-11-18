@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	client "github.com/FSO-VK/final-project-vk-backend/internal/medication/application/api_client"
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application/medreference"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/validation"
 )
@@ -31,6 +32,7 @@ type DataMatrixInformation interface {
 type DataMatrixInformationService struct {
 	dataMatrixClient client.DataMatrixClient
 	dataMatrixCache  client.DataMatrixCacher
+	medRef           medreference.MedicationReferenceProvider
 	validator        validator.Validator
 }
 
@@ -38,12 +40,14 @@ type DataMatrixInformationService struct {
 func NewDataMatrixInformationService(
 	dataMatrixClient client.DataMatrixClient,
 	dataMatrixCache client.DataMatrixCacher,
+	medRef medreference.MedicationReferenceProvider,
 	valid validator.Validator,
 ) *DataMatrixInformationService {
 	return &DataMatrixInformationService{
 		dataMatrixClient: dataMatrixClient,
 		dataMatrixCache:  dataMatrixCache,
 		validator:        valid,
+		medRef:           medRef,
 	}
 }
 
@@ -58,8 +62,8 @@ type DataMatrixInformationResponse struct {
 	CommandBase
 }
 
-// ParsedInformation is a struct for parsed data matrix.
-type ParsedInformation struct {
+// DataMatrix is a struct for parsed data matrix.
+type DataMatrix struct {
 	GTIN         string
 	SerialNumber string
 	CryptoData91 string
@@ -75,10 +79,12 @@ func (s *DataMatrixInformationService) Execute(
 	if valErr != nil {
 		return nil, fmt.Errorf("%w: %w", ErrValidationFail, valErr)
 	}
+
 	parsedData, err := ParseDataMatrix(req.Data)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrValidationFail, err)
 	}
+
 	concatenatedInfo := parsedData.GTIN + parsedData.SerialNumber + parsedData.CryptoData91 + parsedData.CryptoData92
 	dataMatrixInfo, err := s.dataMatrixCache.Get(
 		ctx,
@@ -108,6 +114,12 @@ func (s *DataMatrixInformationService) Execute(
 		return nil, fmt.Errorf("failed to get medication: %w", err)
 	}
 
+	barCode := extractBarCode(parsedData.GTIN)
+	product, err := s.medRef.GetProductInfo(ctx, barCode)
+	if err != nil {
+		return nil, fmt.Errorf("medication reference service: %w", err)
+	}
+
 	return &DataMatrixInformationResponse{
 		CommandBase: CommandBase{
 			Name:                dataMatrixInfo.Name,
@@ -115,10 +127,10 @@ func (s *DataMatrixInformationService) Execute(
 			AmountValue:         dataMatrixInfo.AmountValue,
 			AmountUnit:          dataMatrixInfo.AmountUnit,
 			ReleaseForm:         dataMatrixInfo.ReleaseForm,
-			Group:               dataMatrixInfo.Group,
+			Group:               product.PharmGroups,
 			ManufacturerName:    dataMatrixInfo.ManufacturerName,
 			ManufacturerCountry: dataMatrixInfo.ManufacturerCountry,
-			ActiveSubstance:     MapAPIActiveSubstanceToLocal(dataMatrixInfo.ActiveSubstance),
+			ActiveSubstance:     MapAPIActiveSubstanceToLocal(product.ActiveSubstance),
 			Expires:             dataMatrixInfo.Expires,
 			Release:             dataMatrixInfo.Release,
 			Commentary:          "",
@@ -127,7 +139,7 @@ func (s *DataMatrixInformationService) Execute(
 }
 
 // ParseDataMatrix creates validated data matrix string.
-func ParseDataMatrix(data string) (*ParsedInformation, error) {
+func ParseDataMatrix(data string) (*DataMatrix, error) {
 	if data == "" {
 		return nil, ErrEmptyInput
 	}
@@ -155,7 +167,7 @@ func ParseDataMatrix(data string) (*ParsedInformation, error) {
 		return nil, err
 	}
 	crypto92 = strings.TrimSuffix(crypto92, "=")
-	return &ParsedInformation{
+	return &DataMatrix{
 		GTIN:         gtin,
 		SerialNumber: serial,
 		CryptoData91: crypto91,
@@ -164,14 +176,21 @@ func ParseDataMatrix(data string) (*ParsedInformation, error) {
 }
 
 // MapAPIActiveSubstanceToLocal maps api active substance to local active substance.
-func MapAPIActiveSubstanceToLocal(apiSubstances []client.ActiveSubstance) []ActiveSubstance {
+func MapAPIActiveSubstanceToLocal(apiSubstances []string) []ActiveSubstance {
 	result := make([]ActiveSubstance, len(apiSubstances))
 	for i, substance := range apiSubstances {
 		result[i] = ActiveSubstance{
-			Name:  substance.Name,
-			Value: substance.Value,
-			Unit:  substance.Unit,
+			Name:  substance,
+			Value: 0,
+			Unit:  "",
 		}
 	}
 	return result
+}
+
+func extractBarCode(gtin string) string {
+	if gtin == "" {
+		return ""
+	}
+	return gtin[1:]
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application/medreference"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/validation"
@@ -28,7 +29,7 @@ func (s *Service) GetProductInfo(
 ) (*medreference.Product, error) {
 	err := validation.EAN13(barCode)
 	if err != nil {
-		return nil, medreference.ErrBadBarCode
+		return nil, fmt.Errorf("%w: %w", medreference.ErrBadBarCode, err)
 	}
 
 	model, err := s.storage.GetProduct(ctx, barCode)
@@ -158,8 +159,9 @@ func (s *Service) clientResponseToModel(clientResponse *ClientResponse) *Storage
 	}
 
 	model := &StorageModel{
-		Product:  clientResponse.Product,
-		BarCodes: barCodes,
+		Product:   clientResponse.Product,
+		BarCodes:  barCodes,
+		CreatedAt: time.Now(),
 	}
 	return model
 }
