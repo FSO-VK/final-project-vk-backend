@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -78,5 +79,9 @@ func (s *MedicationHTTPServer) Shutdown(ctx context.Context) error {
 // ListenAndServe starts the HTTP server.
 func (s *MedicationHTTPServer) ListenAndServe() error {
 	s.logger.Infof("Server started on %s", s.config.Address())
-	return s.srv.ListenAndServe()
+	err := s.srv.ListenAndServe()
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+	return nil
 }

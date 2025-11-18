@@ -96,11 +96,6 @@ func main() {
 	server := http.NewHTTPServer(&conf.Server, logger)
 	server.Router(router)
 
-	err = server.ListenAndServe()
-	if err != nil {
-		logger.Fatal(err)
-	}
-
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
@@ -118,6 +113,11 @@ func main() {
 			logger.Errorf("graceful shutdown failed: %v", err)
 		}
 	}()
+
+	err = server.ListenAndServe()
+	if err != nil {
+		logger.Fatal(err)
+	}
 
 	wg.Wait()
 

@@ -105,10 +105,13 @@ services:
           target: /notifications/notifications-conf.yaml
   mongodb:
     container_name: mongodb
-    image: mongo:8.2.1
+    build:
+      context: .
+      dockerfile: ./build/databases/medication-mongodb.Dockerfile
     env_file:
       - .env
     environment:
+      # this variables are essential for start initialization.
       - MONGO_INITDB_ROOT_USERNAME=user
       - MONGO_INITDB_ROOT_PASSWORD=password
       - MONGO_INITDB_DATABASE=${MEDICATION_MONGO_DATABASE}
@@ -118,4 +121,3 @@ services:
       - type: bind
         source: ../data_mongodb
         target: /data/db
-      - ./build/databases/:/docker-entrypoint-initdb.d:ro
