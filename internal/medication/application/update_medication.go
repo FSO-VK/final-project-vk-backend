@@ -130,6 +130,10 @@ func (s *UpdateMedicationService) updateMedicationEntity(
 	)
 	allErrors = errors.Join(allErrors, err)
 
+	releaseForm, err := medication.NewMedicationReleaseForm(
+		req.ReleaseForm)
+	allErrors = errors.Join(allErrors, err)
+
 	group, err := medication.NewMedicationGroup(req.Group)
 	allErrors = errors.Join(allErrors, err)
 
@@ -162,6 +166,7 @@ func (s *UpdateMedicationService) updateMedicationEntity(
 
 	oldMedication.SetName(name)
 	oldMedication.SetInternationalName(internationalName)
+	oldMedication.SetReleaseForm(releaseForm)
 	oldMedication.SetAmount(amount)
 	oldMedication.UpdateGroup(group)
 	oldMedication.SetManufacturer(manufacturer)
