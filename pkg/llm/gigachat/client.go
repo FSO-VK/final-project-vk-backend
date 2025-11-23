@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -102,15 +101,13 @@ func (h *GigachatLLMProvider) Query(servicePrompt string) (string, error) {
 	}
 
 	fullPrompt := buf.String()
-	fmt.Println(fullPrompt)
 
 	response, err := askGigaChat(h.cfg, token, fullPrompt)
 	if err != nil {
 		return "", ErrInvalidResponse
 	}
 
-	if response != "" {
-		fmt.Println("\n\n\n\n4", err)
+	if response == "" {
 		return "", ErrInvalidResponse
 	}
 	return response, nil
@@ -184,7 +181,6 @@ func parseGigaChatResponse(resp *http.Response) (string, error) {
 	if len(result.Choices) > 0 && result.Choices[0].Message.Content != "" {
 		return result.Choices[0].Message.Content, nil
 	}
-
 	return "", ErrEmptyResponse
 }
 

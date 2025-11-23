@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
@@ -769,66 +768,4 @@ func convertActiveSubstances(substances []ActiveSubstanceObject) []application.A
 		result[i] = application.ActiveSubstance(v)
 	}
 	return result
-}
-
-// InstructionAssistantJSONResponse is a response for InstructionAssistant.
-type InstructionAssistantJSONResponse struct {
-	LLMAnswer string `json:"llmAnswer"`
-}
-
-// DataMatrixInformation adds a medication.
-func (h *MedicationHandlers) InstructionAssistant(w http.ResponseWriter, r *http.Request) {
-	logger := h.getLogger(r)
-
-	authorization, err := httputil.GetAuthFromCtx(r)
-	if err != nil {
-		h.writeResponseUnauthorized(w)
-		return
-	}
-
-	vars := mux.Vars(r)
-	id := vars[SlugID]
-
-	questionParam := r.URL.Query().Get("question")
-	if questionParam == "" {
-		logger.Error("Failed to read request query parameters")
-		w.WriteHeader(http.StatusBadRequest)
-
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusBadRequest,
-			Error:      api.MsgBadBody,
-			Body:       struct{}{},
-		})
-
-		return
-	}
-	fmt.Println(questionParam)
-
-	serviceRequest := &application.InstructionAssistantCommand{
-		UserQuestion: questionParam,
-		MedicationID: id,
-		UserID:       authorization.UserID,
-	}
-
-	serviceResponse, err := h.app.InstructionAssistant.Execute(
-		r.Context(),
-		serviceRequest,
-	)
-	if err != nil {
-		logger.WithError(err).Errorf("service: %s", err)
-
-		status, body := h.handleDMServiceError(err)
-		w.WriteHeader(status)
-		_ = httputil.NetHTTPWriteJSON(w, body)
-		return
-	}
-	response := &InstructionAssistantJSONResponse{
-		LLMAnswer: serviceResponse.LLMAnswer,
-	}
-	w.WriteHeader(http.StatusOK)
-	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-		StatusCode: http.StatusOK,
-		Body:       response,
-		Error:      "",
-	})
 }

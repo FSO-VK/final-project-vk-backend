@@ -12,10 +12,10 @@ import (
 
 // Config is a configuration for the medication service.
 type Config struct {
-	Server http.ServerConfig
-	Scan   dataMatrixClient.ClientConfig
-	Auth   auth.ClientConfig
-	Vidal  vidal
+	Server   http.ServerConfig
+	Scan     dataMatrixClient.ClientConfig
+	Auth     auth.ClientConfig
+	Vidal    vidal
 	Gigachat gigachat.ClientConfig
 }
 
