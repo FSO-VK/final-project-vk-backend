@@ -134,6 +134,7 @@ func (s *DataMatrixInformationService) Execute(
 			Expires:             dataMatrixInfo.Expires,
 			Release:             dataMatrixInfo.Release,
 			Commentary:          "",
+			BarCode:             barCode,
 		},
 	}, errOut
 }

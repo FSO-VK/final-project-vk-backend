@@ -109,6 +109,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 			Expires:             reqJSON.Expiration,
 			Release:             reqJSON.Release,
 			Commentary:          reqJSON.Commentary,
+			BarCode:             reqJSON.BarCode,
 		},
 	}
 
@@ -146,6 +147,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 			Expiration:      serviceResponse.Expires,
 			Release:         serviceResponse.Release,
 			Commentary:      serviceResponse.Commentary,
+			BarCode:         serviceResponse.BarCode,
 		},
 	}
 	w.WriteHeader(http.StatusOK)
@@ -230,6 +232,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 			Expires:             reqJSON.Expiration,
 			Release:             reqJSON.Release,
 			Commentary:          reqJSON.Commentary,
+			BarCode:             reqJSON.BarCode,
 		},
 	}
 
@@ -266,6 +269,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 			Expiration:      serviceResponse.Expires,
 			Release:         serviceResponse.Release,
 			Commentary:      serviceResponse.Commentary,
+			BarCode:         serviceResponse.BarCode,
 		},
 	}
 
@@ -380,6 +384,7 @@ func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Req
 				Expiration:      medication.Expires,
 				Release:         medication.Release,
 				Commentary:      medication.Commentary,
+				BarCode:         medication.BarCode,
 			},
 		})
 	}
@@ -513,6 +518,7 @@ func (h *MedicationHandlers) GetMedicationByID(w http.ResponseWriter, r *http.Re
 			Expiration:      medication.Expires,
 			Release:         medication.Release,
 			Commentary:      medication.Commentary,
+			BarCode:         medication.BarCode,
 		},
 	}
 

@@ -102,6 +102,7 @@ func (s *AddMedicationService) Execute(
 			ReleaseDate:     release,
 			CreatedAt:       time.Now(),
 			UpdatedAt:       time.Now(),
+			BarCode:         req.BarCode,
 		},
 	)
 	if err != nil {
