@@ -7,6 +7,7 @@ import (
 	vidalstorage "github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/vidal/storage/mongo"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/presentation/http"
 	auth "github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
+	"github.com/FSO-VK/final-project-vk-backend/pkg/llm/gigachat"
 )
 
 // Config is a configuration for the medication service.
@@ -15,6 +16,7 @@ type Config struct {
 	Scan   dataMatrixClient.ClientConfig
 	Auth   auth.ClientConfig
 	Vidal  vidal
+	Gigachat gigachat.ClientConfig
 }
 
 type vidal struct {

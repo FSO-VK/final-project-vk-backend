@@ -22,8 +22,8 @@ var (
 	ErrEmptyResponse = errors.New("empty response")
 	// ErrFailedToGetToken is returned when the access token is missing in the response.
 	ErrFailedToGetToken = errors.New("failed to get token")
-	// ErrWithSystemPrompt is returned when the access token is missing in the response.
-	ErrWithSystemPrompt = errors.New("failed to get token")
+	// ErrWithSystemPrompt is returned when the system prompt is missing.
+	ErrWithSystemPrompt = errors.New("failed to get system prompt")
 	// ErrInvalidResponse is returned when the response is invalid.
 	ErrInvalidResponse = errors.New("invalid response")
 )

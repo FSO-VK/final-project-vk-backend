@@ -10,6 +10,7 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/datamatrix"
+	instructionAssistant "github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/llm_chat_bot"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/vidal"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/vidal/client"
@@ -19,6 +20,7 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	auth "github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
+	"github.com/FSO-VK/final-project-vk-backend/pkg/llm/gigachat"
 	"github.com/sirupsen/logrus"
 )
 
@@ -63,6 +65,8 @@ func main() {
 		vidalClient,
 	)
 	medicationBoxRepo := memory.NewMedicationBoxStorage()
+	instructionLLMProvider := gigachat.NewGigachatLLMProvider(conf.Gigachat)
+	instructionLLM := instructionAssistant.NewLLMChatBot(instructionLLMProvider)
 
 	app := &application.MedicationApplication{
 		GetMedicationBox: application.NewGetMedicationBoxService(
@@ -78,6 +82,12 @@ func main() {
 		DataMatrixInformation: application.NewDataMatrixInformationService(
 			dataMatrixClient,
 			dataMatrixCache,
+			medReference,
+			validator,
+		),
+		InstructionAssistant: application.NewInstructionAssistantService(
+			medicationRepo,
+			instructionLLM,
 			medReference,
 			validator,
 		),
