@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -101,6 +102,7 @@ func (h *GigachatLLMProvider) Query(servicePrompt string) (string, error) {
 	}
 
 	fullPrompt := buf.String()
+	fmt.Println(fullPrompt)
 
 	response, err := askGigaChat(h.cfg, token, fullPrompt)
 	if err != nil {
@@ -108,6 +110,7 @@ func (h *GigachatLLMProvider) Query(servicePrompt string) (string, error) {
 	}
 
 	if response != "" {
+		fmt.Println("\n\n\n\n4", err)
 		return "", ErrInvalidResponse
 	}
 	return response, nil

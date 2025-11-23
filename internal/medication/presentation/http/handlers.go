@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
@@ -801,6 +802,7 @@ func (h *MedicationHandlers) InstructionAssistant(w http.ResponseWriter, r *http
 
 		return
 	}
+	fmt.Println(questionParam)
 
 	serviceRequest := &application.InstructionAssistantCommand{
 		UserQuestion: questionParam,
