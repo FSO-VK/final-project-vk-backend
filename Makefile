@@ -10,4 +10,5 @@ lint:
 	golangci-lint run
 
 test:
-	gotestsum --format pkgname -- -race -coverprofile=coverage.out ./...
+	# there is a bug in GOTOOLCHAIN with go 1.25.x
+	GOTOOLCHAIN=go1.25.0+auto gotestsum --format pkgname -- -race -coverprofile=coverage.out ./...
