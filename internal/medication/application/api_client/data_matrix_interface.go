@@ -17,7 +17,7 @@ type DataMatrixCacher interface {
 
 // DataMatrixClient is an interface for data matrix client.
 type DataMatrixClient interface {
-	GetInformationByDataMatrix(data *DataMatrixCodeInfo) (*MedicationInfo, error)
+	GetInformationByDataMatrix(data *DataMatrix) (*MedicationInfo, error)
 }
 
 // MedicationInfo contains info about medication.
@@ -42,25 +42,10 @@ type ActiveSubstance struct {
 	Unit  string
 }
 
-// DataMatrixCodeInfo contains scanned info from data matrix.
-type DataMatrixCodeInfo struct {
+// DataMatrix contains parsed data matrix code.
+type DataMatrix struct {
 	GTIN         string
 	SerialNumber string
 	CryptoData91 string
 	CryptoData92 string
-}
-
-// NewDataMatrixCodeInfo creates a new DataMatrixCodeInfo.
-func NewDataMatrixCodeInfo(
-	gtin string,
-	serialNumber string,
-	cryptoData91 string,
-	cryptoData92 string,
-) *DataMatrixCodeInfo {
-	return &DataMatrixCodeInfo{
-		GTIN:         gtin,
-		SerialNumber: serialNumber,
-		CryptoData91: cryptoData91,
-		CryptoData92: cryptoData92,
-	}
 }

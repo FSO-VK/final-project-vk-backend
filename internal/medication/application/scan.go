@@ -9,6 +9,7 @@ import (
 
 	client "github.com/FSO-VK/final-project-vk-backend/internal/medication/application/api_client"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application/medreference"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/logcon"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/validation"
 )
@@ -85,39 +86,51 @@ func (s *DataMatrixInformationService) Execute(
 		return nil, fmt.Errorf("%w: %w", ErrValidationFail, err)
 	}
 
-	concatenatedInfo := parsedData.GTIN + parsedData.SerialNumber + parsedData.CryptoData91 + parsedData.CryptoData92
+	dmCode := parsedData.GTIN + parsedData.SerialNumber + parsedData.CryptoData91 + parsedData.CryptoData92
 	dataMatrixInfo, err := s.dataMatrixCache.Get(
 		ctx,
-		concatenatedInfo,
+		dmCode,
 	)
-	var errOut error
+	var errNonCrit error
 	if err != nil {
-		code := client.NewDataMatrixCodeInfo(
-			parsedData.GTIN,
-			parsedData.SerialNumber,
-			parsedData.CryptoData91,
-			parsedData.CryptoData92)
-		dataMatrixInfo, err = s.dataMatrixClient.GetInformationByDataMatrix(code)
-		if err == nil {
-			err = s.dataMatrixCache.Set(
-				ctx,
-				concatenatedInfo,
-				dataMatrixInfo,
-			)
-			if err != nil {
-				errOut = ErrCantSetCache
-			}
+		dataMatrixInfo, err = s.dataMatrixClient.GetInformationByDataMatrix(
+			&client.DataMatrix{
+				GTIN:         parsedData.GTIN,
+				SerialNumber: parsedData.SerialNumber,
+				CryptoData91: parsedData.CryptoData91,
+				CryptoData92: parsedData.CryptoData92,
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get medication: %w", err)
 		}
-	}
 
-	if err != nil {
-		return nil, fmt.Errorf("failed to get medication: %w", err)
+		err = s.dataMatrixCache.Set(
+			ctx,
+			dmCode,
+			dataMatrixInfo,
+		)
+		if err != nil {
+			errNonCrit = ErrCantSetCache
+		}
 	}
 
 	barCode := extractBarCode(parsedData.GTIN)
 	product, err := s.medRef.GetProductInfo(ctx, barCode)
+	pharmGroups := []string{}
+	activeSubstances := []string{}
 	if err != nil {
-		return nil, fmt.Errorf("medication reference service: %w", err)
+		errNonCrit = errors.Join(errNonCrit, err)
+	} else {
+		activeSubstances = product.ActiveSubstance
+		pharmGroups = product.PharmGroups
+	}
+
+	if errNonCrit != nil {
+		log, ok := logcon.FromContext(ctx)
+		if ok {
+			log.WithError(errNonCrit).Warningf("got non-critical error")
+		}
 	}
 
 	return &DataMatrixInformationResponse{
@@ -127,15 +140,15 @@ func (s *DataMatrixInformationService) Execute(
 			AmountValue:         dataMatrixInfo.AmountValue,
 			AmountUnit:          dataMatrixInfo.AmountUnit,
 			ReleaseForm:         dataMatrixInfo.ReleaseForm,
-			Group:               product.PharmGroups,
+			Group:               pharmGroups,
 			ManufacturerName:    dataMatrixInfo.ManufacturerName,
 			ManufacturerCountry: dataMatrixInfo.ManufacturerCountry,
-			ActiveSubstance:     MapAPIActiveSubstanceToLocal(product.ActiveSubstance),
+			ActiveSubstance:     MapAPIActiveSubstance(activeSubstances),
 			Expires:             dataMatrixInfo.Expires,
 			Release:             dataMatrixInfo.Release,
 			Commentary:          "",
 		},
-	}, errOut
+	}, nil
 }
 
 // ParseDataMatrix creates validated data matrix string.
@@ -175,8 +188,8 @@ func ParseDataMatrix(data string) (*DataMatrix, error) {
 	}, nil
 }
 
-// MapAPIActiveSubstanceToLocal maps api active substance to local active substance.
-func MapAPIActiveSubstanceToLocal(apiSubstances []string) []ActiveSubstance {
+// MapAPIActiveSubstance maps api active substance to local active substance.
+func MapAPIActiveSubstance(apiSubstances []string) []ActiveSubstance {
 	result := make([]ActiveSubstance, len(apiSubstances))
 	for i, substance := range apiSubstances {
 		result[i] = ActiveSubstance{

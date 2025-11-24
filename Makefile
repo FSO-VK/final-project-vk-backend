@@ -1,7 +1,7 @@
-.PHONY: format lint test
+.PHONY: dev format lint test
 
 dev:
-	docker compose -f compose.dev.yml up --watch
+	docker compose -f compose.dev.yml up --build --watch
 
 format:
 	golangci-lint fmt
