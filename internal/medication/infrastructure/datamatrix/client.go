@@ -36,7 +36,7 @@ func NewDataMatrixAPI(cfg ClientConfig, logger *logrus.Entry) *APIDataMatrix {
 
 // GetInformationByDataMatrix implements DataMatrixClient interface.
 func (h *APIDataMatrix) GetInformationByDataMatrix(
-	data *datamatrixclient.DataMatrixCodeInfo,
+	data *datamatrixclient.DataMatrix,
 ) (*datamatrixclient.MedicationInfo, error) {
 	if err := h.checkRequest(data); err != nil {
 		return nil, err
@@ -81,12 +81,10 @@ func (h *APIDataMatrix) GetInformationByDataMatrix(
 		return nil, ErrNoMedicationFound
 	}
 
-	out := MapToMedicationInfo(&parsedResponse)
-
-	return out, nil
+	return MapToMedicationInfo(&parsedResponse)
 }
 
-func (h *APIDataMatrix) checkRequest(data *datamatrixclient.DataMatrixCodeInfo) error {
+func (h *APIDataMatrix) checkRequest(data *datamatrixclient.DataMatrix) error {
 	if data == nil || data.GTIN == "" || data.SerialNumber == "" ||
 		data.CryptoData91 == "" || data.CryptoData92 == "" {
 		return ErrInvalidRequest
@@ -95,9 +93,11 @@ func (h *APIDataMatrix) checkRequest(data *datamatrixclient.DataMatrixCodeInfo) 
 }
 
 // MapToMedicationInfo maps ExpectedDataMatrixAPIResponse to MedicationInfo.
-func MapToMedicationInfo(resp *ExpectedDataMatrixAPIResponse) *datamatrixclient.MedicationInfo {
+func MapToMedicationInfo(
+	resp *ExpectedDataMatrixAPIResponse,
+) (*datamatrixclient.MedicationInfo, error) {
 	if resp == nil {
-		return nil
+		return nil, ErrNoMedicationFound
 	}
 	var amountUnit string
 	if strings.Contains(resp.DrugsData.FOIV.PackageSize, ".") {
@@ -107,11 +107,11 @@ func MapToMedicationInfo(resp *ExpectedDataMatrixAPIResponse) *datamatrixclient.
 	}
 	parsedPackageSize, err := strconv.ParseFloat(resp.DrugsData.FOIV.PackageSize, 64)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("map package size: %w", err)
 	}
 	parsedPackageQuantity, err := strconv.ParseFloat(resp.DrugsData.FOIV.PackageQuantity, 64)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("map package quantity: %w", err)
 	}
 	amountValue := parsedPackageSize * parsedPackageQuantity
 	return &datamatrixclient.MedicationInfo{
@@ -126,7 +126,7 @@ func MapToMedicationInfo(resp *ExpectedDataMatrixAPIResponse) *datamatrixclient.
 		ActiveSubstance:     []datamatrixclient.ActiveSubstance{},
 		Expires:             resp.ExpDate,
 		Release:             formatReleaseDate(resp.DrugsData.ReleaseDate),
-	}
+	}, nil
 }
 
 func formatReleaseDate(timestamp int64) string {

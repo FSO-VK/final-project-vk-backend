@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application/medreference"
@@ -98,10 +99,7 @@ func (s *Service) productInfoToInstruction(
 		ChildInsuf:             product.Document.ChildInsuf,
 	}
 
-	phGroups := make([]string, len(product.PhthGroups))
-	for i, phGroup := range product.PhthGroups {
-		phGroups[i] = phGroup.Code
-	}
+	phGroups := extractPharmGroups(product.PhthGroups)
 
 	clPhGroups := make([]string, len(product.ClPhGroups))
 	for i, clPhGroup := range product.ClPhGroups {
@@ -121,21 +119,7 @@ func (s *Service) productInfoToInstruction(
 		fullForm = product.FullForm[0]
 	}
 
-	var manufacturer medreference.Manufacturer
-	for _, company := range product.Companies {
-		if len(product.Companies) == 1 {
-			manufacturer = medreference.Manufacturer{
-				Name:    company.Company.Name,
-				Country: company.Company.Country.RusName,
-			}
-		} else if company.IsManufacturer {
-			manufacturer = medreference.Manufacturer{
-				Name:    company.Company.Name,
-				Country: company.Company.Country.RusName,
-			}
-			break
-		}
-	}
+	manufacturer := extractManufacturer(product.Companies)
 
 	p := &medreference.Product{
 		BarCode:           barCode,
@@ -164,4 +148,35 @@ func (s *Service) clientResponseToModel(clientResponse *ClientResponse) *Storage
 		CreatedAt: time.Now(),
 	}
 	return model
+}
+
+func extractPharmGroups(phThGroups []PhthGroup) []string {
+	phGroups := make([]string, 0, len(phThGroups))
+	for _, phGroup := range phThGroups {
+		// sometimes pharm groups contained in one string separated by semicolon.
+		groups := strings.SplitSeq(phGroup.Code, ";")
+		for group := range groups {
+			phGroups = append(phGroups, strings.TrimSpace(group))
+		}
+	}
+	return phGroups
+}
+
+func extractManufacturer(companies []CompanyInfo) medreference.Manufacturer {
+	var manufacturer medreference.Manufacturer
+	for _, company := range companies {
+		if len(companies) == 1 {
+			manufacturer = medreference.Manufacturer{
+				Name:    company.Company.Name,
+				Country: company.Company.Country.RusName,
+			}
+		} else if company.IsManufacturer {
+			manufacturer = medreference.Manufacturer{
+				Name:    company.Company.Name,
+				Country: company.Company.Country.RusName,
+			}
+			break
+		}
+	}
+	return manufacturer
 }
