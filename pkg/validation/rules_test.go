@@ -7,6 +7,8 @@ import (
 )
 
 func TestEAN13(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string // description of this test case
 		// Named input parameters for target function.
@@ -36,6 +38,7 @@ func TestEAN13(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			gotErr := validation.EAN13(tt.value)
 			if gotErr != nil {
 				if !tt.wantErr {
@@ -51,6 +54,8 @@ func TestEAN13(t *testing.T) {
 }
 
 func TestFixedLength(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string // description of this test case
 		// Named input parameters for target function.
@@ -73,6 +78,7 @@ func TestFixedLength(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			gotErr := validation.FixedLength(tt.value, tt.length)
 			if gotErr != nil {
 				if !tt.wantErr {
