@@ -20,8 +20,6 @@ var (
 	ErrInvalidInstruction = errors.New("invalid instruction")
 )
 
-
-
 // LLMChatBot is a service for getting instruction advice.
 type LLMChatBot struct {
 	llmProvider llm.Provider
