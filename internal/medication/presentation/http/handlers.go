@@ -548,8 +548,8 @@ func (h *MedicationHandlers) InstructionAssistant(w http.ResponseWriter, r *http
 	vars := mux.Vars(r)
 	id := vars[SlugID]
 
-	questionParam := r.URL.Query().Get("question")
-	if questionParam == "" {
+	question := r.URL.Query().Get("question")
+	if question == "" {
 		logger.Error("Failed to read request query parameters")
 		w.WriteHeader(http.StatusBadRequest)
 
@@ -563,7 +563,7 @@ func (h *MedicationHandlers) InstructionAssistant(w http.ResponseWriter, r *http
 	}
 
 	serviceRequest := &application.InstructionAssistantCommand{
-		UserQuestion: questionParam,
+		UserQuestion: question,
 		MedicationID: id,
 		UserID:       authorization.UserID,
 	}
