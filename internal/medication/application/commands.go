@@ -20,7 +20,7 @@ type CommandBase struct {
 	Expires             string            `validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
 	Release             string            `validate:"omitempty,datetime=2006-01-02T15:04:05Z07:00"`
 	Commentary          string            `validate:"omitempty,max=1000"`
-	BarCode             string            `validate:"omitempty,ean13"`
+	BarCode             string            `validate:"omitempty"`
 }
 
 // ResponseBase contains common fields for responses.

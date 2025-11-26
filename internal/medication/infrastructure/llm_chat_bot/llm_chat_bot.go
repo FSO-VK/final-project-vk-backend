@@ -20,10 +20,7 @@ var (
 	ErrInvalidInstruction = errors.New("invalid instruction")
 )
 
-// InstructionBot is an interface for getting instruction advice.
-type InstructionBot interface {
-	AskInstructionTwoStep(instruction any, userQuestion string) (string, error)
-}
+
 
 // LLMChatBot is a service for getting instruction advice.
 type LLMChatBot struct {

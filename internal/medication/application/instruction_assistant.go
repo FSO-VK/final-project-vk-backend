@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application/llm"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application/medreference"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
-	llm "github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/llm_chat_bot"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
 )
@@ -44,7 +44,7 @@ func NewInstructionAssistantService(
 
 // InstructionAssistantCommand is a request to ask llm about instructions.
 type InstructionAssistantCommand struct {
-	UserQuestion string `validate:"required"`
+	UserQuestion string `validate:"required,max=4000"`
 	MedicationID string `validate:"required,uuid"`
 	UserID       string `validate:"required,uuid"`
 }
