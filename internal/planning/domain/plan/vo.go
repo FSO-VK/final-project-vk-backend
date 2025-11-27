@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/pkg/validation"
-	"github.com/robfig/cron/v3"
+	"github.com/teambition/rrule-go"
 )
 
 var (
@@ -14,10 +14,6 @@ var (
 	ErrInvalidDosage = errors.New("invalid dosage")
 	// ErrInvalidSchedule means that the schedule expression format is invalid.
 	ErrInvalidSchedule = errors.New("invalid schedule expression format")
-	// ErrInvalidCourseStart means that something is wrong with the course start time.
-	ErrInvalidCourseStart = errors.New("invalid course start time")
-	// ErrInvalidCourseEnd means that course end time is in the past.
-	ErrInvalidCourseEnd = errors.New("course ends in the past")
 )
 
 // dosage is a VO representing the dosage of planned medication.
@@ -67,66 +63,44 @@ const (
 	StatusFinished
 )
 
-// schedule is a VO that describes the schedule in unix cron format.
 type schedule struct {
-	s cron.Schedule
+	start time.Time
+	end   time.Time
+
+	// specific RFC5545 fields to contain complex schedule
+	rules []*rrule.RRule
 }
 
-// NewSchedule returns valid schedule. Accepts cronExpr is a cron expression.
-// It requires 5 entries representing:
-// minute, hour, day of month, month and day of week, in that
-// order. It returns a descriptive error if the spec is not valid.
-// For more info see https://en.wikipedia.org/wiki/Cron.
-//
-// It accepts
-//   - Standard crontab specs, e.g. "* * * * ?"
-//   - Descriptors, e.g. "@midnight", "@every 1h30m"
-func NewSchedule(cronExpr string) (schedule, error) {
-	s, err := cron.ParseStandard(cronExpr)
-	if err != nil {
-		return schedule{}, fmt.Errorf("%w: %w", ErrInvalidSchedule, err)
+func NewSchedule(start, end time.Time, rules []*rrule.RRule) (schedule, error) {
+	if end.Before(start) {
+		return schedule{}, ErrInvalidSchedule
+	}
+
+	r := make([]*rrule.RRule, 0, len(rules))
+	for _, rule := range rules {
+		if rule == nil {
+			continue
+		}
+		// rule is limited by range
+		rule.DTStart(start)
+		rule.Until(end)
+		r = append(r, rule)
 	}
 
 	return schedule{
-		s: s,
+		start: start,
+		end:   end,
+		rules: r,
 	}, nil
 }
 
 // Next returns the next scheduled time after the given time.
 // If there is no next time, it returns the zero time.
 func (s *schedule) Next(from time.Time) time.Time {
-	return s.s.Next(from)
-}
-
-// courseStart is a VO that describes the start time of the course.
-type courseStart time.Time
-
-// NewCourseStart creates validated courseStart.
-func NewCourseStart(t time.Time) (courseStart, error) {
-	if t.Before(time.Now()) {
-		return courseStart(time.Time{}), ErrInvalidCourseStart
+	var t time.Time
+	for _, rules := range s.rules {
+		next := rules.After(from, false)
+		t = time.Unix(min(t.Unix(), next.Unix()), 0)
 	}
-	return courseStart(t), nil
-}
-
-// ToTime returns the time.Time representation of the course start.
-func (c courseStart) ToTime() time.Time {
-	return time.Time(c)
-}
-
-// courseEnd is a VO that describes the end time of the course.
-// It shouldn't be in the past.
-type courseEnd time.Time
-
-// NewCourseEnd creates validated courseEnd.
-func NewCourseEnd(t time.Time) (courseEnd, error) {
-	if t.Before(time.Now()) {
-		return courseEnd(time.Time{}), ErrInvalidCourseEnd
-	}
-	return courseEnd(t), nil
-}
-
-// ToTime returns the time.Time representation of the course end.
-func (c courseEnd) ToTime() time.Time {
-	return time.Time(c)
+	return t
 }

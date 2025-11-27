@@ -10,8 +10,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/knadh/koanf/v2 v2.3.0
-	github.com/robfig/cron/v3 v3.0.0
 	github.com/sirupsen/logrus v1.9.3
+	github.com/teambition/rrule-go v1.8.2
 	go.mongodb.org/mongo-driver/v2 v2.4.0
 )
 
