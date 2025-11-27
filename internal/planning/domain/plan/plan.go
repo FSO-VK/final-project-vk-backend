@@ -28,10 +28,6 @@ type Plan struct {
 	status Status
 	// schedule contains the schedule of the plan.
 	schedule schedule
-	// courseStart is a date and time when the planned course starts.
-	courseStart courseStart
-	// courseEnd is a date and time when the planned course ends.
-	courseEnd courseEnd
 	// condition is a description of the condition
 	// under which the medication should be taken.
 	condition string
@@ -45,24 +41,16 @@ func NewPlan(
 	medicationID uuid.UUID,
 	dosage dosage,
 	schedule schedule,
-	start courseStart,
-	end courseEnd,
 	condition string,
 	createdAt time.Time,
 	updatedAt time.Time,
 ) (*Plan, error) {
-	if end.ToTime().Before(start.ToTime()) {
-		return nil, ErrCourseRange
-	}
-
 	return &Plan{
 		id:           id,
 		medicationID: medicationID,
 		dosage:       dosage,
 		schedule:     schedule,
 		status:       StatusActive,
-		courseStart:  start,
-		courseEnd:    end,
 		condition:    condition,
 		createdAt:    createdAt,
 		updatedAt:    updatedAt,
@@ -82,14 +70,12 @@ func (p *Plan) ChangeDosage(d dosage) (*Plan, error) {
 // ChangeSchedule executes business logic for changing the schedule of the plan.
 func (p *Plan) ChangeSchedule(
 	newSchedule schedule,
-	newStart courseStart,
 ) (*Plan, error) {
 	if p.status != StatusActive {
 		return nil, ErrFinishedPlan
 	}
 
 	p.schedule = newSchedule
-	p.courseStart = newStart
 	return p, nil
 }
 
@@ -98,10 +84,6 @@ func (p *Plan) ChangeSchedule(
 func (p *Plan) Schedule(from, to time.Time) []time.Time {
 	if from.After(to) {
 		return nil
-	}
-
-	if to.After(p.courseEnd.ToTime()) {
-		to = p.courseEnd.ToTime()
 	}
 
 	var schedule []time.Time
