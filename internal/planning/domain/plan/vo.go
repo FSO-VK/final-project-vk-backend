@@ -99,8 +99,13 @@ func NewSchedule(start, end time.Time, rules []*rrule.RRule) (schedule, error) {
 func (s *schedule) Next(from time.Time) time.Time {
 	var t time.Time
 	for _, rules := range s.rules {
-		next := rules.After(from, false)
-		t = time.Unix(min(t.Unix(), next.Unix()), 0)
+		next := rules.After(from, true)
+		if next.IsZero() {
+			continue
+		}
+		if t.IsZero() || next.Before(t) {
+			t = next
+		}
 	}
 	return t
 }
