@@ -38,4 +38,8 @@ gigachat:
   temperature: ${GIGACHAT_TEMPERATURE:-0.1}
   maxTokens: ${GIGACHAT_MAX_TOKENS:-2000}
   timeout: ${GIGACHAT_TIMEOUT:-30s}
-  baseSystemPromptPath: ${GIGACHAT_BASE_SYSTEM_PROMPT_PATH:-./templates/prompt.tmpl}
+  baseSystemPromptPath: ${GIGACHAT_BASE_SYSTEM_PROMPT_PATH:-./prompt.tmpl}
+
+assistant:
+  selectInstructionFieldPromptPath: ${GIGACHAT_SELECT_INSTRUCTION_FIELD_PROMPT_PATH:-./select_instruction_field.tmpl}
+  consultingPromptPath: ${GIGACHAT_CONSULTING_PROMPT_PATH:-./instruction_consultation.tmpl}

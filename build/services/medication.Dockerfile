@@ -14,9 +14,7 @@ FROM alpine:3.22
 
 WORKDIR /medication
 
-COPY --from=builder /build/main /build/config/ ./
-COPY --from=builder /build/templates/ ./templates/
-COPY --from=builder /build/internal/medication/infrastructure/llm_chat_bot/templates/ ./internal/medication/infrastructure/llm_chat_bot/templates/
+COPY --from=builder /build/main /build/config/ /build/templates/prompt.tmpl /build/internal/medication/infrastructure/llm_chat_bot/templates/ ./
 
 ENTRYPOINT ["./main"]
 

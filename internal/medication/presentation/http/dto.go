@@ -31,7 +31,6 @@ type BodyCommonObject struct {
 	Expiration        string                  `json:"expirationDate"`
 	Release           string                  `json:"releaseDate,omitempty"`
 	Commentary        string                  `json:"commentary"`
-	BarCode           string                  `json:"barCode"`
 }
 
 // BodyAPIObject is a api structure of JSON object.

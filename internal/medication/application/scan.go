@@ -60,6 +60,8 @@ type DataMatrixInformationCommand struct {
 type DataMatrixInformationResponse struct {
 	// embedded struct
 	CommandBase
+
+	BarCode string `json:"barCode"`
 }
 
 // DataMatrix is a struct for parsed data matrix.
@@ -134,8 +136,8 @@ func (s *DataMatrixInformationService) Execute(
 			Expires:             dataMatrixInfo.Expires,
 			Release:             dataMatrixInfo.Release,
 			Commentary:          "",
-			BarCode:             barCode,
 		},
+		BarCode: barCode,
 	}, errOut
 }
 

@@ -45,7 +45,8 @@ type AddMedicationCommand struct {
 	// embedded struct
 	CommandBase
 
-	UserID string `validate:"required,uuid"`
+	BarCode string `json:"barCode"`
+	UserID  string `validate:"required,uuid"`
 }
 
 // AddMedicationResponse is a response to add a medication.

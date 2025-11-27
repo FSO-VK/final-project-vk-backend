@@ -13,10 +13,12 @@ const (
 	MsgFailToParseID api.ErrorType = "Failed to parse id"
 	// MsgFailedToGetIfoFromScan is a message for failed to get info from scan.
 	MsgFailedToGetIfoFromScan api.ErrorType = "Failed to get info from scan"
-	// MsgFailedToGetMedicationBox is a message for failed to get info from scan.
+	// MsgFailedToGetMedicationBox is a message for failed to get medication box.
 	MsgFailedToGetMedicationBox api.ErrorType = "Failed to get medication box"
 	// MsgNoMedication indicates that no medication found.
 	MsgNoMedication api.ErrorType = "No medication found by such id"
 	// MsgFailedToGetMedication is shown when service failed to process get by id request.
 	MsgFailedToGetMedication api.ErrorType = "Failed to get medication"
+	// MsgFailedToGetInfoFromLLM is a message for failed to get info from LLM.
+	MsgFailedToGetInfoFromLLM api.ErrorType = "Failed to get info from LLM"
 )

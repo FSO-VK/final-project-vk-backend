@@ -66,7 +66,10 @@ func main() {
 	)
 	medicationBoxRepo := memory.NewMedicationBoxStorage()
 	instructionLLMProvider := gigachat.NewGigachatLLMProvider(conf.Gigachat)
-	instructionLLM := instructionAssistant.NewLLMChatBot(instructionLLMProvider)
+	instructionLLM := instructionAssistant.NewLLMChatBot(
+		instructionLLMProvider,
+		conf.Assistant,
+	)
 
 	app := &application.MedicationApplication{
 		GetMedicationBox: application.NewGetMedicationBoxService(

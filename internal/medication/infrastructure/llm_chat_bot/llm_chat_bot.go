@@ -23,14 +23,17 @@ var (
 // LLMChatBot is a service for getting instruction advice.
 type LLMChatBot struct {
 	llmProvider llm.Provider
+	conf        InstructionAssistantConfig
 }
 
 // NewLLMChatBot returns a new LLMChatBot.
 func NewLLMChatBot(
 	llmProvider llm.Provider,
+	conf InstructionAssistantConfig,
 ) *LLMChatBot {
 	return &LLMChatBot{
 		llmProvider: llmProvider,
+		conf:        conf,
 	}
 }
 
@@ -51,9 +54,7 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 	instruction any,
 	userQuestion string,
 ) (string, error) {
-	selectFieldTemplate, err := template.ParseFiles(
-		"./internal/medication/infrastructure/llm_chat_bot/templates/select_instruction_field.tmpl",
-	)
+	selectFieldTemplate, err := template.ParseFiles(s.conf.SelectInstructionFieldPromptPath)
 	if err != nil {
 		return "", ErrWithSystemPrompt
 	}
@@ -84,9 +85,7 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 		return "", err
 	}
 
-	consultTemplate, err := template.ParseFiles(
-		"./internal/medication/infrastructure/llm_chat_bot/templates/instruction_consultation.tmpl",
-	)
+	consultTemplate, err := template.ParseFiles(s.conf.ConsultingPromptPath)
 	if err != nil {
 		return "", ErrWithSystemPrompt
 	}
