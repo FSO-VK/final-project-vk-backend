@@ -1,14 +1,13 @@
-package plan
-
-// Testing as a white box because VO are unexported.
+package plan_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
 	"github.com/teambition/rrule-go"
 )
-
 
 func Test_schedule_Next(t *testing.T) {
 	t.Parallel()
@@ -23,23 +22,22 @@ func Test_schedule_Next(t *testing.T) {
 		want time.Time
 	}{
 		{
-			name: "Should return next occurrence",
+			name:  "Should return next occurrence",
 			start: time.Date(2024, 1, 1, 9, 0, 0, 0, time.UTC),
-			end: time.Date(2024, 1, 10, 9, 0, 0, 0, time.UTC),
+			end:   time.Date(2024, 1, 10, 9, 0, 0, 0, time.UTC),
 			rules: func() []*rrule.RRule {
-				var rule1, rule2 *rrule.RRule
-				rule1, err := rrule.NewRRule(rrule.ROption{
-					Freq: rrule.DAILY,
+				rule1, err1 := rrule.NewRRule(rrule.ROption{
+					Freq:   rrule.DAILY,
 					Byhour: []int{9, 19},
 				})
-				rule2, err = rrule.NewRRule(rrule.ROption{
+				rule2, err2 := rrule.NewRRule(rrule.ROption{
 					// friday is a January 5, 2024
 					Byweekday: []rrule.Weekday{rrule.MO, rrule.WE, rrule.FR},
 					Freq:      rrule.WEEKLY,
 					Byhour:    []int{15},
 				})
-				if err != nil {
-					t.Fatalf("arrange failed: %v", err)
+				if err1 != nil || err2 != nil {
+					t.Fatalf("arrange failed: %v", errors.Join(err1, err2))
 				}
 				return []*rrule.RRule{rule1, rule2}
 			}(),
@@ -47,9 +45,9 @@ func Test_schedule_Next(t *testing.T) {
 			want: time.Date(2024, 1, 5, 15, 0, 0, 0, time.UTC),
 		},
 		{
-			name: "Should return zero time if there is no next occurrence",
+			name:  "Should return zero time if there is no next occurrence",
 			start: time.Date(2024, 1, 1, 9, 0, 0, 0, time.UTC),
-			end: time.Date(2024, 1, 3, 9, 0, 0, 0, time.UTC),
+			end:   time.Date(2024, 1, 3, 9, 0, 0, 0, time.UTC),
 			rules: func() []*rrule.RRule {
 				rule, err := rrule.NewRRule(rrule.ROption{
 					Freq:   rrule.DAILY,
@@ -67,7 +65,7 @@ func Test_schedule_Next(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			s, err := NewSchedule(tt.start, tt.end, tt.rules)
+			s, err := plan.NewSchedule(tt.start, tt.end, tt.rules)
 			if err != nil {
 				t.Fatalf("could not construct receiver type: %v", err)
 			}

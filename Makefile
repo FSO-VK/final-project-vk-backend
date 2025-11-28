@@ -1,4 +1,8 @@
-.PHONY: dev format lint test
+.PHONY: setup dev format lint test
+
+setup:
+	go mod download
+	go tool lefthook install
 
 dev:
 	docker compose -f compose.dev.yml up --build --watch

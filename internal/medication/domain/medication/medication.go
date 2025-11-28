@@ -67,8 +67,6 @@ func NewMedication(
 //
 // Revive consider to name this struct as Draft
 // but it's more clear to name the struct as-is.
-//
-//nolint:revive
 type MedicationDraft struct {
 	// required fields
 	ID             uuid.UUID
