@@ -19,6 +19,8 @@ const (
 	MsgNoMedication api.ErrorType = "No medication found by such id"
 	// MsgFailedToGetMedication is shown when service failed to process get by id request.
 	MsgFailedToGetMedication api.ErrorType = "Failed to get medication"
+	// MsgFailedToGetInstructions is a message for failed to get instructions.
+	MsgFailedToGetInstructions api.ErrorType = "Failed to get instructions"
 	// MsgFailedToGetInfoFromLLM is a message for failed to get info from LLM.
 	MsgFailedToGetInfoFromLLM api.ErrorType = "Failed to get info from LLM"
 )

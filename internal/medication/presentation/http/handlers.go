@@ -581,12 +581,10 @@ func (h *MedicationHandlers) InstructionAssistant(w http.ResponseWriter, r *http
 	if err != nil {
 		logger.WithError(err).Errorf("service: %s", err)
 
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
-			StatusCode: http.StatusInternalServerError,
-			Body:       struct{}{},
-			Error:      MsgFailedToGetInfoFromLLM,
-		})
+		status, body := h.handleAssistantServiceError(err)
+
+		w.WriteHeader(status)
+		_ = httputil.NetHTTPWriteJSON(w, body)
 		return
 	}
 	response := &InstructionAssistantJSONResponse{
@@ -733,6 +731,36 @@ func (h *MedicationHandlers) handleDMServiceError(err error) (int, *api.Response
 			StatusCode: http.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      MsgFailedToGetIfoFromScan,
+		}
+	}
+}
+
+// handleAssistantServiceError maps service errors to HTTP status and API responses using switch.
+func (h *MedicationHandlers) handleAssistantServiceError(err error) (int, *api.Response[any]) {
+	switch {
+	case errors.Is(err, application.ErrValidationFail):
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		}
+	case errors.Is(err, application.ErrNoMedication):
+		return http.StatusNotFound, &api.Response[any]{
+			StatusCode: http.StatusNotFound,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetMedication,
+		}
+	case errors.Is(err, application.ErrNoInstruction):
+		return http.StatusNotFound, &api.Response[any]{
+			StatusCode: http.StatusNotFound,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetInstructions,
+		}
+	default:
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetInfoFromLLM,
 		}
 	}
 }
