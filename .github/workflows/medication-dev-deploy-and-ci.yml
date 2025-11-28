@@ -135,6 +135,6 @@ jobs:
           # В publish всегда используем тег dev
           TAG="${{ env.IMAGE_REPO }}:dev"
           echo "Buildx build+push -> ${TAG}"
-          docker buildx build --push --platform linux/amd64,linux/arm64 \
+          docker buildx build --push --platform linux/amd64 \
             --tag "${TAG}" \
             -f ./build/services/medication.Dockerfile .
