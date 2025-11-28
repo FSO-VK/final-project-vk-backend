@@ -23,6 +23,7 @@ var (
 type Plan struct {
 	id           uuid.UUID
 	medicationID uuid.UUID
+	userID       uuid.UUID
 	// dosage is an amount of medication intake per one take.
 	dosage dosage
 	status Status
@@ -39,6 +40,7 @@ type Plan struct {
 func NewPlan(
 	id uuid.UUID,
 	medicationID uuid.UUID,
+	userID uuid.UUID,
 	dosage dosage,
 	schedule schedule,
 	condition string,
@@ -48,6 +50,7 @@ func NewPlan(
 	return &Plan{
 		id:           id,
 		medicationID: medicationID,
+		userID:       userID,
 		dosage:       dosage,
 		schedule:     schedule,
 		status:       StatusActive,
@@ -125,6 +128,11 @@ func (p *Plan) MedicationID() uuid.UUID {
 	return p.medicationID
 }
 
+// UserID returns the id of user (owner of the plan).
+func (p *Plan) UserID() uuid.UUID {
+	return p.userID
+}
+
 // Dosage returns the dosage per intake.
 // It returns amount and unit.
 func (p *Plan) Dosage() (float64, string) {
@@ -139,4 +147,27 @@ func (p *Plan) IsActive() bool {
 // Condition returns the intake condition of the plan.
 func (p *Plan) Condition() string {
 	return p.condition
+}
+
+// CourseStart returns the start of the plan.
+func (p *Plan) CourseStart() time.Time {
+	return p.schedule.start
+}
+
+// CourseEnd returns the end of the plan.
+func (p *Plan) CourseEnd() time.Time {
+	return p.schedule.end
+}
+
+// ScheduleIcal returns the recurrence rules in iCalendar RFC 5545 format.
+// Each rule string defines a recurrence pattern for the schedule using the RRULE property.
+// The format specifies how the event repeats over time (frequency, interval, by day, etc.).
+// Multiple rules can be returned for complex schedules with different patterns.
+// RFC 5545 Specification: https://tools.ietf.org/html/rfc5545#section-3.3.10
+func (p *Plan) ScheduleIcal() []string {
+	rules := make([]string, 0, len(p.schedule.rules))
+	for _, rule := range p.schedule.rules {
+		rules = append(rules, rule.String())
+	}
+	return rules
 }
