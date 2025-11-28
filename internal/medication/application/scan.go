@@ -61,7 +61,7 @@ type DataMatrixInformationResponse struct {
 	// embedded struct
 	CommandBase
 
-	BarCode string `validate:"required,min=13,max=13,numeric"`
+	BarCode string
 }
 
 // DataMatrix is a struct for parsed data matrix.
