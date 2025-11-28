@@ -103,9 +103,9 @@ func (s *AddPlanService) Execute(
 		AmountValue:    amountValue,
 		AmountUnit:     amountunit,
 		Condition:      newPlan.Condition(),
-		StartDate:      newPlan.Start(),
-		EndDate:        newPlan.End(),
-		RecurrenceRule: newPlan.Rrules(),
+		StartDate:      newPlan.CourseStart().Format(time.RFC3339),
+		EndDate:        newPlan.CourseEnd().Format(time.RFC3339),
+		RecurrenceRule: newPlan.ScheduleIcal(),
 	}
 	return response, nil
 }

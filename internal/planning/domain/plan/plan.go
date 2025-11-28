@@ -149,18 +149,22 @@ func (p *Plan) Condition() string {
 	return p.condition
 }
 
-// Start returns the start of the plan.
-func (p *Plan) Start() string {
-	return p.schedule.start.String()
+// CourseStart returns the start of the plan.
+func (p *Plan) CourseStart() time.Time {
+	return p.schedule.start
 }
 
-// End returns the end of the plan.
-func (p *Plan) End() string {
-	return p.schedule.end.String()
+// CourseEnd returns the end of the plan.
+func (p *Plan) CourseEnd() time.Time {
+	return p.schedule.end
 }
 
-// Rrules returns the recurrence rules of the plan.
-func (p *Plan) Rrules() []string {
+// ScheduleIcal returns the recurrence rules in iCalendar RFC 5545 format.
+// Each rule string defines a recurrence pattern for the schedule using the RRULE property.
+// The format specifies how the event repeats over time (frequency, interval, by day, etc.).
+// Multiple rules can be returned for complex schedules with different patterns.
+// RFC 5545 Specification: https://tools.ietf.org/html/rfc5545#section-3.3.10
+func (p *Plan) ScheduleIcal() []string {
 	rules := make([]string, 0, len(p.schedule.rules))
 	for _, rule := range p.schedule.rules {
 		rules = append(rules, rule.String())
