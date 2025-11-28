@@ -22,8 +22,8 @@ var (
 	ErrEmptyResponse = errors.New("empty response")
 	// ErrFailedToGetToken is returned when the access token is missing in the response.
 	ErrFailedToGetToken = errors.New("failed to get token")
-	// ErrWithSystemPrompt is returned when the access token is missing in the response.
-	ErrWithSystemPrompt = errors.New("failed to get token")
+	// ErrWithSystemPrompt is returned when the system prompt is missing.
+	ErrWithSystemPrompt = errors.New("failed to get system prompt")
 	// ErrInvalidResponse is returned when the response is invalid.
 	ErrInvalidResponse = errors.New("invalid response")
 )
@@ -107,7 +107,7 @@ func (h *GigachatLLMProvider) Query(servicePrompt string) (string, error) {
 		return "", ErrInvalidResponse
 	}
 
-	if response != "" {
+	if response == "" {
 		return "", ErrInvalidResponse
 	}
 	return response, nil
@@ -181,7 +181,6 @@ func parseGigaChatResponse(resp *http.Response) (string, error) {
 	if len(result.Choices) > 0 && result.Choices[0].Message.Content != "" {
 		return result.Choices[0].Message.Content, nil
 	}
-
 	return "", ErrEmptyResponse
 }
 

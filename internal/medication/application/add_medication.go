@@ -45,7 +45,8 @@ type AddMedicationCommand struct {
 	// embedded struct
 	CommandBase
 
-	UserID string `validate:"required,uuid"`
+	BarCode string `validate:"required,len=13,numeric"`
+	UserID  string `validate:"required,uuid"`
 }
 
 // AddMedicationResponse is a response to add a medication.
@@ -102,6 +103,7 @@ func (s *AddMedicationService) Execute(
 			ReleaseDate:     release,
 			CreatedAt:       time.Now(),
 			UpdatedAt:       time.Now(),
+			BarCode:         req.BarCode,
 		},
 	)
 	if err != nil {

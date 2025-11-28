@@ -14,23 +14,26 @@ import (
 var (
 	// ErrEmptyResponse is returned when the response body is empty or contains no data.
 	ErrEmptyResponse = errors.New("empty response")
-	// ErrWithSystemPrompt is returned when the access token is missing in the response.
-	ErrWithSystemPrompt = errors.New("failed to get token")
+	// ErrWithSystemPrompt is returned when the system prompt is missing.
+	ErrWithSystemPrompt = errors.New("err with system prompt")
 	// ErrInvalidInstruction is returned when the instruction is invalid.
 	ErrInvalidInstruction = errors.New("invalid instruction")
 )
 
-// LLMChatBot is a service for getting a Box of medications.
+// LLMChatBot is a service for getting instruction advice.
 type LLMChatBot struct {
 	llmProvider llm.Provider
+	conf        InstructionAssistantConfig
 }
 
 // NewLLMChatBot returns a new LLMChatBot.
 func NewLLMChatBot(
 	llmProvider llm.Provider,
+	conf InstructionAssistantConfig,
 ) *LLMChatBot {
 	return &LLMChatBot{
 		llmProvider: llmProvider,
+		conf:        conf,
 	}
 }
 
@@ -51,9 +54,7 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 	instruction any,
 	userQuestion string,
 ) (string, error) {
-	template, err := template.ParseFiles(
-		"./internal/medication/infrastructure/llm_chat_bot/templates/select_instruction_field.tmpl",
-	)
+	selectFieldTemplate, err := template.ParseFiles(s.conf.SelectInstructionFieldPromptPath)
 	if err != nil {
 		return "", ErrWithSystemPrompt
 	}
@@ -69,7 +70,7 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 	}
 
 	var buf bytes.Buffer
-	if err := template.Execute(&buf, data); err != nil {
+	if err := selectFieldTemplate.Execute(&buf, data); err != nil {
 		return "", ErrWithSystemPrompt
 	}
 
@@ -84,9 +85,7 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 		return "", err
 	}
 
-	templateSecond, err := template.ParseFiles(
-		"./internal/medication/infrastructure/llm_chat_bot/templates/instruction_consultation.tmpl",
-	)
+	consultTemplate, err := template.ParseFiles(s.conf.ConsultingPromptPath)
 	if err != nil {
 		return "", ErrWithSystemPrompt
 	}
@@ -96,11 +95,11 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 	}
 
 	var bufSecond bytes.Buffer
-	if err := templateSecond.Execute(&bufSecond, instructionConsultationPromptData); err != nil {
+	if err := consultTemplate.Execute(&bufSecond, instructionConsultationPromptData); err != nil {
 		return "", ErrWithSystemPrompt
 	}
 
-	LLMFinalResponse := buf.String()
+	LLMFinalResponse := bufSecond.String()
 	finalResponse, err := s.llmProvider.Query(LLMFinalResponse)
 	if err != nil {
 		return "", err
@@ -109,12 +108,12 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 }
 
 func getFieldValue(doc interface{}, fieldName string) (string, error) {
+	fieldName = strings.ToUpper(fieldName[:1]) + fieldName[1:]
 	r := reflect.ValueOf(doc)
 
 	if r.Kind() != reflect.Struct {
 		return "", ErrInvalidInstruction
 	}
-
 	field := r.FieldByName(fieldName)
 	if !field.IsValid() {
 		return "", ErrInvalidInstruction

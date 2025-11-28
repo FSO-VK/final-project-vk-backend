@@ -40,6 +40,8 @@ func NewHandlers(
 // AddMedicationJSONRequest is a request for AddMedication.
 type AddMedicationJSONRequest struct {
 	BodyCommonObject `json:",inline"`
+
+	BarCode string `json:"barCode"`
 }
 
 // AddMedicationJSONResponse is a response for AddMedication.
@@ -47,7 +49,8 @@ type AddMedicationJSONResponse struct {
 	// embedded struct
 	BodyCommonObject `json:",inline"`
 
-	ID string `json:"id"`
+	BarCode string `json:"barCode"`
+	ID      string `json:"id"`
 }
 
 // AddMedication adds a medication.
@@ -110,6 +113,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 			Release:             reqJSON.Release,
 			Commentary:          reqJSON.Commentary,
 		},
+		BarCode: reqJSON.BarCode,
 	}
 
 	serviceResponse, err := h.app.AddMedication.Execute(
@@ -147,6 +151,7 @@ func (h *MedicationHandlers) AddMedication(w http.ResponseWriter, r *http.Reques
 			Release:         serviceResponse.Release,
 			Commentary:      serviceResponse.Commentary,
 		},
+		BarCode: serviceResponse.BarCode,
 	}
 	w.WriteHeader(http.StatusOK)
 	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -321,7 +326,8 @@ type GetMedicationBoxItem struct {
 	// embedded struct
 	BodyCommonObject `json:",inline"`
 
-	ID string `json:"id"`
+	BarCode string `json:"barCode"`
+	ID      string `json:"id"`
 }
 
 // GetMedicationBoxJSONResponse returns a Box of medications.
@@ -381,6 +387,7 @@ func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Req
 				Release:         medication.Release,
 				Commentary:      medication.Commentary,
 			},
+			BarCode: medication.BarCode,
 		})
 	}
 
@@ -396,6 +403,8 @@ func (h *MedicationHandlers) GetMedicationBox(w http.ResponseWriter, r *http.Req
 type DataMatrixInformationJSONResponse struct {
 	// embedded struct
 	BodyAPIObject `json:",inline"`
+
+	BarCode string `json:"barCode"`
 }
 
 // DataMatrixInformation adds a medication.
@@ -449,6 +458,7 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 			Expiration: serviceResponse.Expires,
 			Release:    serviceResponse.Release,
 		},
+		BarCode: serviceResponse.BarCode,
 	}
 	w.WriteHeader(http.StatusOK)
 	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
@@ -462,7 +472,8 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 type GetMedicationByIDJSONResponse struct {
 	BodyCommonObject `json:",inline"`
 
-	ID string `json:"id"`
+	BarCode string `json:"barCode"`
+	ID      string `json:"id"`
 }
 
 // GetMedicationByID is a handler for getting medication by its id.
@@ -514,8 +525,71 @@ func (h *MedicationHandlers) GetMedicationByID(w http.ResponseWriter, r *http.Re
 			Release:         medication.Release,
 			Commentary:      medication.Commentary,
 		},
+		BarCode: medication.BarCode,
 	}
 
+	w.WriteHeader(http.StatusOK)
+	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+		StatusCode: http.StatusOK,
+		Body:       response,
+		Error:      "",
+	})
+}
+
+// InstructionAssistantJSONResponse is a response for InstructionAssistant.
+type InstructionAssistantJSONResponse struct {
+	LLMAnswer string `json:"llmAnswer"`
+}
+
+// InstructionAssistant gives advices about medication instructions.
+func (h *MedicationHandlers) InstructionAssistant(w http.ResponseWriter, r *http.Request) {
+	logger := h.getLogger(r)
+
+	authorization, err := httputil.GetAuthFromCtx(r)
+	if err != nil {
+		h.writeResponseUnauthorized(w)
+		return
+	}
+
+	vars := mux.Vars(r)
+	id := vars[SlugID]
+
+	question := r.URL.Query().Get("question")
+	if question == "" {
+		logger.Error("Failed to read request query parameters")
+		w.WriteHeader(http.StatusBadRequest)
+
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Error:      api.MsgBadBody,
+			Body:       struct{}{},
+		})
+
+		return
+	}
+
+	serviceRequest := &application.InstructionAssistantCommand{
+		UserQuestion: question,
+		MedicationID: id,
+		UserID:       authorization.UserID,
+	}
+
+	serviceResponse, err := h.app.InstructionAssistant.Execute(
+		r.Context(),
+		serviceRequest,
+	)
+	if err != nil {
+		logger.WithError(err).Errorf("service: %s", err)
+
+		status, body := h.handleAssistantServiceError(err)
+
+		w.WriteHeader(status)
+		_ = httputil.NetHTTPWriteJSON(w, body)
+		return
+	}
+	response := &InstructionAssistantJSONResponse{
+		LLMAnswer: serviceResponse.LLMAnswer,
+	}
 	w.WriteHeader(http.StatusOK)
 	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
 		StatusCode: http.StatusOK,
@@ -657,6 +731,36 @@ func (h *MedicationHandlers) handleDMServiceError(err error) (int, *api.Response
 			StatusCode: http.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      MsgFailedToGetIfoFromScan,
+		}
+	}
+}
+
+// handleAssistantServiceError maps service errors to HTTP status and API responses using switch.
+func (h *MedicationHandlers) handleAssistantServiceError(err error) (int, *api.Response[any]) {
+	switch {
+	case errors.Is(err, application.ErrValidationFail):
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		}
+	case errors.Is(err, application.ErrNoMedication):
+		return http.StatusNotFound, &api.Response[any]{
+			StatusCode: http.StatusNotFound,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetMedication,
+		}
+	case errors.Is(err, application.ErrNoInstruction):
+		return http.StatusNotFound, &api.Response[any]{
+			StatusCode: http.StatusNotFound,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetInstructions,
+		}
+	default:
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetInfoFromLLM,
 		}
 	}
 }

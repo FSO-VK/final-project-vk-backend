@@ -37,6 +37,7 @@ type ResponseBase struct {
 	Expires             string
 	Release             string
 	Commentary          string
+	BarCode             string
 }
 
 // ActiveSubstance represents active substance.
@@ -66,6 +67,7 @@ func responseBaseMapper(m *medication.Medication) ResponseBase {
 		Expires:             m.GetExpirationDate().Format(time.DateOnly),
 		Release:             release,
 		Commentary:          m.GetCommentary().GetCommentary(),
+		BarCode:             m.GetBarCode(),
 	}
 }
 

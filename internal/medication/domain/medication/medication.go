@@ -27,6 +27,7 @@ type Medication struct {
 	expirationDate  time.Time // срок годности
 	createdAt       time.Time
 	updatedAt       time.Time
+	barCode         string
 }
 
 // NewMedication creates a new medication.
@@ -44,6 +45,7 @@ func NewMedication(
 	commentary Commentary,
 	createdAt time.Time,
 	updatedAt time.Time,
+	barCode string,
 ) *Medication {
 	return &Medication{
 		id:                id,
@@ -59,6 +61,7 @@ func NewMedication(
 		commentary:        commentary,
 		createdAt:         createdAt,
 		updatedAt:         updatedAt,
+		barCode:           barCode,
 	}
 }
 
@@ -89,6 +92,8 @@ type MedicationDraft struct {
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
+
+	BarCode string
 }
 
 // ActiveSubstanceDraft represents a active substance draft entity.
@@ -209,6 +214,7 @@ func Parse(draft MedicationDraft) (*Medication, error) {
 		expirationDate:    draft.ExpirationDate,
 		createdAt:         draft.CreatedAt,
 		updatedAt:         draft.UpdatedAt,
+		barCode:           draft.BarCode,
 	}, nil
 }
 
@@ -330,4 +336,14 @@ func (m *Medication) GetCreatedAt() time.Time {
 // GetUpdatedAt returns the last modification timestamp of the medication.
 func (m *Medication) GetUpdatedAt() time.Time {
 	return m.updatedAt
+}
+
+// GetBarCode returns the bar code of the medication.
+func (m *Medication) GetBarCode() string {
+	return m.barCode
+}
+
+// SetBarCode updates the bar code of the medication.
+func (m *Medication) SetBarCode(barCode string) {
+	m.barCode = barCode
 }

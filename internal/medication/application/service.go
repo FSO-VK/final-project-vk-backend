@@ -10,4 +10,5 @@ type MedicationApplication struct {
 	UpdateMedication      UpdateMedication
 	DeleteMedication      DeleteMedication
 	DataMatrixInformation DataMatrixInformation
+	InstructionAssistant  InstructionAssistant
 }
