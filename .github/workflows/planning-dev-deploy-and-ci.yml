@@ -4,17 +4,17 @@ on:
   push:
     branches: [ master, dev ]
     paths:
-      - 'internal/medication/**'
-      - 'cmd/medication/**'
-      - 'build/services/medication.Dockerfile'
-      - 'config/medication-conf.yaml'
+      - 'internal/planning/**'
+      - 'cmd/planning/**'
+      - 'build/services/planning.Dockerfile'
+      - 'config/planning-conf.yaml'
   pull_request:
     branches: [ master, dev ]
     paths:
-      - 'internal/medication/**'
-      - 'cmd/medication/**'
-      - 'build/services/medication.Dockerfile'
-      - 'config/medication-conf.yaml'
+      - 'internal/planning/**'
+      - 'cmd/planning/**'
+      - 'build/services/planning.Dockerfile'
+      - 'config/planning-conf.yaml'
   workflow_dispatch:
     inputs:
       ref:
@@ -24,7 +24,7 @@ on:
 
 env:
   GO_VERSION: '1.25.x'
-  IMAGE_REPO: ghcr.io/fso-vk/fso-medication
+  IMAGE_REPO: ghcr.io/fso-vk/fso-planning
 
 permissions:
   contents: read
@@ -89,10 +89,10 @@ jobs:
           fi
           
           TAG="${{ env.IMAGE_REPO }}:${TARGET}"
-          echo "Building image ${TAG} using build/services/medication.Dockerfile"
+          echo "Building image ${TAG} using build/services/planning.Dockerfile"
           docker buildx build --load \
             --tag "${TAG}" \
-            -f ./build/services/medication.Dockerfile .
+            -f ./build/services/planning.Dockerfile .
 
   test:
     name: Run tests
@@ -137,4 +137,4 @@ jobs:
           echo "Buildx build+push -> ${TAG}"
           docker buildx build --push --platform linux/amd64 \
             --tag "${TAG}" \
-            -f ./build/services/medication.Dockerfile .
+            -f ./build/services/planning.Dockerfile .

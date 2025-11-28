@@ -23,15 +23,12 @@ var (
 type Plan struct {
 	id           uuid.UUID
 	medicationID uuid.UUID
+	userID       uuid.UUID
 	// dosage is an amount of medication intake per one take.
 	dosage dosage
 	status Status
 	// schedule contains the schedule of the plan.
 	schedule schedule
-	// courseStart is a date and time when the planned course starts.
-	courseStart courseStart
-	// courseEnd is a date and time when the planned course ends.
-	courseEnd courseEnd
 	// condition is a description of the condition
 	// under which the medication should be taken.
 	condition string
@@ -43,26 +40,20 @@ type Plan struct {
 func NewPlan(
 	id uuid.UUID,
 	medicationID uuid.UUID,
+	userID uuid.UUID,
 	dosage dosage,
 	schedule schedule,
-	start courseStart,
-	end courseEnd,
 	condition string,
 	createdAt time.Time,
 	updatedAt time.Time,
 ) (*Plan, error) {
-	if end.ToTime().Before(start.ToTime()) {
-		return nil, ErrCourseRange
-	}
-
 	return &Plan{
 		id:           id,
 		medicationID: medicationID,
+		userID:       userID,
 		dosage:       dosage,
 		schedule:     schedule,
 		status:       StatusActive,
-		courseStart:  start,
-		courseEnd:    end,
 		condition:    condition,
 		createdAt:    createdAt,
 		updatedAt:    updatedAt,
@@ -82,14 +73,12 @@ func (p *Plan) ChangeDosage(d dosage) (*Plan, error) {
 // ChangeSchedule executes business logic for changing the schedule of the plan.
 func (p *Plan) ChangeSchedule(
 	newSchedule schedule,
-	newStart courseStart,
 ) (*Plan, error) {
 	if p.status != StatusActive {
 		return nil, ErrFinishedPlan
 	}
 
 	p.schedule = newSchedule
-	p.courseStart = newStart
 	return p, nil
 }
 
@@ -98,10 +87,6 @@ func (p *Plan) ChangeSchedule(
 func (p *Plan) Schedule(from, to time.Time) []time.Time {
 	if from.After(to) {
 		return nil
-	}
-
-	if to.After(p.courseEnd.ToTime()) {
-		to = p.courseEnd.ToTime()
 	}
 
 	var schedule []time.Time
@@ -131,4 +116,58 @@ func (p *Plan) GenerateIntakeRecords(from, to time.Time) ([]*intake.IntakeRecord
 	}
 
 	return records, nil
+}
+
+// ID returns the ID of the plan.
+func (p *Plan) ID() uuid.UUID {
+	return p.id
+}
+
+// MedicationID returns the medication ID of the plan.
+func (p *Plan) MedicationID() uuid.UUID {
+	return p.medicationID
+}
+
+// UserID returns the id of user (owner of the plan).
+func (p *Plan) UserID() uuid.UUID {
+	return p.userID
+}
+
+// Dosage returns the dosage per intake.
+// It returns amount and unit.
+func (p *Plan) Dosage() (float64, string) {
+	return p.dosage.value, p.dosage.unit
+}
+
+// IsActive tells whether the plan is active.
+func (p *Plan) IsActive() bool {
+	return p.status == StatusActive
+}
+
+// Condition returns the intake condition of the plan.
+func (p *Plan) Condition() string {
+	return p.condition
+}
+
+// CourseStart returns the start of the plan.
+func (p *Plan) CourseStart() time.Time {
+	return p.schedule.start
+}
+
+// CourseEnd returns the end of the plan.
+func (p *Plan) CourseEnd() time.Time {
+	return p.schedule.end
+}
+
+// ScheduleIcal returns the recurrence rules in iCalendar RFC 5545 format.
+// Each rule string defines a recurrence pattern for the schedule using the RRULE property.
+// The format specifies how the event repeats over time (frequency, interval, by day, etc.).
+// Multiple rules can be returned for complex schedules with different patterns.
+// RFC 5545 Specification: https://tools.ietf.org/html/rfc5545#section-3.3.10
+func (p *Plan) ScheduleIcal() []string {
+	rules := make([]string, 0, len(p.schedule.rules))
+	for _, rule := range p.schedule.rules {
+		rules = append(rules, rule.String())
+	}
+	return rules
 }

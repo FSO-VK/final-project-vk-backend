@@ -25,22 +25,25 @@ func Required(value string) error {
 }
 
 func MinLength(value string, length int) error {
-	if len(value) < length {
-		return fmt.Errorf("%w: can't be less than %d", ErrValueShort, length)
+	l := len([]rune(value))
+	if l < length {
+		return fmt.Errorf("%w: can't be less than %d, got %d", ErrValueShort, length, l)
 	}
 	return nil
 }
 
 func MaxLength(value string, length int) error {
-	if len(value) > length {
-		return fmt.Errorf("%w: can't be longer than %d", ErrValueLong, length)
+	l := len([]rune(value))
+	if l > length {
+		return fmt.Errorf("%w: can't be longer than %d, got %d", ErrValueLong, length, l)
 	}
 	return nil
 }
 
 func FixedLength(value string, length int) error {
-	if len(value) != length {
-		return fmt.Errorf("%w: %d", ErrValueFixedLength, length)
+	l := len([]rune(value))
+	if l != length {
+		return fmt.Errorf("%w: should %d, got %d", ErrValueFixedLength, length, l)
 	}
 	return nil
 }
@@ -114,19 +117,19 @@ func Crypto92(value string) error {
 func EAN13(value string) error {
 	err := FixedLength(value, 13)
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrNoEAN13, value)
+		return fmt.Errorf("%w: %s: must have 13 digits", ErrNoEAN13, value)
 	}
 
 	var ean13 [13]int
 	for i, r := range value {
 		if !unicode.IsDigit(r) {
-			return fmt.Errorf("%w: %s", ErrNoEAN13, value)
+			return fmt.Errorf("%w: %s: contains non-digit", ErrNoEAN13, value)
 		}
 		ean13[i] = int(r - '0')
 	}
 
 	if !isCorrectEAN13Checksum(ean13) {
-		return fmt.Errorf("%w: %s", ErrNoEAN13, value)
+		return fmt.Errorf("%w: %s: incorrect check digit", ErrNoEAN13, value)
 	}
 	return nil
 }
@@ -141,6 +144,6 @@ func isCorrectEAN13Checksum(ean13 [13]int) bool {
 		}
 	}
 
-	checkDigit := 10 - (sum % 10)
+	checkDigit := (10 - (sum % 10)) % 10
 	return checkDigit == ean13[12]
 }

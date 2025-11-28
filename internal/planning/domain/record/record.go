@@ -63,12 +63,22 @@ func (r *IntakeRecord) Reschedule(newPlannedTime time.Time) (*IntakeRecord, erro
 	return r, nil
 }
 
-// GetStatus returns the status of the record.
-func (r *IntakeRecord) GetStatus() Status {
-	return r.status
+// IsTaken returns the status of the record.
+func (r *IntakeRecord) IsTaken() bool {
+	return r.status == StatusTaken
 }
 
-// GetPlannedTime returns the planned time of the intake.
-func (r *IntakeRecord) GetPlannedTime() time.Time {
+// PlannedTime returns the planned time of the intake.
+func (r *IntakeRecord) PlannedTime() time.Time {
 	return r.plannedAt
+}
+
+// ID returns the ID of the intake record.
+func (r *IntakeRecord) ID() uuid.UUID {
+	return r.id
+}
+
+// PlanID returns the plan ID associated with the intake record.
+func (r *IntakeRecord) PlanID() uuid.UUID {
+	return r.planID
 }

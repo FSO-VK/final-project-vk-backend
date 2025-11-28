@@ -10,5 +10,4 @@ var (
 	ErrNoMedication = errors.New("no medication")
 	// ErrNoInstruction indicates that no instruction was found.
 	ErrNoInstruction = errors.New("no instruction")
-
 )

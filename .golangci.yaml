@@ -37,6 +37,13 @@ linters:
           - gocritic
           - godox
           - gosec
+      - path-except: internal/planning/
+        linters:
+          - revive
+          - exhaustruct
+          - gocritic
+          - godox
+          - gosec
 formatters:
   enable:
     - gci

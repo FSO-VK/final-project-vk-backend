@@ -94,7 +94,7 @@ type CompanyInfo struct {
 	IsRegistrationCertificate bool    `json:"isRegistrationCertificate"`
 	IsManufacturer            bool    `json:"isManufacturer"`
 	Company                   Company `json:"company"`
-	CompanyRusNote            *string `json:"companyRusNote"`
+	CompanyRusNote            string  `json:"companyRusNote"`
 }
 
 // Company represents company details.
