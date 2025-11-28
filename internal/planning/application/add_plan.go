@@ -59,7 +59,18 @@ type AddPlanCommand struct {
 }
 
 // AddPlanResponse is a response to add a plan.
-type AddPlanResponse struct{}
+type AddPlanResponse struct {
+	ID             string
+	MedicationID   string
+	UserID         string
+	AmountValue    float64
+	AmountUnit     string
+	Condition      string
+	StartDate      string
+	EndDate        string
+	Duration       string
+	RecurrenceRule []string
+}
 
 // Execute executes the AddPlan command.
 func (s *AddPlanService) Execute(
