@@ -114,3 +114,29 @@ func (p *Plan) GenerateIntakeRecords(from, to time.Time) ([]*intake.IntakeRecord
 
 	return records, nil
 }
+
+// ID returns the ID of the plan.
+func (p *Plan) ID() uuid.UUID {
+	return p.id
+}
+
+// MedicationID returns the medication ID of the plan.
+func (p *Plan) MedicationID() uuid.UUID {
+	return p.medicationID
+}
+
+// Dosage returns the dosage per intake.
+// It returns amount and unit.
+func (p *Plan) Dosage() (float64, string) {
+	return p.dosage.value, p.dosage.unit
+}
+
+// IsActive tells whether the plan is active.
+func (p *Plan) IsActive() bool {
+	return p.status == StatusActive
+}
+
+// Condition returns the intake condition of the plan.
+func (p *Plan) Condition() string {
+	return p.condition
+}
