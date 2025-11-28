@@ -113,43 +113,43 @@ func (s *AddPlanService) Execute(
 func createPlan(req *AddPlanCommand,
 	userID uuid.UUID,
 	medicationID uuid.UUID,
-) (plan.Plan, error) {
+) (*plan.Plan, error) {
 	dosage, err := plan.NewDosage(
 		req.AmountValue,
 		req.AmountUnit,
 	)
 	if err != nil {
-		return plan.Plan{}, fmt.Errorf("invalid dosage: %w", err)
+		return &plan.Plan{}, fmt.Errorf("invalid dosage: %w", err)
 	}
 
 	parsedStart, err := time.Parse(time.RFC3339, req.StartDate)
 	if err != nil {
-		return plan.Plan{}, fmt.Errorf("invalid course start: %w", err)
+		return &plan.Plan{}, fmt.Errorf("invalid course start: %w", err)
 	}
 
 	parsedEnd, err := time.Parse(time.RFC3339, req.EndDate)
 	if err != nil {
-		return plan.Plan{}, fmt.Errorf("invalid course end: %w", err)
+		return &plan.Plan{}, fmt.Errorf("invalid course end: %w", err)
 	}
 	if len(req.RecurrenceRule) == 0 {
-		return plan.Plan{}, ErrUnsupportedRrule
+		return &plan.Plan{}, ErrUnsupportedRrule
 	}
 	rules := make([]*rrule.RRule, 0, len(req.RecurrenceRule))
 
 	for _, ruleStr := range req.RecurrenceRule {
 		rule, err := rrule.StrToRRule(ruleStr)
 		if err != nil {
-			return plan.Plan{}, ErrUnsupportedRrule
+			return &plan.Plan{}, ErrUnsupportedRrule
 		}
 		rules = append(rules, rule)
 	}
 	schedule, err := plan.NewSchedule(parsedStart, parsedEnd, rules)
 	if err != nil {
-		return plan.Plan{}, fmt.Errorf("invalid schedule: %w", err)
+		return &plan.Plan{}, fmt.Errorf("invalid schedule: %w", err)
 	}
 	id, err := uuid.NewV7()
 	if err != nil {
-		return plan.Plan{}, fmt.Errorf("failed to generate uuid: %w", err)
+		return &plan.Plan{}, fmt.Errorf("failed to generate uuid: %w", err)
 	}
 	newPlan, err := plan.NewPlan(
 		id,
@@ -161,5 +161,5 @@ func createPlan(req *AddPlanCommand,
 		time.Now(),
 		time.Now(),
 	)
-	return *newPlan, err
+	return newPlan, err
 }
