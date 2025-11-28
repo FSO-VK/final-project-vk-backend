@@ -66,18 +66,18 @@ func (s *InstructionAssistantService) Execute(
 
 	uuidMedicationID, err := uuid.Parse(req.MedicationID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid user ID: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrValidationFail, err)
 	}
 
 	interestedMedication, err := s.medicationRepo.GetByID(ctx, uuidMedicationID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get medication: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrNoMedication, err)
 	}
 	barcode := interestedMedication.GetBarCode()
 
 	productInfo, err := s.instructionRepo.GetProductInfo(ctx, barcode)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get instruction: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrNoInstruction, err)
 	}
 
 	answer, err := s.instructionBot.AskInstructionTwoStep(productInfo.Instruction, req.UserQuestion)
