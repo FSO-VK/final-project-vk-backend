@@ -1,0 +1,7 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: Linter
+      run: make lint
+    - name: Tests
+      run: make test

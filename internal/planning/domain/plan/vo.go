@@ -71,6 +71,7 @@ type schedule struct {
 	rules []*rrule.RRule
 }
 
+// NewSchedule creates validated schedule.
 func NewSchedule(start, end time.Time, rules []*rrule.RRule) (schedule, error) {
 	if end.Before(start) {
 		return schedule{}, ErrInvalidSchedule
