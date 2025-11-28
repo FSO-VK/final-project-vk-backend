@@ -27,7 +27,10 @@ func NewPlanStorage() *PlanStorage {
 }
 
 // Create creates a new plan in memory.
-func (s *PlanStorage) Save(_ context.Context, newPlan *plan.Plan) error {
+func (s *PlanStorage) Save(
+	_ context.Context,
+	newPlan *plan.Plan,
+) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
