@@ -9,7 +9,7 @@ on:
         default: "master"
 
 env:
-  IMAGE_REPO: ghcr.io/fso-vk/fso-medication
+  IMAGE_REPO: ghcr.io/fso-vk/fso-planning
   GO_VERSION: '1.25.x'
 
 permissions:
@@ -44,4 +44,4 @@ jobs:
           echo "Publishing ${IMAGE_TAG}"
           docker buildx build --push --platform linux/amd64 \
             --tag "${IMAGE_TAG}" \
-            -f ./build/services/app/medication.Dockerfile .
+            -f ./build/services/app/planning.Dockerfile .
