@@ -13,10 +13,6 @@ import (
 	"github.com/teambition/rrule-go"
 )
 
-const (
-	dateLayout = "2006-01-02T15:04:05.000Z"
-)
-
 // ErrUnsupportedRrule is an error when rrule is unsupported.
 var ErrUnsupportedRrule = errors.New("rrule is unsupported")
 
@@ -47,15 +43,15 @@ func NewAddPlanService(
 
 // AddPlanCommand is a request to add a plan.
 type AddPlanCommand struct {
-	MedicationID   string
-	UserID         string
-	AmountValue    float64
-	AmountUnit     string
-	Condition      string
-	StartDate      string
-	EndDate        string
-	Duration       string
-	RecurrenceRule []string
+	MedicationID   string   `validate:"required,uuid"`
+	UserID         string   `validate:"required,uuid"`
+	AmountValue    float64  `validate:"required,gte=0"`
+	AmountUnit     string   `validate:"required"`
+	Condition      string   `validate:"omitempty,max=300"`
+	StartDate      string   `validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
+	EndDate        string   `validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
+	Duration       string   `validate:"required"`
+	RecurrenceRule []string `validate:"required"`
 }
 
 // AddPlanResponse is a response to add a plan.
@@ -68,7 +64,6 @@ type AddPlanResponse struct {
 	Condition      string
 	StartDate      string
 	EndDate        string
-	Duration       string
 	RecurrenceRule []string
 }
 
@@ -99,14 +94,25 @@ func (s *AddPlanService) Execute(
 	if err != nil {
 		return nil, fmt.Errorf("failed to save plan: %w", err)
 	}
+	amountValue, amountunit := newPlan.Dosage()
 
-	response := &AddPlanResponse{}
+	response := &AddPlanResponse{
+		ID:             newPlan.ID().String(),
+		MedicationID:   newPlan.MedicationID().String(),
+		UserID:         newPlan.UserID().String(),
+		AmountValue:    amountValue,
+		AmountUnit:     amountunit,
+		Condition:      newPlan.Condition(),
+		StartDate:      newPlan.Start(),
+		EndDate:        newPlan.End(),
+		RecurrenceRule: newPlan.Rrules(),
+	}
 	return response, nil
 }
 
 func createPlan(req *AddPlanCommand,
-	parsedUser uuid.UUID,
-	parsedMedicationID uuid.UUID,
+	userID uuid.UUID,
+	medicationID uuid.UUID,
 ) (plan.Plan, error) {
 	dosage, err := plan.NewDosage(
 		req.AmountValue,
@@ -116,16 +122,12 @@ func createPlan(req *AddPlanCommand,
 		return plan.Plan{}, fmt.Errorf("invalid dosage: %w", err)
 	}
 
-	if err != nil {
-		return plan.Plan{}, err
-	}
-
-	parsedStart, err := time.Parse(dateLayout, req.StartDate)
+	parsedStart, err := time.Parse(time.RFC3339, req.StartDate)
 	if err != nil {
 		return plan.Plan{}, fmt.Errorf("invalid course start: %w", err)
 	}
 
-	parsedEnd, err := time.Parse(dateLayout, req.EndDate)
+	parsedEnd, err := time.Parse(time.RFC3339, req.EndDate)
 	if err != nil {
 		return plan.Plan{}, fmt.Errorf("invalid course end: %w", err)
 	}
@@ -145,11 +147,14 @@ func createPlan(req *AddPlanCommand,
 	if err != nil {
 		return plan.Plan{}, fmt.Errorf("invalid schedule: %w", err)
 	}
-
+	id, err := uuid.NewV7()
+	if err != nil {
+		return plan.Plan{}, fmt.Errorf("failed to generate uuid: %w", err)
+	}
 	newPlan, err := plan.NewPlan(
-		uuid.New(),
-		parsedMedicationID,
-		parsedUser,
+		id,
+		medicationID,
+		userID,
 		dosage,
 		schedule,
 		req.Condition,

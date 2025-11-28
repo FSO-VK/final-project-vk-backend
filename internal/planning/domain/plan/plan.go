@@ -128,6 +128,11 @@ func (p *Plan) MedicationID() uuid.UUID {
 	return p.medicationID
 }
 
+// UserID returns the id of user (owner of the plan).
+func (p *Plan) UserID() uuid.UUID {
+	return p.userID
+}
+
 // Dosage returns the dosage per intake.
 // It returns amount and unit.
 func (p *Plan) Dosage() (float64, string) {
@@ -142,4 +147,23 @@ func (p *Plan) IsActive() bool {
 // Condition returns the intake condition of the plan.
 func (p *Plan) Condition() string {
 	return p.condition
+}
+
+// Start returns the start of the plan.
+func (p *Plan) Start() string {
+	return p.schedule.start.String()
+}
+
+// End returns the end of the plan.
+func (p *Plan) End() string {
+	return p.schedule.end.String()
+}
+
+// Rrules returns the recurrence rules of the plan.
+func (p *Plan) Rrules() []string {
+	rules := make([]string, 0, len(p.schedule.rules))
+	for _, rule := range p.schedule.rules {
+		rules = append(rules, rule.String())
+	}
+	return rules
 }
