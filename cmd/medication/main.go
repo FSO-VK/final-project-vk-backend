@@ -94,6 +94,12 @@ func main() {
 			medReference,
 			validator,
 		),
+		GetInstructionByMedicationID: application.NewGetInstructionByMedicationIDService(
+			medicationRepo,
+			medicationBoxRepo,
+			medReference,
+			validator,
+		),
 	}
 
 	medicationHandlers := http.NewHandlers(app, logger)

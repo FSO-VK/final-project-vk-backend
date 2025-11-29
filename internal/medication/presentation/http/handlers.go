@@ -598,6 +598,69 @@ func (h *MedicationHandlers) InstructionAssistant(w http.ResponseWriter, r *http
 	})
 }
 
+// GetInstructionByMedicationIDJSONResponse is a response for GetInstructionByMedicationID handler.
+type GetInstructionByMedicationIDJSONResponse struct {
+	InstructionCommonObject `json:",inline"`
+}
+
+// GetInstructionByMedicationID is a handler for getting medication by its id.
+func (h *MedicationHandlers) GetInstructionByMedicationID(w http.ResponseWriter, r *http.Request) {
+	logger := h.getLogger(r)
+
+	authorization, err := httputil.GetAuthFromCtx(r)
+	if err != nil {
+		h.writeResponseUnauthorized(w)
+		return
+	}
+
+	vars := mux.Vars(r)
+	id := vars[SlugID]
+
+	command := &application.GetInstructionByMedicationIDCommand{
+		UserID: authorization.UserID,
+		ID:     id,
+	}
+
+	medication, err := h.app.GetInstructionByMedicationID.Execute(r.Context(), command)
+	if err != nil {
+		logger.WithError(err).Error("Failed to get instruction by medication id")
+
+		status, body := h.handleGetInstructionByIDServiceError(err)
+
+		w.WriteHeader(status)
+		_ = httputil.NetHTTPWriteJSON(w, body)
+		return
+	}
+
+	response := &GetInstructionByMedicationIDJSONResponse{
+		InstructionCommonObject: InstructionCommonObject{
+			Nozologies:             convertToNozologies(medication.Nozologies),
+			ClPhPointers:           convertToClPhPointers(medication.ClPhPointers),
+			PharmInfluence:         medication.PharmInfluence,
+			PharmKinetics:          medication.PharmKinetics,
+			Dosage:                 medication.Dosage,
+			OverDosage:             medication.OverDosage,
+			Interaction:            medication.Interaction,
+			Lactation:              medication.Lactation,
+			SideEffects:            medication.SideEffects,
+			UsingIndication:        medication.UsingIndication,
+			UsingCounterIndication: medication.UsingCounterIndication,
+			SpecialInstruction:     medication.SpecialInstruction,
+			RenalInsuf:             medication.RenalInsuf,
+			HepatoInsuf:            medication.HepatoInsuf,
+			ElderlyInsuf:           medication.ElderlyInsuf,
+			ChildInsuf:             medication.ChildInsuf,
+		},
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+		StatusCode: http.StatusOK,
+		Body:       response,
+		Error:      "",
+	})
+}
+
 // handleAddServiceError maps service errors to HTTP status and API responses using switch.
 func (h *MedicationHandlers) handleAddServiceError(err error) (int, *api.Response[any]) {
 	switch {
@@ -765,6 +828,43 @@ func (h *MedicationHandlers) handleAssistantServiceError(err error) (int, *api.R
 	}
 }
 
+func (h *MedicationHandlers) handleGetInstructionByIDServiceError(
+	err error,
+) (int, *api.Response[any]) {
+	switch {
+	case errors.Is(err, application.ErrValidationFail):
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		}
+	case errors.Is(err, application.ErrNoMedication):
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      MsgNoMedication,
+		}
+	case errors.Is(err, application.ErrFailedToGetMedication):
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetMedication,
+		}
+	case errors.Is(err, application.ErrFailedToGetInstruction):
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetInstructions,
+		}
+	default:
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      api.MsgServerError,
+		}
+	}
+}
+
 // getLogger returns a logger from the context if exists,
 // otherwise returns a default logger.
 func (h *MedicationHandlers) getLogger(r *http.Request) *logrus.Entry {
@@ -803,6 +903,28 @@ func convertActiveSubstances(substances []ActiveSubstanceObject) []application.A
 	result := make([]application.ActiveSubstance, len(substances))
 	for i, v := range substances {
 		result[i] = application.ActiveSubstance(v)
+	}
+	return result
+}
+
+func convertToNozologies(substances []application.Nozology) []Nozology {
+	result := make([]Nozology, len(substances))
+	for i, v := range substances {
+		result[i] = Nozology{
+			Code: v.Code,
+			Name: v.Name,
+		}
+	}
+	return result
+}
+
+func convertToClPhPointers(substances []application.ClPhPointer) []ClPhPointer {
+	result := make([]ClPhPointer, len(substances))
+	for i, v := range substances {
+		result[i] = ClPhPointer{
+			Code: v.Code,
+			Name: v.Name,
+		}
 	}
 	return result
 }
