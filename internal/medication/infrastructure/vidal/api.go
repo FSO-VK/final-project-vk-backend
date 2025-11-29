@@ -156,7 +156,11 @@ func extractPharmGroups(phThGroups []PhthGroup) []string {
 		// sometimes pharm groups contained in one string separated by semicolon.
 		groups := strings.SplitSeq(phGroup.Code, ";")
 		for group := range groups {
-			phGroups = append(phGroups, strings.TrimSpace(group))
+			trimmed := strings.TrimSpace(group)
+			if len(trimmed) > 0 {
+				// Make first letter uppercase
+				phGroups = append(phGroups, strings.ToUpper(trimmed[:1])+trimmed[1:])
+			}
 		}
 	}
 	return phGroups
