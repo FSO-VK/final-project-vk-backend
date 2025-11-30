@@ -74,15 +74,15 @@ func (s *AddPlanService) Execute(
 ) (*AddPlanResponse, error) {
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
-		return nil, fmt.Errorf("request is not valid: %w", valErr)
+		return nil, ErrValidationFail
 	}
 	parsedUser, err := uuid.Parse(req.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid uuid format: %w", err)
+		return nil, ErrValidationFail
 	}
 	parsedMedicationID, err := uuid.Parse(req.MedicationID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid uuid format: %w", err)
+		return nil, ErrValidationFail
 	}
 
 	newPlan, err := createPlan(req, parsedUser, parsedMedicationID)
@@ -94,14 +94,14 @@ func (s *AddPlanService) Execute(
 	if err != nil {
 		return nil, fmt.Errorf("failed to save plan: %w", err)
 	}
-	amountValue, amountunit := newPlan.Dosage()
+	amountValue, amountUnit := newPlan.Dosage()
 
 	response := &AddPlanResponse{
 		ID:             newPlan.ID().String(),
 		MedicationID:   newPlan.MedicationID().String(),
 		UserID:         newPlan.UserID().String(),
 		AmountValue:    amountValue,
-		AmountUnit:     amountunit,
+		AmountUnit:     amountUnit,
 		Condition:      newPlan.Condition(),
 		StartDate:      newPlan.CourseStart().Format(time.RFC3339),
 		EndDate:        newPlan.CourseEnd().Format(time.RFC3339),
