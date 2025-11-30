@@ -2,12 +2,16 @@ package memory
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/record"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/cache"
 	"github.com/google/uuid"
 )
+
+// errGotNilIntakeRecord is an error when save gets nil intake record to add.
+var errGotNilIntakeRecord = errors.New("cannot save nil intake record")
 
 // RecordStorage is a storage for Records.
 type RecordStorage struct {
@@ -31,6 +35,9 @@ func (s *RecordStorage) Save(
 	_ context.Context,
 	newRecord *record.IntakeRecord,
 ) error {
+	if newRecord == nil {
+		return errGotNilIntakeRecord
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -44,9 +51,15 @@ func (s *RecordStorage) SaveBulk(
 	_ context.Context,
 	bulkOfRecords []*record.IntakeRecord,
 ) error {
+	if bulkOfRecords == nil {
+		return errGotNilIntakeRecord
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	for _, oneRecord := range bulkOfRecords {
+		if oneRecord == nil {
+			return errGotNilIntakeRecord
+		}
 		s.count++
 		s.data.Set(oneRecord.ID().String(), oneRecord)
 	}

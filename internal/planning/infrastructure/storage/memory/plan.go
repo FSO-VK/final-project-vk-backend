@@ -2,12 +2,16 @@ package memory
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	plan "github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/cache"
 	"github.com/google/uuid"
 )
+
+// errGotNilPlan is an error when save gets nil plan to add.
+var errGotNilPlan = errors.New("cannot save nil plan")
 
 // PlanStorage is a storage for Plans.
 type PlanStorage struct {
@@ -31,6 +35,9 @@ func (s *PlanStorage) Save(
 	_ context.Context,
 	newPlan *plan.Plan,
 ) error {
+	if newPlan == nil {
+		return errGotNilPlan
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
