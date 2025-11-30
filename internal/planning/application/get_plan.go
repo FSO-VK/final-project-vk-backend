@@ -3,17 +3,12 @@ package application
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
 )
-
-// ErrPlanNotFound is an error when plan is not belongs to user.
-var ErrPlanNotBelongToUser = errors.New("plan does not belong to user")
 
 // GetPlan is an interface for getting a notification.
 type GetPlan interface {
@@ -66,21 +61,21 @@ func (s *GetPlanService) Execute(
 ) (*GetPlanResponse, error) {
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
-		return nil, fmt.Errorf("request is not valid: %w", valErr)
+		return nil, ErrValidationFail
 	}
 	parsedID, err := uuid.Parse(req.ID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid uuid format: %w", err)
+		return nil, ErrValidationFail
 	}
 
 	parsedUser, err := uuid.Parse(req.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid uuid format: %w", err)
+		return nil, ErrValidationFail
 	}
 
 	requestedPlan, err := s.planningRepo.GetByID(ctx, parsedID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get plan: %w", err)
+		return nil, ErrNoPlan
 	}
 
 	if requestedPlan.UserID() != parsedUser {
