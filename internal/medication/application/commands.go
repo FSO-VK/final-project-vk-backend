@@ -3,7 +3,6 @@ package application
 import (
 	"time"
 
-	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application/medreference"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 )
 
@@ -102,59 +101,6 @@ func GroupsToStrings(groups []medication.Group) []string {
 	result := make([]string, len(groups))
 	for i, v := range groups {
 		result[i] = string(v)
-	}
-	return result
-}
-
-type InstructionBaseResponse struct {
-	Nozologies             []Nozology
-	ClPhPointers           []ClPhPointer
-	PharmInfluence         string
-	PharmKinetics          string
-	Dosage                 string
-	OverDosage             string
-	Interaction            string
-	Lactation              string
-	SideEffects            string
-	UsingIndication        string
-	UsingCounterIndication string
-	SpecialInstruction     string
-	RenalInsuf             string
-	HepatoInsuf            string
-	ElderlyInsuf           string
-	ChildInsuf             string
-}
-
-// Nozology is an illness.
-type Nozology struct {
-	Code string
-	Name string
-}
-
-// ClPhPointer is a clinical-pharmacological pointer.
-type ClPhPointer struct {
-	Code string
-	Name string
-}
-
-func convertToNozologies(substances []medreference.Nozology) []Nozology {
-	result := make([]Nozology, len(substances))
-	for i, v := range substances {
-		result[i] = Nozology{
-			Code: v.Code,
-			Name: v.Name,
-		}
-	}
-	return result
-}
-
-func convertToClPhPointers(substances []medreference.ClPhPointer) []ClPhPointer {
-	result := make([]ClPhPointer, len(substances))
-	for i, v := range substances {
-		result[i] = ClPhPointer{
-			Code: v.Code,
-			Name: v.Name,
-		}
 	}
 	return result
 }

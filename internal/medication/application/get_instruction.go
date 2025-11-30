@@ -49,10 +49,36 @@ type GetInstructionByMedicationIDCommand struct {
 	ID     string `validate:"required,uuid"`
 }
 
+// Nosology is an illness.
+type Nosology struct {
+	Code string
+	Name string
+}
+
+// ClPhPointer is a clinical-pharmacological pointer.
+type ClPhPointer struct {
+	Code string
+	Name string
+}
+
 // GetInstructionByMedicationIDResponse is a response for GetInstructionByMedicationID usecase.
 type GetInstructionByMedicationIDResponse struct {
-	// embedded struct
-	InstructionBaseResponse
+	Nosologies             []Nosology
+	ClPhPointers           []ClPhPointer
+	PharmInfluence         string
+	PharmKinetics          string
+	Dosage                 string
+	OverDosage             string
+	Interaction            string
+	Lactation              string
+	SideEffects            string
+	UsingIndication        string
+	UsingCounterIndication string
+	SpecialInstruction     string
+	RenalInsuf             string
+	HepatoInsuf            string
+	ElderlyInsuf           string
+	ChildInsuf             string
 }
 
 // ErrFailedToGetMedication occurs when repository fails to get instruction.
@@ -102,23 +128,43 @@ func (s *GetInstructionByMedicationIDService) Execute(
 	}
 
 	return &GetInstructionByMedicationIDResponse{
-		InstructionBaseResponse{
-			Nozologies:             convertToNozologies(productInfo.Instruction.Nozologies),
-			ClPhPointers:           convertToClPhPointers(productInfo.Instruction.ClPhPointers),
-			PharmInfluence:         productInfo.Instruction.PharmInfluence,
-			PharmKinetics:          productInfo.Instruction.PharmKinetics,
-			Dosage:                 productInfo.Instruction.Dosage,
-			OverDosage:             productInfo.Instruction.OverDosage,
-			Interaction:            productInfo.Instruction.Interaction,
-			Lactation:              productInfo.Instruction.Lactation,
-			SideEffects:            productInfo.Instruction.SideEffects,
-			UsingIndication:        productInfo.Instruction.UsingIndication,
-			UsingCounterIndication: productInfo.Instruction.UsingCounterIndication,
-			SpecialInstruction:     productInfo.Instruction.SpecialInstruction,
-			RenalInsuf:             productInfo.Instruction.RenalInsuf,
-			HepatoInsuf:            productInfo.Instruction.HepatoInsuf,
-			ElderlyInsuf:           productInfo.Instruction.ElderlyInsuf,
-			ChildInsuf:             productInfo.Instruction.ChildInsuf,
-		},
+		Nosologies:             convertToNosology(productInfo.Instruction.Nozologies),
+		ClPhPointers:           convertToClPhPointers(productInfo.Instruction.ClPhPointers),
+		PharmInfluence:         productInfo.Instruction.PharmInfluence,
+		PharmKinetics:          productInfo.Instruction.PharmKinetics,
+		Dosage:                 productInfo.Instruction.Dosage,
+		OverDosage:             productInfo.Instruction.OverDosage,
+		Interaction:            productInfo.Instruction.Interaction,
+		Lactation:              productInfo.Instruction.Lactation,
+		SideEffects:            productInfo.Instruction.SideEffects,
+		UsingIndication:        productInfo.Instruction.UsingIndication,
+		UsingCounterIndication: productInfo.Instruction.UsingCounterIndication,
+		SpecialInstruction:     productInfo.Instruction.SpecialInstruction,
+		RenalInsuf:             productInfo.Instruction.RenalInsuf,
+		HepatoInsuf:            productInfo.Instruction.HepatoInsuf,
+		ElderlyInsuf:           productInfo.Instruction.ElderlyInsuf,
+		ChildInsuf:             productInfo.Instruction.ChildInsuf,
 	}, nil
+}
+
+func convertToNosology(substances []medreference.Nozology) []Nosology {
+	result := make([]Nosology, len(substances))
+	for i, v := range substances {
+		result[i] = Nosology{
+			Code: v.Code,
+			Name: v.Name,
+		}
+	}
+	return result
+}
+
+func convertToClPhPointers(substances []medreference.ClPhPointer) []ClPhPointer {
+	result := make([]ClPhPointer, len(substances))
+	for i, v := range substances {
+		result[i] = ClPhPointer{
+			Code: v.Code,
+			Name: v.Name,
+		}
+	}
+	return result
 }

@@ -45,8 +45,8 @@ type BodyAPIObject struct {
 	Release           string         `json:"releaseDate"`
 }
 
-// Nozology is an illness.
-type Nozology struct {
+// Nosology is an illness.
+type Nosology struct {
 	Code string `json:"code"`
 	Name string `json:"name"`
 }
@@ -59,7 +59,7 @@ type ClPhPointer struct {
 
 // InstructionCommonObject is a common structure of JSON instruction.
 type InstructionCommonObject struct {
-	Nozologies             []Nozology    `json:"nozologies"`
+	Nosologies             []Nosology    `json:"diseases"`
 	ClPhPointers           []ClPhPointer `json:"clPhPointers"`
 	PharmInfluence         string        `json:"pharmInfluence"`
 	PharmKinetics          string        `json:"pharmKinetics"`
@@ -71,8 +71,8 @@ type InstructionCommonObject struct {
 	UsingIndication        string        `json:"usingIndication"`
 	UsingCounterIndication string        `json:"usingCounterIndication"`
 	SpecialInstruction     string        `json:"specialInstruction"`
-	RenalInsuf             string        `json:"renalInsuf"`
-	HepatoInsuf            string        `json:"hepatoInsuf"`
-	ElderlyInsuf           string        `json:"elderlyInsuf"`
-	ChildInsuf             string        `json:"childInsuf"`
+	RenalInsuf             string        `json:"renalInfluence"`
+	HepatoInsuf            string        `json:"hepaticInfluence"`
+	ElderlyInsuf           string        `json:"elderlyUsage"`
+	ChildInsuf             string        `json:"childUsage"`
 }

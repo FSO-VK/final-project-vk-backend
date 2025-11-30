@@ -598,13 +598,13 @@ func (h *MedicationHandlers) InstructionAssistant(w http.ResponseWriter, r *http
 	})
 }
 
-// GetInstructionByMedicationIDJSONResponse is a response for GetInstructionByMedicationID handler.
-type GetInstructionByMedicationIDJSONResponse struct {
+// GetInstructionJSONResponse is a response for GetInstructionByMedicationID handler.
+type GetInstructionJSONResponse struct {
 	InstructionCommonObject `json:",inline"`
 }
 
-// GetInstructionByMedicationID is a handler for getting medication by its id.
-func (h *MedicationHandlers) GetInstructionByMedicationID(w http.ResponseWriter, r *http.Request) {
+// GetInstruction is a handler for getting medication's instruction.
+func (h *MedicationHandlers) GetInstruction(w http.ResponseWriter, r *http.Request) {
 	logger := h.getLogger(r)
 
 	authorization, err := httputil.GetAuthFromCtx(r)
@@ -632,9 +632,9 @@ func (h *MedicationHandlers) GetInstructionByMedicationID(w http.ResponseWriter,
 		return
 	}
 
-	response := &GetInstructionByMedicationIDJSONResponse{
+	response := &GetInstructionJSONResponse{
 		InstructionCommonObject: InstructionCommonObject{
-			Nozologies:             convertToNozologies(medication.Nozologies),
+			Nosologies:             convertToNosology(medication.Nosologies),
 			ClPhPointers:           convertToClPhPointers(medication.ClPhPointers),
 			PharmInfluence:         medication.PharmInfluence,
 			PharmKinetics:          medication.PharmKinetics,
@@ -907,10 +907,10 @@ func convertActiveSubstances(substances []ActiveSubstanceObject) []application.A
 	return result
 }
 
-func convertToNozologies(substances []application.Nozology) []Nozology {
-	result := make([]Nozology, len(substances))
+func convertToNosology(substances []application.Nosology) []Nosology {
+	result := make([]Nosology, len(substances))
 	for i, v := range substances {
-		result[i] = Nozology{
+		result[i] = Nosology{
 			Code: v.Code,
 			Name: v.Name,
 		}
