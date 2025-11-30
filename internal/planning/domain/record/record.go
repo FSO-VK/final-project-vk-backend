@@ -82,3 +82,8 @@ func (r *IntakeRecord) ID() uuid.UUID {
 func (r *IntakeRecord) PlanID() uuid.UUID {
 	return r.planID
 }
+
+// TakenAt returns the time the record was taken.
+func (r *IntakeRecord) TakenAt() time.Time {
+	return r.takenAt
+}
