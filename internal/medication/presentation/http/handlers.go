@@ -41,7 +41,7 @@ func NewHandlers(
 type AddMedicationJSONRequest struct {
 	BodyCommonObject `json:",inline"`
 
-	BarCode string `json:"barCode"`
+	BarCode string `json:"barCode,omitempty"`
 }
 
 // AddMedicationJSONResponse is a response for AddMedication.
@@ -49,7 +49,7 @@ type AddMedicationJSONResponse struct {
 	// embedded struct
 	BodyCommonObject `json:",inline"`
 
-	BarCode string `json:"barCode"`
+	BarCode string `json:"barCode,omitempty"`
 	ID      string `json:"id"`
 }
 
@@ -326,7 +326,7 @@ type GetMedicationBoxItem struct {
 	// embedded struct
 	BodyCommonObject `json:",inline"`
 
-	BarCode string `json:"barCode"`
+	BarCode string `json:"barCode,omitempty"`
 	ID      string `json:"id"`
 }
 
@@ -404,7 +404,7 @@ type DataMatrixInformationJSONResponse struct {
 	// embedded struct
 	BodyAPIObject `json:",inline"`
 
-	BarCode string `json:"barCode"`
+	BarCode string `json:"barCode,omitempty"`
 }
 
 // DataMatrixInformation adds a medication.
@@ -472,7 +472,7 @@ func (h *MedicationHandlers) DataMatrixInformation(w http.ResponseWriter, r *htt
 type GetMedicationByIDJSONResponse struct {
 	BodyCommonObject `json:",inline"`
 
-	BarCode string `json:"barCode"`
+	BarCode string `json:"barCode,omitempty"`
 	ID      string `json:"id"`
 }
 
