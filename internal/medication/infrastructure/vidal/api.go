@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application/medreference"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/validation"
@@ -150,14 +151,31 @@ func (s *Service) clientResponseToModel(clientResponse *ClientResponse) *Storage
 	return model
 }
 
+func processGroup(code string) []string {
+	var result []string
+	// sometimes pharm groups contained in one string separated by semicolon.
+	groups := strings.Split(code, ";")
+	for _, group := range groups {
+		if trimmed := strings.TrimSpace(group); trimmed != "" {
+			result = append(result, capitalizeFirst(trimmed))
+		}
+	}
+	return result
+}
+
+func capitalizeFirst(s string) string {
+	runes := []rune(s)
+	if len(runes) == 0 {
+		return s
+	}
+	runes[0] = unicode.ToUpper(runes[0])
+	return string(runes)
+}
+
 func extractPharmGroups(phThGroups []PhthGroup) []string {
 	phGroups := make([]string, 0, len(phThGroups))
 	for _, phGroup := range phThGroups {
-		// sometimes pharm groups contained in one string separated by semicolon.
-		groups := strings.SplitSeq(phGroup.Code, ";")
-		for group := range groups {
-			phGroups = append(phGroups, strings.TrimSpace(group))
-		}
+		phGroups = append(phGroups, processGroup(phGroup.Code)...)
 	}
 	return phGroups
 }
