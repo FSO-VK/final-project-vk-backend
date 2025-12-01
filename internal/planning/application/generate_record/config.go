@@ -6,7 +6,7 @@ import "time"
 type ClientConfig struct {
 	// createdShift is the offset from 00:00 when records are generated.
 	// At 00:00 + createdShift, all records for that day are created. (basically 24h - today creating for the next day)
-	CreationShift  time.Duration // общий timeout запроса (30c)
-	BatchSize      int
-	TickerInterval time.Duration
+	CreationShift  time.Duration `koanf:"creation_shift"`
+	BatchSize      int           `koanf:"batch_size"`
+	TickerInterval time.Duration `koanf:"ticker_interval"`
 }

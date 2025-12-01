@@ -2,6 +2,7 @@ package generaterecord
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
@@ -60,6 +61,7 @@ func (g *GenerateRecordService) GenerateRecord(ctx context.Context, planID uuid.
 }
 
 func (g *GenerateRecordService) GenerateRecordsForDay(ctx context.Context) error {
+	fmt.Println("GenerateRecordsForDay")
 	seq, err := g.planRepo.IterActivePlans(ctx, g.cfg.BatchSize)
 	if err != nil {
 		return err

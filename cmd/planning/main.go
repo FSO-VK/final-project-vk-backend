@@ -51,7 +51,7 @@ func main() {
 	if err := generateRecordsService.GenerateRecordsForDay(ctx); err != nil {
 		logger.Fatal(err)
 	}
-
+	logger.Info("Daemon started")
 	go generateRecordsService.Run(ctx)
 	<-ctx.Done()
 	logger.Info("Server stopped")

@@ -11,3 +11,8 @@ auth:
   timeout: ${AUTH_TIMEOUT:-30s}
   cookieName: ${COOKIE_NAME:-session_id}
   cookieDomain: ${COOKIE_DOMAIN:-/}
+
+generateRecord:
+  creation_shift: ${CREATION_SHIFT:-24h}
+  batch_size: ${BATCH_SIZE:-1000}
+  ticker_interval: ${TICKER_INTERVAL:-24h}
