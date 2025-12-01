@@ -3,6 +3,7 @@ package plan
 import (
 	"context"
 	"errors"
+	"iter"
 
 	"github.com/google/uuid"
 )
@@ -15,4 +16,5 @@ type Repository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Plan, error)
 	UserPlans(ctx context.Context, userID uuid.UUID) ([]*Plan, error)
 	Save(ctx context.Context, plan *Plan) error
+	IterActivePlans(ctx context.Context, batchSize int) (iter.Seq[*Plan], error)
 }
