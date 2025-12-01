@@ -3,7 +3,6 @@ package application
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -11,36 +10,34 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 )
 
-// ErrUnsupportedRrule is an error when rrule is unsupported.
-var ErrUnsupportedRrule = errors.New("rrule is unsupported")
-
-// AddPlan is an interface for adding a notification.
-type AddPlan interface {
+// UpdatePlan is an interface for adding a notification.
+type UpdatePlan interface {
 	Execute(
 		ctx context.Context,
-		cmd *AddPlanCommand,
-	) (*AddPlanResponse, error)
+		cmd *UpdatePlanCommand,
+	) (*UpdatePlanResponse, error)
 }
 
-// AddPlanService is a service for creating a subscription.
-type AddPlanService struct {
+// UpdatePlanService is a service for creating a subscription.
+type UpdatePlanService struct {
 	planningRepo plan.Repository
 	validator    validator.Validator
 }
 
-// NewAddPlanService returns a new AddPlanService.
-func NewAddPlanService(
+// NewUpdatePlanService returns a new UpdatePlanService.
+func NewUpdatePlanService(
 	planningRepo plan.Repository,
 	valid validator.Validator,
-) *AddPlanService {
-	return &AddPlanService{
+) *UpdatePlanService {
+	return &UpdatePlanService{
 		planningRepo: planningRepo,
 		validator:    valid,
 	}
 }
 
-// AddPlanCommand is a request to add a plan.
-type AddPlanCommand struct {
+// UpdatePlanCommand is a request to add a plan.
+type UpdatePlanCommand struct {
+	ID             string   `validate:"required,uuid"`
 	MedicationID   string   `validate:"required,uuid"`
 	UserID         string   `validate:"required,uuid"`
 	AmountValue    float64  `validate:"required,gte=0"`
@@ -52,8 +49,8 @@ type AddPlanCommand struct {
 	RecurrenceRule []string `validate:"required"`
 }
 
-// AddPlanResponse is a response to add a plan.
-type AddPlanResponse struct {
+// UpdatePlanResponse is a response to add a plan.
+type UpdatePlanResponse struct {
 	ID             string
 	MedicationID   string
 	UserID         string
@@ -65,18 +62,18 @@ type AddPlanResponse struct {
 	RecurrenceRule []string
 }
 
-// Execute executes the AddPlan command.
-func (s *AddPlanService) Execute(
+// Execute executes the UpdatePlan command.
+func (s *UpdatePlanService) Execute(
 	ctx context.Context,
-	req *AddPlanCommand,
-) (*AddPlanResponse, error) {
+	req *UpdatePlanCommand,
+) (*UpdatePlanResponse, error) {
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
 		return nil, ErrValidationFail
 	}
 
 	draftPlan := &PlanDraft{
-		ID:             "",
+		ID:             req.ID,
 		MedicationID:   req.MedicationID,
 		UserID:         req.UserID,
 		AmountValue:    req.AmountValue,
@@ -99,7 +96,7 @@ func (s *AddPlanService) Execute(
 	}
 	amountValue, amountUnit := newPlan.Dosage()
 
-	response := &AddPlanResponse{
+	response := &UpdatePlanResponse{
 		ID:             newPlan.ID().String(),
 		MedicationID:   newPlan.MedicationID().String(),
 		UserID:         newPlan.UserID().String(),
