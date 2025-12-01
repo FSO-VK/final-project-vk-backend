@@ -71,12 +71,10 @@ func (h *MedicationClient) makeFullRequest(id uuid.UUID) (Body, error) {
 		return Body{}, ErrMedicationServiceUnavailable
 	}
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			h.logger.WithError(err).Debug("failed to close response body")
-		}
+		_ = resp.Body.Close()
 	}()
 
-	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+	if resp.StatusCode != http.StatusOK {
 		return Body{}, ErrBadResponse
 	}
 
