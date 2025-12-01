@@ -1,4 +1,3 @@
-// Package application is a package for application logic of the planning service.
 package application
 
 import (
