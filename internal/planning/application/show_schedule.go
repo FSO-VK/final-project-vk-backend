@@ -51,21 +51,21 @@ type ShowScheduleCommand struct {
 	EndDate   string `validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
 }
 
-// IntakeRecord is an aggregate that represents a record for medication intake.
+// ScheduleTime is an item of the schedules list to be returned.
 type ScheduleTime struct {
-	intakeRecordID uuid.UUID
-	medicationID   uuid.UUID
-	medicationName string
+	IntakeRecordID uuid.UUID
+	MedicationID   uuid.UUID
+	MedicationName string
 	AmountValue    float64
 	AmountUnit     string
-	status         bool // is taken
-	plannedAt      time.Time
-	takenAt        time.Time
+	Status         bool // is taken
+	PlannedAt      time.Time
+	TakenAt        time.Time
 }
 
 // ShowScheduleResponse is a response to get a plan.
 type ShowScheduleResponse struct {
-	schedule []*ScheduleTime
+	Schedule []*ScheduleTime
 }
 
 // Execute executes the ShowSchedule command.
@@ -78,7 +78,7 @@ func (s *ShowScheduleService) Execute(
 		return nil, ErrValidationFail
 	}
 
-	parsedUser, parsedStart, parsedEnd, err := ParseInfo(req.UserID, req.StartDate, req.EndDate)
+	parsedUser, parsedStart, parsedEnd, err := parseInfo(req.UserID, req.StartDate, req.EndDate)
 	if err != nil {
 		return nil, ErrValidationFail
 	}
@@ -88,59 +88,59 @@ func (s *ShowScheduleService) Execute(
 		return nil, ErrNoPlan
 	}
 
-	pastScheduleList := make([]*ScheduleTime, 0, len(*userPlans))
-	futureScheduleList := make([]*ScheduleTime, 0, len(*userPlans))
+	pastScheduleList := make([]*ScheduleTime, 0, len(userPlans))
+	futureScheduleList := make([]*ScheduleTime, 0, len(userPlans))
 
-	for _, onePlan := range *userPlans {
-		amountValue, amountUnit := onePlan.Dosage()
+	for _, p := range userPlans {
+		amountValue, amountUnit := p.Dosage()
 
-		records, err := s.recordsRepo.GetByPlanID(ctx, onePlan.ID())
+		records, err := s.recordsRepo.GetByPlanID(ctx, p.ID())
 		// if there is an error, it means that the plan has no records
 		// because all of them are in the future and we will calculate them after a while
 		if err == nil {
-			for _, oneRecord := range records {
-				if !oneRecord.PlannedTime().After(parsedEnd) &&
-					!oneRecord.PlannedTime().Before(parsedStart) {
+			for _, record := range records {
+				if !record.PlannedTime().After(parsedEnd) &&
+					!record.PlannedTime().Before(parsedStart) {
 					pastScheduleList = append(pastScheduleList, &ScheduleTime{
-						intakeRecordID: oneRecord.ID(),
-						medicationID:   onePlan.MedicationID(),
-						medicationName: "Medication Name", // need client
+						IntakeRecordID: record.ID(),
+						MedicationID:   p.MedicationID(),
+						MedicationName: "Medication Name", // need client
 						AmountValue:    amountValue,
 						AmountUnit:     amountUnit,
-						status:         oneRecord.IsTaken(),
-						plannedAt:      oneRecord.PlannedTime(),
-						takenAt:        oneRecord.TakenAt(),
+						Status:         record.IsTaken(),
+						PlannedAt:      record.PlannedTime(),
+						TakenAt:        record.TakenAt(),
 					})
 				}
 			}
 		}
 		// we are calculating all future records that are not created in db
-		futureTimes := onePlan.Schedule(
+		futureTimes := p.Schedule(
 			time.Now().Truncate(24*time.Hour).Add(s.createdShift),
 			parsedEnd,
 		)
 
-		for _, oneTime := range futureTimes {
+		for _, t := range futureTimes {
 			futureScheduleList = append(futureScheduleList, &ScheduleTime{
-				intakeRecordID: uuid.Nil,
-				medicationID:   onePlan.MedicationID(),
-				medicationName: "Medication Name", // need client
+				IntakeRecordID: uuid.Nil,
+				MedicationID:   p.MedicationID(),
+				MedicationName: "Medication Name", // need client
 				AmountValue:    amountValue,
 				AmountUnit:     amountUnit,
-				status:         false,
-				plannedAt:      oneTime,
-				takenAt:        time.Time{},
+				Status:         false,
+				PlannedAt:      t,
+				TakenAt:        time.Time{},
 			})
 		}
 	}
 
 	response := &ShowScheduleResponse{
-		schedule: append(futureScheduleList, pastScheduleList...),
+		Schedule: append(futureScheduleList, pastScheduleList...),
 	}
 	return response, nil
 }
 
-func ParseInfo(
+func parseInfo(
 	userID string,
 	startTime string,
 	endTime string,
