@@ -24,6 +24,9 @@ type ShowScheduleService struct {
 	planningRepo plan.Repository
 	recordsRepo  record.Repository
 	validator    validator.Validator
+	// createdShift is the offset from 00:00 when records are generated.
+	// At 00:00 + createdShift, all records for that day are created. (basically 24h - today creating for the next day)
+	createdShift time.Duration
 }
 
 // NewShowScheduleService returns a new ShowScheduleService.
@@ -31,11 +34,13 @@ func NewShowScheduleService(
 	planningRepo plan.Repository,
 	recordsRepo record.Repository,
 	valid validator.Validator,
+	createdShift time.Duration,
 ) *ShowScheduleService {
 	return &ShowScheduleService{
 		planningRepo: planningRepo,
 		recordsRepo:  recordsRepo,
 		validator:    valid,
+		createdShift: createdShift,
 	}
 }
 
@@ -94,20 +99,26 @@ func (s *ShowScheduleService) Execute(
 		// because all of them are in the future and we will calculate them after a while
 		if err == nil {
 			for _, oneRecord := range records {
-				pastScheduleList = append(pastScheduleList, &ScheduleTime{
-					intakeRecordID: oneRecord.ID(),
-					medicationID:   onePlan.MedicationID(),
-					medicationName: "Medication Name", // need client
-					AmountValue:    amountValue,
-					AmountUnit:     amountUnit,
-					status:         oneRecord.IsTaken(),
-					plannedAt:      oneRecord.PlannedTime(),
-					takenAt:        oneRecord.TakenAt(),
-				})
+				if !oneRecord.PlannedTime().After(parsedEnd) &&
+					!oneRecord.PlannedTime().Before(parsedStart) {
+					pastScheduleList = append(pastScheduleList, &ScheduleTime{
+						intakeRecordID: oneRecord.ID(),
+						medicationID:   onePlan.MedicationID(),
+						medicationName: "Medication Name", // need client
+						AmountValue:    amountValue,
+						AmountUnit:     amountUnit,
+						status:         oneRecord.IsTaken(),
+						plannedAt:      oneRecord.PlannedTime(),
+						takenAt:        oneRecord.TakenAt(),
+					})
+				}
 			}
 		}
-
-		futureTimes := onePlan.Schedule(parsedStart, parsedEnd)
+		// we are calculating all future records that are not created in db
+		futureTimes := onePlan.Schedule(
+			time.Now().Truncate(24*time.Hour).Add(s.createdShift),
+			parsedEnd,
+		)
 
 		for _, oneTime := range futureTimes {
 			futureScheduleList = append(futureScheduleList, &ScheduleTime{
