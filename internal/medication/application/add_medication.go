@@ -45,7 +45,7 @@ type AddMedicationCommand struct {
 	// embedded struct
 	CommandBase
 
-	BarCode string `validate:"required,len=13,numeric"`
+	BarCode string `validate:"omitempty,len=13,numeric"`
 	UserID  string `validate:"required,uuid"`
 }
 
