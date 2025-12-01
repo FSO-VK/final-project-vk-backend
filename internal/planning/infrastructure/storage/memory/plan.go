@@ -80,7 +80,6 @@ func (s *PlanStorage) UserPlans(
 }
 
 // IterActivePlans returns all active plans.
-// IterActivePlans returns all active plans using a lazy iterator.
 func (s *PlanStorage) IterActivePlans(
 	_ context.Context,
 	batchSize int,
