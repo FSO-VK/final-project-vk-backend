@@ -18,4 +18,4 @@ generateRecord:
 
 generateDaemon:
   creation_shift: ${CREATION_SHIFT:-24h}
-  ticker_interval: ${TICKER_INTERVAL:-24s}
+  ticker_interval: ${TICKER_INTERVAL:-24h}

@@ -2,6 +2,7 @@ package generaterecord
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
@@ -17,21 +18,24 @@ type GenerateRecordProvider interface {
 
 // GenerateRecordService implements GenerateRecordProvider.
 type GenerateRecordService struct {
-	cfg         ClientConfig
-	recordsRepo record.Repository
-	planRepo    plan.Repository
+	creationShift time.Duration
+	batchSize     int
+	recordsRepo   record.Repository
+	planRepo      plan.Repository
 }
 
 // NewGenerateRecordService creates a new GenerateRecordService.
 func NewGenerateRecordService(
-	cfg ClientConfig,
+	creationShift time.Duration,
+	batchSize int,
 	recordsRepo record.Repository,
 	planRepo plan.Repository,
 ) *GenerateRecordService {
 	return &GenerateRecordService{
-		cfg:         cfg,
-		recordsRepo: recordsRepo,
-		planRepo:    planRepo,
+		creationShift: creationShift,
+		batchSize:     batchSize,
+		recordsRepo:   recordsRepo,
+		planRepo:      planRepo,
 	}
 }
 
@@ -44,7 +48,7 @@ func (g *GenerateRecordService) GenerateRecord(ctx context.Context, planID uuid.
 
 	records, err := p.GenerateIntakeRecords(
 		time.Now(),
-		time.Now().Truncate(24*time.Hour).Add(g.cfg.CreationShift),
+		time.Now().Truncate(24*time.Hour).Add(g.creationShift),
 	)
 	if err != nil {
 		return err
@@ -59,12 +63,13 @@ func (g *GenerateRecordService) GenerateRecord(ctx context.Context, planID uuid.
 
 // GenerateRecordsForDay generates records for all active plans.
 func (g *GenerateRecordService) GenerateRecordsForDay(ctx context.Context) error {
-	seq, err := g.planRepo.ActivePlans(ctx, g.cfg.BatchSize)
+	fmt.Println("111111")
+	seq, err := g.planRepo.ActivePlans(ctx, g.batchSize)
 	if err != nil {
 		return err
 	}
 
-	creationTime := time.Now().Truncate(24 * time.Hour).Add(g.cfg.CreationShift)
+	creationTime := time.Now().Truncate(24 * time.Hour).Add(g.creationShift)
 	now := time.Now()
 
 	for p := range seq {

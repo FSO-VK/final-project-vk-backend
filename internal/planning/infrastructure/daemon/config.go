@@ -8,4 +8,5 @@ type ClientConfig struct {
 	// At 00:00 + createdShift, all records for that day are created. (basically 24h - today creating for the next day)
 	CreationShift  time.Duration `koanf:"creation_shift"`
 	TickerInterval time.Duration `koanf:"ticker_interval"`
+	BatchSize      int           `koanf:"batch_size"`
 }

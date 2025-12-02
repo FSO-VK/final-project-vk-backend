@@ -43,14 +43,15 @@ func main() {
 	recordsRepo := memory.NewRecordStorage()
 
 	generateRecordsService := generator.NewGenerateRecordService(
-		conf.GenerateRecord,
+		conf.GenerateDaemon.CreationShift,
+		conf.GenerateDaemon.BatchSize,
 		recordsRepo,
 		planRepo,
 	)
 	daemonRecordsGenerator := daemon.NewDaemon(
 		conf.GenerateDaemon.TickerInterval,
-		generateRecordsService.GenerateRecordsForDay,
 	)
+	daemonRecordsGenerator.Register(generateRecordsService.GenerateRecordsForDay)
 
 	if err := generateRecordsService.GenerateRecordsForDay(ctx); err != nil {
 		logger.Fatal(err)
