@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"errors"
+	"iter"
 	"sync"
 
 	plan "github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
@@ -76,4 +77,27 @@ func (s *PlanStorage) UserPlans(
 		return nil, plan.ErrNoPlanFound
 	}
 	return result, nil
+}
+
+// ActivePlans returns all active plans.
+func (s *PlanStorage) ActivePlans(
+	_ context.Context,
+	_ int,
+) (iter.Seq[*plan.Plan], error) {
+	return func(yield func(*plan.Plan) bool) {
+		s.mu.RLock()
+		defer s.mu.RUnlock()
+
+		all := s.data.GetAll()
+
+		for _, p := range all {
+			if !p.IsActive() {
+				continue
+			}
+
+			if !yield(p) {
+				return
+			}
+		}
+	}, nil
 }
