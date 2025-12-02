@@ -2,7 +2,6 @@ package generaterecord
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
@@ -21,7 +20,6 @@ type GenerateRecordService struct {
 	cfg         ClientConfig
 	recordsRepo record.Repository
 	planRepo    plan.Repository
-	ticker      TickerInterface
 }
 
 // NewGenerateRecordService creates a new GenerateRecordService.
@@ -29,16 +27,15 @@ func NewGenerateRecordService(
 	cfg ClientConfig,
 	recordsRepo record.Repository,
 	planRepo plan.Repository,
-	ticker TickerInterface,
 ) *GenerateRecordService {
 	return &GenerateRecordService{
 		cfg:         cfg,
 		recordsRepo: recordsRepo,
 		planRepo:    planRepo,
-		ticker:      ticker,
 	}
 }
 
+// GenerateRecord generates records for a specific plan.
 func (g *GenerateRecordService) GenerateRecord(ctx context.Context, planID uuid.UUID) error {
 	p, err := g.planRepo.GetByID(ctx, planID)
 	if err != nil {
@@ -60,8 +57,8 @@ func (g *GenerateRecordService) GenerateRecord(ctx context.Context, planID uuid.
 	return nil
 }
 
+// GenerateRecordsForDay generates records for all active plans.
 func (g *GenerateRecordService) GenerateRecordsForDay(ctx context.Context) error {
-	fmt.Println("GenerateRecordsForDay")
 	seq, err := g.planRepo.ActivePlans(ctx, g.cfg.BatchSize)
 	if err != nil {
 		return err
@@ -82,10 +79,4 @@ func (g *GenerateRecordService) GenerateRecordsForDay(ctx context.Context) error
 	}
 
 	return nil
-}
-
-func (d *GenerateRecordService) Run(ctx context.Context) {
-	d.ticker.Run(ctx, func(ctx context.Context) {
-		_ = d.GenerateRecordsForDay(ctx)
-	})
 }

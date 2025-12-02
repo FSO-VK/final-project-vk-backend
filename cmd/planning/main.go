@@ -7,6 +7,7 @@ import (
 
 	generator "github.com/FSO-VK/final-project-vk-backend/internal/planning/application/generate_record"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/config"
+	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/daemon"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
 	"github.com/sirupsen/logrus"
@@ -40,19 +41,23 @@ func main() {
 	}
 	planRepo := memory.NewPlanStorage()
 	recordsRepo := memory.NewRecordStorage()
-	ticker := generator.NewTicker(conf.GenerateRecord.TickerInterval)
 
 	generateRecordsService := generator.NewGenerateRecordService(
 		conf.GenerateRecord,
 		recordsRepo,
 		planRepo,
-		ticker,
 	)
+	daemonRecordsGenerator := daemon.NewDaemon(
+		conf.GenerateDaemon.TickerInterval,
+		generateRecordsService.GenerateRecordsForDay,
+	)
+
 	if err := generateRecordsService.GenerateRecordsForDay(ctx); err != nil {
 		logger.Fatal(err)
 	}
+
 	logger.Info("Daemon started")
-	go generateRecordsService.Run(ctx)
+	go daemonRecordsGenerator.Run(ctx)
 	<-ctx.Done()
 	logger.Info("Server stopped")
 }

@@ -15,4 +15,7 @@ auth:
 generateRecord:
   creation_shift: ${CREATION_SHIFT:-24h}
   batch_size: ${BATCH_SIZE:-1000}
-  ticker_interval: ${TICKER_INTERVAL:-24h}
+
+generateDaemon:
+  creation_shift: ${CREATION_SHIFT:-24h}
+  ticker_interval: ${TICKER_INTERVAL:-24s}
