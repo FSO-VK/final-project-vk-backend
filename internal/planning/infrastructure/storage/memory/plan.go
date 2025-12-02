@@ -79,11 +79,25 @@ func (s *PlanStorage) UserPlans(
 	return result, nil
 }
 
-// IterActivePlans returns all active plans.
-func (s *PlanStorage) IterActivePlans(
+// ActivePlans returns all active plans.
+func (s *PlanStorage) ActivePlans(
 	_ context.Context,
-	batchSize int,
+	_ int,
 ) (iter.Seq[*plan.Plan], error) {
 	return func(yield func(*plan.Plan) bool) {
+		s.mu.RLock()
+		defer s.mu.RUnlock()
+
+		all := s.data.GetAll()
+
+		for _, p := range all {
+			if !p.IsActive() {
+				continue
+			}
+
+			if !yield(p) {
+				return
+			}
+		}
 	}, nil
 }

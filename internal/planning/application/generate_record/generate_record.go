@@ -62,7 +62,7 @@ func (g *GenerateRecordService) GenerateRecord(ctx context.Context, planID uuid.
 
 func (g *GenerateRecordService) GenerateRecordsForDay(ctx context.Context) error {
 	fmt.Println("GenerateRecordsForDay")
-	seq, err := g.planRepo.IterActivePlans(ctx, g.cfg.BatchSize)
+	seq, err := g.planRepo.ActivePlans(ctx, g.cfg.BatchSize)
 	if err != nil {
 		return err
 	}
