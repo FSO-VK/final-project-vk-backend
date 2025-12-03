@@ -808,14 +808,14 @@ func (h *MedicationHandlers) handleAssistantServiceError(err error) (int, *api.R
 			Error:      api.MsgBadBody,
 		}
 	case errors.Is(err, application.ErrNoMedication):
-		return http.StatusNotFound, &api.Response[any]{
-			StatusCode: http.StatusNotFound,
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
 			Body:       struct{}{},
 			Error:      MsgFailedToGetMedication,
 		}
 	case errors.Is(err, application.ErrNoInstruction):
-		return http.StatusNotFound, &api.Response[any]{
-			StatusCode: http.StatusNotFound,
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
 			Body:       struct{}{},
 			Error:      MsgFailedToGetInstructions,
 		}
