@@ -23,4 +23,6 @@ const (
 	MsgFailedToGetInstructions api.ErrorType = "Failed to get instructions"
 	// MsgFailedToGetInfoFromLLM is a message for failed to get info from LLM.
 	MsgFailedToGetInfoFromLLM api.ErrorType = "Failed to get info from LLM"
+	// MsgInstructionRestricted is a message for instruction restricted.
+	MsgInstructionRestricted api.ErrorType = "Instruction restricted"
 )
