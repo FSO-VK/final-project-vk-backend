@@ -3,6 +3,7 @@ package llmchatbot
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
 	"strings"
 	"text/template"
@@ -47,12 +48,15 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 ) (string, error) {
 	selectFieldTemplate, err := template.ParseFiles(s.conf.SelectInstructionFieldPromptPath)
 	if err != nil {
-		return "", llmInterface.ErrLLMInternalFailure
+		return "", fmt.Errorf(
+			"failed to load select-field template: %w",
+			llmInterface.ErrLLMInternalFailure,
+		)
 	}
 
 	instructionFields, err := getFieldNamesList(instruction)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to extract instruction fields: %w", err)
 	}
 
 	data := SelectInstructionFieldPrompt{
@@ -62,23 +66,32 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 
 	var buf bytes.Buffer
 	if err := selectFieldTemplate.Execute(&buf, data); err != nil {
-		return "", llmInterface.ErrLLMInternalFailure
+		return "", fmt.Errorf(
+			"failed to execute select-field template: %w",
+			llmInterface.ErrLLMInternalFailure,
+		)
 	}
 
 	selectInstructionFieldPrompt := buf.String()
 	LLMChosenInstructionField, err := s.llmProvider.Query(selectInstructionFieldPrompt)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to query LLM during instruction field selection: %w", err)
 	}
 
 	instructionPart, err := getFieldValue(instruction, LLMChosenInstructionField)
 	if err != nil {
-		return "", llmInterface.ErrInstructionRestricted
+		return "", fmt.Errorf(
+			"restricted field or invalid field name: %w",
+			llmInterface.ErrInstructionRestricted,
+		)
 	}
 
 	consultTemplate, err := template.ParseFiles(s.conf.ConsultingPromptPath)
 	if err != nil {
-		return "", llmInterface.ErrLLMInternalFailure
+		return "", fmt.Errorf(
+			"failed to load consulting template: %w",
+			llmInterface.ErrLLMInternalFailure,
+		)
 	}
 	instructionConsultationPromptData := InstructionConsultationPrompt{
 		UserQuestion:    userQuestion,
@@ -87,13 +100,16 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 
 	var bufSecond bytes.Buffer
 	if err := consultTemplate.Execute(&bufSecond, instructionConsultationPromptData); err != nil {
-		return "", llmInterface.ErrLLMInternalFailure
+		return "", fmt.Errorf(
+			"failed to execute consulting template: %w",
+			llmInterface.ErrLLMInternalFailure,
+		)
 	}
 
 	LLMFinalResponse := bufSecond.String()
 	finalResponse, err := s.llmProvider.Query(LLMFinalResponse)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to query LLM during consultation: %w", err)
 	}
 	return finalResponse, nil
 }
