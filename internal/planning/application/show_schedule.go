@@ -115,8 +115,12 @@ func (s *ShowScheduleService) Execute(
 			}
 		}
 		// we are calculating all future records that are not created in db
+		now := time.Now()
 		futureTimes := p.Schedule(
-			time.Now().Truncate(24*time.Hour).Add(s.createdShift),
+			time.Date(
+				now.Year(), now.Month(), now.Day(),
+				0, 0, 0, 0, now.Location(),
+			).Add(s.createdShift),
 			parsedEnd,
 		)
 

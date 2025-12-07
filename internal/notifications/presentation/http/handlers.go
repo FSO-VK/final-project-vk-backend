@@ -2,6 +2,11 @@
 package http
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/notifications/application"
@@ -14,6 +19,13 @@ import (
 const (
 	// SlugID is a slug for id.
 	SlugID = "id"
+)
+
+// will be removed after 06.12.
+var (
+	errNotificationMarshal   = errors.New("failed to marshal notification")
+	errNotificationSend      = errors.New("failed to send notification")
+	errNotificationBadStatus = errors.New("notification service returned bad status")
 )
 
 // NotificationsHandlers is a handler for Notifications.
@@ -146,12 +158,62 @@ func (h *NotificationsHandlers) CreateSubscriptionGin(c *gin.Context) {
 			UserAgent: serviceResponse.UserAgent,
 		},
 	}
+	go func(ctx context.Context) {
+		if err := sendWelcomeNotification(ctx, auth.UserID); err != nil {
+			h.logger.WithError(err).Warn("Failed to send welcome notification")
+		}
+	}(c.Request.Context())
 
 	c.JSON(http.StatusOK, api.Response[any]{
 		StatusCode: http.StatusOK,
 		Body:       response,
 		Error:      "",
 	})
+}
+
+type WelcomeNotificationRequest struct {
+	UserID string `json:"userId"`
+	Title  string `json:"title"`
+	Body   string `json:"body"`
+}
+
+func sendWelcomeNotification(ctx context.Context, userID string) error {
+	notification := WelcomeNotificationRequest{
+		UserID: userID,
+		Title:  "Приветственное напоминание",
+		Body:   "Спасибо, что включили уведомления, рады видеть вас в нашем сервисе!",
+	}
+
+	jsonData, err := json.Marshal(notification)
+	if err != nil {
+		return fmt.Errorf("%w: %w", errNotificationMarshal, err)
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		"https://myhealthbox.ddns.net/api/v1/notification/send",
+		bytes.NewBuffer(jsonData),
+	)
+	if err != nil {
+		return fmt.Errorf("%w: %w", errNotificationSend, err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w: %w", errNotificationSend, err)
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("%w: %d", errNotificationBadStatus, resp.StatusCode)
+	}
+
+	return nil
 }
 
 // DeleteSubscription delete a subscription one time for every device.

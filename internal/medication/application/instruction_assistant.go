@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application/llm"
@@ -10,6 +11,10 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
 )
+
+//
+//nolint:lll
+const RestrictionAnswer = `Извините мы не можем ответить на ваш вопрос основываясь на инструкции выбранного препарата, попробуйте задать другой вопрос или уточните этот.`
 
 // InstructionAssistant is an interface for asking llm about instructions.
 type InstructionAssistant interface {
@@ -82,6 +87,11 @@ func (s *InstructionAssistantService) Execute(
 
 	answer, err := s.instructionBot.AskInstructionTwoStep(productInfo.Instruction, req.UserQuestion)
 	if err != nil {
+		if errors.Is(err, llm.ErrInstructionRestricted) {
+			return &InstructionAssistantResponse{
+				LLMAnswer: RestrictionAnswer,
+			}, nil
+		}
 		return nil, fmt.Errorf("failed to ask llm: %w", err)
 	}
 

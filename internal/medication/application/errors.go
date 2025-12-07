@@ -10,4 +10,6 @@ var (
 	ErrNoMedication = errors.New("no medication")
 	// ErrNoInstruction indicates that no instruction was found.
 	ErrNoInstruction = errors.New("no instruction")
+	// ErrInstructionRestricted is an error when question is not about instruction.
+	ErrInstructionRestricted = errors.New("instruction restricted")
 )

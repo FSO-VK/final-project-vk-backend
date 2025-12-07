@@ -3,21 +3,13 @@ package llmchatbot
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 	"text/template"
 
+	llmInterface "github.com/FSO-VK/final-project-vk-backend/internal/medication/application/llm"
 	"github.com/FSO-VK/final-project-vk-backend/pkg/llm"
-)
-
-var (
-	// ErrEmptyResponse is returned when the response body is empty or contains no data.
-	ErrEmptyResponse = errors.New("empty response")
-	// ErrWithSystemPrompt is returned when the system prompt is missing.
-	ErrWithSystemPrompt = errors.New("err with system prompt")
-	// ErrInvalidInstruction is returned when the instruction is invalid.
-	ErrInvalidInstruction = errors.New("invalid instruction")
 )
 
 // LLMChatBot is a service for getting instruction advice.
@@ -56,12 +48,15 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 ) (string, error) {
 	selectFieldTemplate, err := template.ParseFiles(s.conf.SelectInstructionFieldPromptPath)
 	if err != nil {
-		return "", ErrWithSystemPrompt
+		return "", fmt.Errorf(
+			"failed to load select-field template: %w",
+			llmInterface.ErrLLMInternalFailure,
+		)
 	}
 
 	instructionFields, err := getFieldNamesList(instruction)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to extract instruction fields: %w", err)
 	}
 
 	data := SelectInstructionFieldPrompt{
@@ -71,23 +66,32 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 
 	var buf bytes.Buffer
 	if err := selectFieldTemplate.Execute(&buf, data); err != nil {
-		return "", ErrWithSystemPrompt
+		return "", fmt.Errorf(
+			"failed to execute select-field template: %w",
+			llmInterface.ErrLLMInternalFailure,
+		)
 	}
 
 	selectInstructionFieldPrompt := buf.String()
 	LLMChosenInstructionField, err := s.llmProvider.Query(selectInstructionFieldPrompt)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to query LLM during instruction field selection: %w", err)
 	}
 
 	instructionPart, err := getFieldValue(instruction, LLMChosenInstructionField)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf(
+			"restricted field or invalid field name: %w",
+			llmInterface.ErrInstructionRestricted,
+		)
 	}
 
 	consultTemplate, err := template.ParseFiles(s.conf.ConsultingPromptPath)
 	if err != nil {
-		return "", ErrWithSystemPrompt
+		return "", fmt.Errorf(
+			"failed to load consulting template: %w",
+			llmInterface.ErrLLMInternalFailure,
+		)
 	}
 	instructionConsultationPromptData := InstructionConsultationPrompt{
 		UserQuestion:    userQuestion,
@@ -96,13 +100,16 @@ func (s *LLMChatBot) AskInstructionTwoStep(
 
 	var bufSecond bytes.Buffer
 	if err := consultTemplate.Execute(&bufSecond, instructionConsultationPromptData); err != nil {
-		return "", ErrWithSystemPrompt
+		return "", fmt.Errorf(
+			"failed to execute consulting template: %w",
+			llmInterface.ErrLLMInternalFailure,
+		)
 	}
 
 	LLMFinalResponse := bufSecond.String()
 	finalResponse, err := s.llmProvider.Query(LLMFinalResponse)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to query LLM during consultation: %w", err)
 	}
 	return finalResponse, nil
 }
@@ -112,11 +119,11 @@ func getFieldValue(doc interface{}, fieldName string) (string, error) {
 	r := reflect.ValueOf(doc)
 
 	if r.Kind() != reflect.Struct {
-		return "", ErrInvalidInstruction
+		return "", llmInterface.ErrInstructionRestricted
 	}
 	field := r.FieldByName(fieldName)
 	if !field.IsValid() {
-		return "", ErrInvalidInstruction
+		return "", llmInterface.ErrInstructionRestricted
 	}
 
 	return field.String(), nil
@@ -125,7 +132,7 @@ func getFieldValue(doc interface{}, fieldName string) (string, error) {
 func getFieldNamesList(instr any) (string, error) {
 	t := reflect.TypeOf(instr)
 	if t.Kind() != reflect.Struct {
-		return "", ErrInvalidInstruction
+		return "", llmInterface.ErrInstructionRestricted
 	}
 
 	numFields := t.NumField()
