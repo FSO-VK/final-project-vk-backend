@@ -5,19 +5,18 @@ import (
 	"time"
 )
 
-// DaemonInterface is an interface for ticker.
-type DaemonInterface interface {
+// DaemonProvider is an interface for ticker.
+type DaemonProvider interface {
 	Run(ctx context.Context)
 	Register(f func(ctx context.Context) error)
 }
 
-// Daemon implements TickerInterface.
+// Daemon implements DaemonProvider.
 type Daemon struct {
 	TickerInterval time.Duration
-	Function       func(ctx context.Context) error
 }
 
-// NewDaemon returns a new Ticker.
+// NewDaemon returns a new Daemon.
 func NewDaemon(interval time.Duration) *Daemon {
 	return &Daemon{
 		TickerInterval: interval,
@@ -25,7 +24,7 @@ func NewDaemon(interval time.Duration) *Daemon {
 }
 
 // RunTicker runs the ticker.
-func (t *Daemon) RunTicker(ctx context.Context, tick func(ctx context.Context)) {
+func (t *Daemon) RunTicker(ctx context.Context, tick func(ctx context.Context) error) {
 	tk := time.NewTicker(t.TickerInterval)
 	defer tk.Stop()
 
@@ -34,18 +33,12 @@ func (t *Daemon) RunTicker(ctx context.Context, tick func(ctx context.Context)) 
 		case <-ctx.Done():
 			return
 		case <-tk.C:
-			tick(ctx)
+			_ = tick(ctx)
 		}
 	}
 }
 
 // Run runs the daemon.
-func (d *Daemon) Run(ctx context.Context) {
-	d.RunTicker(ctx, func(ctx context.Context) {
-		_ = d.Function(ctx)
-	})
-}
-
-func (d *Daemon) Register(f func(ctx context.Context) error) {
-	d.Function = f
+func (d *Daemon) Run(ctx context.Context, f func(ctx context.Context) error) {
+	d.RunTicker(ctx, f)
 }

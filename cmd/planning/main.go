@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"time"
 
 	generator "github.com/FSO-VK/final-project-vk-backend/internal/planning/application/generate_record"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/config"
@@ -11,6 +12,12 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	creation_shift  = 24 * time.Hour
+	batch_size      = 1000
+	ticker_interval = 24 * time.Hour
 )
 
 func main() {
@@ -43,22 +50,21 @@ func main() {
 	recordsRepo := memory.NewRecordStorage()
 
 	generateRecordsService := generator.NewGenerateRecordService(
-		conf.GenerateDaemon.CreationShift,
-		conf.GenerateDaemon.BatchSize,
 		recordsRepo,
 		planRepo,
 	)
 	daemonRecordsGenerator := daemon.NewDaemon(
-		conf.GenerateDaemon.TickerInterval,
+		ticker_interval,
 	)
-	daemonRecordsGenerator.Register(generateRecordsService.GenerateRecordsForDay)
 
-	if err := generateRecordsService.GenerateRecordsForDay(ctx); err != nil {
+	if err := generateRecordsService.GenerateRecordsForDay(ctx, batch_size, creation_shift); err != nil {
 		logger.Fatal(err)
 	}
 
 	logger.Info("Daemon started")
-	go daemonRecordsGenerator.Run(ctx)
+	go daemonRecordsGenerator.Run(ctx, func(ctx context.Context) error {
+		return generateRecordsService.GenerateRecordsForDay(ctx, batch_size, creation_shift)
+	})
 	<-ctx.Done()
 	logger.Info("Server stopped")
 }

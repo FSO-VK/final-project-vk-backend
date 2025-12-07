@@ -2,7 +2,6 @@ package generaterecord
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
@@ -10,37 +9,35 @@ import (
 	"github.com/google/uuid"
 )
 
-// GenerateRecordProvider is an interface for generating records.
-type GenerateRecordProvider interface {
+// GenerateRecord is an interface for generating records.
+type GenerateRecord interface {
 	GenerateRecord(planID uuid.UUID) error
 	GenerateRecordsForDay() error
 }
 
-// GenerateRecordService implements GenerateRecordProvider.
+// GenerateRecordService implements GenerateRecord.
 type GenerateRecordService struct {
-	creationShift time.Duration
-	batchSize     int
-	recordsRepo   record.Repository
-	planRepo      plan.Repository
+	recordsRepo record.Repository
+	planRepo    plan.Repository
 }
 
 // NewGenerateRecordService creates a new GenerateRecordService.
 func NewGenerateRecordService(
-	creationShift time.Duration,
-	batchSize int,
 	recordsRepo record.Repository,
 	planRepo plan.Repository,
 ) *GenerateRecordService {
 	return &GenerateRecordService{
-		creationShift: creationShift,
-		batchSize:     batchSize,
-		recordsRepo:   recordsRepo,
-		planRepo:      planRepo,
+		recordsRepo: recordsRepo,
+		planRepo:    planRepo,
 	}
 }
 
 // GenerateRecord generates records for a specific plan.
-func (g *GenerateRecordService) GenerateRecord(ctx context.Context, planID uuid.UUID) error {
+func (g *GenerateRecordService) GenerateRecord(
+	ctx context.Context,
+	planID uuid.UUID,
+	creationShift time.Duration,
+) error {
 	p, err := g.planRepo.GetByID(ctx, planID)
 	if err != nil {
 		return err
@@ -48,7 +45,7 @@ func (g *GenerateRecordService) GenerateRecord(ctx context.Context, planID uuid.
 
 	records, err := p.GenerateIntakeRecords(
 		time.Now(),
-		time.Now().Truncate(24*time.Hour).Add(g.creationShift),
+		time.Now().Truncate(24*time.Hour).Add(creationShift),
 	)
 	if err != nil {
 		return err
@@ -62,14 +59,17 @@ func (g *GenerateRecordService) GenerateRecord(ctx context.Context, planID uuid.
 }
 
 // GenerateRecordsForDay generates records for all active plans.
-func (g *GenerateRecordService) GenerateRecordsForDay(ctx context.Context) error {
-	fmt.Println("111111")
-	seq, err := g.planRepo.ActivePlans(ctx, g.batchSize)
+func (g *GenerateRecordService) GenerateRecordsForDay(
+	ctx context.Context,
+	batchSize int,
+	creationShift time.Duration,
+) error {
+	seq, err := g.planRepo.ActivePlans(ctx, batchSize)
 	if err != nil {
 		return err
 	}
 
-	creationTime := time.Now().Truncate(24 * time.Hour).Add(g.creationShift)
+	creationTime := time.Now().Truncate(24 * time.Hour).Add(creationShift)
 	now := time.Now()
 
 	for p := range seq {
