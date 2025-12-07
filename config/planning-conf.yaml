@@ -2,8 +2,8 @@
 # https://github.com/drone/envsubst?tab=readme-ov-file
 
 server:
-  host: ${NOTIFICATIONS_SERVER_HOST:-0.0.0.0}
-  port: ${NOTIFICATIONS_SERVER_PORT:-8000}
+  host: ${PLANNING_SERVER_HOST:-0.0.0.0}
+  port: ${PLANNING_SERVER_PORT:-8000}
 
 auth:
   baseUrl: ${BASE_URL:-http://0.0.0.0:8000}
@@ -11,3 +11,13 @@ auth:
   timeout: ${AUTH_TIMEOUT:-30s}
   cookieName: ${COOKIE_NAME:-session_id}
   cookieDomain: ${COOKIE_DOMAIN:-/}
+
+medication:
+  endpoint: ${MEDICATION_SERVER_ENDPOINT:-https://myhealthbox.ddns.net/api/v1/medication/medication/}
+  method: ${MEDICATION_METHOD:-GET}
+  timeout: ${MEDICATION_TIMEOUT:-30s}
+
+notification:
+  endpoint: ${NOTIFICATIONS_SERVER_ENDPOINT:-https://myhealthbox.ddns.net/api/v1/notification/send}
+  method: ${NOTIFICATION_METHOD:-POST}
+  timeout: ${NOTIFICATION_TIMEOUT:-30s}

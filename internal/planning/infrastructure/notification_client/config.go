@@ -1,4 +1,4 @@
-package medicationclient
+package notificationclient
 
 import "time"
 
