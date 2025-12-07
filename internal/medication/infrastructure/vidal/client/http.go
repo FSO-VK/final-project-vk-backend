@@ -3,12 +3,14 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/vidal"
+	strip "github.com/grokify/html-strip-tags-go"
 )
 
 // HTTPClient is a client for vidal.ru API.
@@ -85,7 +87,42 @@ func (c *HTTPClient) handleBody(body *Response) (*vidal.ClientResponse, error) {
 
 	// it is only 1 possible product when searching by bar code
 	product := body.Products[0]
+
+	// vidal API contains HTML tags in document (instruction) fields.
+	err := stripHTMLTags(&product.Document)
+	if err != nil {
+		return nil, fmt.Errorf("strip HTML tags: %w", err)
+	}
+
 	return &vidal.ClientResponse{
 		Product: product,
 	}, nil
+}
+
+var errNilDocument = errors.New("document is nil")
+
+func stripHTMLTags(doc *vidal.Document) error {
+	if doc == nil {
+		return errNilDocument
+	}
+
+	doc.PhInfluence = strip.StripTags(doc.PhInfluence)
+	doc.PhKinetics = strip.StripTags(doc.PhKinetics)
+	doc.Dosage = strip.StripTags(doc.Dosage)
+	doc.OverDosage = strip.StripTags(doc.OverDosage)
+	doc.Interaction = strip.StripTags(doc.Interaction)
+	doc.Lactation = strip.StripTags(doc.Lactation)
+	doc.SideEffects = strip.StripTags(doc.SideEffects)
+	doc.Indication = strip.StripTags(doc.Indication)
+	doc.ContraIndication = strip.StripTags(doc.ContraIndication)
+	doc.SpecialInstruction = strip.StripTags(doc.SpecialInstruction)
+	doc.PregnancyUsing = strip.StripTags(doc.PregnancyUsing)
+	doc.NursingUsing = strip.StripTags(doc.NursingUsing)
+	doc.RenalInsuf = strip.StripTags(doc.RenalInsuf)
+	doc.HepatoInsuf = strip.StripTags(doc.HepatoInsuf)
+	doc.PharmDelivery = strip.StripTags(doc.PharmDelivery)
+	doc.ElderlyInsuf = strip.StripTags(doc.ElderlyInsuf)
+	doc.ChildInsuf = strip.StripTags(doc.ChildInsuf)
+
+	return nil
 }
