@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	creation_shift  = 24 * time.Hour
-	batch_size      = 1000
-	ticker_interval = 24 * time.Hour
+	creationShift  = 24 * time.Hour
+	batchSize      = 1000
+	tickerInterval = 24 * time.Hour
+	timeStart      = 0*time.Hour + 0*time.Minute
 )
 
 func main() {
@@ -54,16 +55,18 @@ func main() {
 		planRepo,
 	)
 	daemonRecordsGenerator := daemon.NewDaemon(
-		ticker_interval,
+		tickerInterval,
+		timeStart,
+		logger,
 	)
 
-	if err := generateRecordsService.GenerateRecordsForDay(ctx, batch_size, creation_shift); err != nil {
+	if err := generateRecordsService.GenerateRecordsForDay(ctx, batchSize, creationShift); err != nil {
 		logger.Fatal(err)
 	}
 
 	logger.Info("Daemon started")
 	go daemonRecordsGenerator.Run(ctx, func(ctx context.Context) error {
-		return generateRecordsService.GenerateRecordsForDay(ctx, batch_size, creation_shift)
+		return generateRecordsService.GenerateRecordsForDay(ctx, batchSize, creationShift)
 	})
 	<-ctx.Done()
 	logger.Info("Server stopped")

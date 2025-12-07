@@ -42,10 +42,13 @@ func (g *GenerateRecordService) GenerateRecord(
 	if err != nil {
 		return err
 	}
-
+	now := time.Now()
 	records, err := p.GenerateIntakeRecords(
-		time.Now(),
-		time.Now().Truncate(24*time.Hour).Add(creationShift),
+		now,
+		time.Date(
+			now.Year(), now.Month(), now.Day(),
+			0, 0, 0, 0, now.Location(),
+		).Add(creationShift),
 	)
 	if err != nil {
 		return err
@@ -68,9 +71,11 @@ func (g *GenerateRecordService) GenerateRecordsForDay(
 	if err != nil {
 		return err
 	}
-
-	creationTime := time.Now().Truncate(24 * time.Hour).Add(creationShift)
 	now := time.Now()
+	creationTime := time.Date(
+		now.Year(), now.Month(), now.Day(),
+		0, 0, 0, 0, now.Location(),
+	).Add(creationShift)
 
 	for p := range seq {
 		records, err := p.GenerateIntakeRecords(now, creationTime)
