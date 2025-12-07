@@ -59,7 +59,7 @@ func (h *MedicationClient) makeFullRequest(id uuid.UUID) (Body, error) {
 		defer cancel()
 	}
 
-	url := h.cfg.Host + id.String()
+	url := h.cfg.Endpoint + id.String()
 	httpReq, err := http.NewRequestWithContext(ctx, h.cfg.Method, url, nil)
 	if err != nil {
 		return Body{}, err

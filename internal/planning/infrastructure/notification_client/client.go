@@ -68,7 +68,7 @@ func (h *NotificationClient) SendNotification(info notification.NotificationInfo
 	req, err := http.NewRequestWithContext(
 		ctx,
 		h.cfg.Method,
-		h.cfg.Host,
+		h.cfg.Endpoint,
 		bytes.NewBuffer(jsonBody),
 	)
 	if err != nil {
