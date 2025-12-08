@@ -29,19 +29,19 @@ func (s *ServerConfig) Address() string {
 	return fmt.Sprintf("%s:%s", s.Host, s.Port)
 }
 
-// MedicationHTTPServer represents an HTTP server with configuration, logger and underlying http.Server.
-type MedicationHTTPServer struct {
+// PlanningGINServer represents an GIN server with configuration, logger and underlying http.Server.
+type PlanningGINServer struct {
 	config *ServerConfig
 	srv    *http.Server
 	logger *logrus.Entry
 }
 
-// NewGINServer creates a new HTTP server instance with the provided configuration and logger.
-func NewGINServer(conf *ServerConfig, l *logrus.Entry) *MedicationHTTPServer {
+// NewGINServer creates a new GIN server instance with the provided configuration and logger.
+func NewGINServer(conf *ServerConfig, l *logrus.Entry) *PlanningGINServer {
 	if conf == nil {
 		conf = defaultServerConfig
 	}
-	return &MedicationHTTPServer{
+	return &PlanningGINServer{
 		config: conf,
 		srv: &http.Server{
 			Addr:                         conf.Address(),
@@ -66,17 +66,17 @@ func NewGINServer(conf *ServerConfig, l *logrus.Entry) *MedicationHTTPServer {
 }
 
 // Router sets the HTTP router for the server.
-func (s *MedicationHTTPServer) Router(router *gin.Engine) {
+func (s *PlanningGINServer) Router(router *gin.Engine) {
 	s.srv.Handler = router
 }
 
 // Shutdown gracefully shuts down the server.
-func (s *MedicationHTTPServer) Shutdown(ctx context.Context) error {
+func (s *PlanningGINServer) Shutdown(ctx context.Context) error {
 	return s.srv.Shutdown(ctx)
 }
 
 // ListenAndServe starts the HTTP server.
-func (s *MedicationHTTPServer) ListenAndServe() error {
+func (s *PlanningGINServer) ListenAndServe() error {
 	s.logger.Infof("Server started on %s", s.config.Address())
 	return s.srv.ListenAndServe()
 }
