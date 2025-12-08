@@ -17,14 +17,6 @@ type ServerConfig struct {
 	Port string
 }
 
-// Unexported global variable.
-//
-//nolint:gochecknoglobals
-var defaultServerConfig = &ServerConfig{
-	Host: "",
-	Port: "8080",
-}
-
 // Address returns the full server address in host:port format.
 func (s *ServerConfig) Address() string {
 	return fmt.Sprintf("%s:%s", s.Host, s.Port)
@@ -39,9 +31,6 @@ type MedicationHTTPServer struct {
 
 // NewHTTPServer creates a new HTTP server instance with the provided configuration and logger.
 func NewHTTPServer(conf *ServerConfig, l *logrus.Entry) *MedicationHTTPServer {
-	if conf == nil {
-		conf = defaultServerConfig
-	}
 	return &MedicationHTTPServer{
 		config: conf,
 		srv: &http.Server{

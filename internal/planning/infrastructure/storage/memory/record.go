@@ -92,8 +92,6 @@ func (s *RecordStorage) GetByPlanID(
 			result = append(result, oneRecord)
 		}
 	}
-	if len(result) == 0 {
-		return nil, record.ErrNoRecordFound
-	}
+
 	return result, nil
 }

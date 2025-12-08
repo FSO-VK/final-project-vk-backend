@@ -40,7 +40,7 @@ func (h *HTTPAuthChecker) CheckAuth(reqData *Request) (*Response, error) {
 		defer cancel()
 	}
 
-	url := h.cfg.BaseURL + h.cfg.Path
+	url := h.cfg.AuthBaseURL + h.cfg.Path
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

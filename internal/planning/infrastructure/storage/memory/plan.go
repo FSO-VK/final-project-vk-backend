@@ -73,9 +73,6 @@ func (s *PlanStorage) UserPlans(
 			result = append(result, onePlan)
 		}
 	}
-	if len(result) == 0 {
-		return nil, plan.ErrNoPlanFound
-	}
 	return result, nil
 }
 

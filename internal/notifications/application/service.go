@@ -2,7 +2,7 @@
 package application
 
 // NotificationsApplication is a dependency injection container that aggregates all use cases
-// for the medication domain to be injected from main.go.
+// for the notification domain to be injected from main.go.
 type NotificationsApplication struct {
 	GetVapidPublicKey  GetVapidPublicKey
 	CreateSubscription CreateSubscription

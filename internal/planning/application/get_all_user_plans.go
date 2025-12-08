@@ -39,6 +39,7 @@ type GetAllPlansCommand struct {
 	UserID string `validate:"required,uuid"`
 }
 
+// PlanItem is a plan item.
 type PlanItem struct {
 	ID             string
 	MedicationID   string
