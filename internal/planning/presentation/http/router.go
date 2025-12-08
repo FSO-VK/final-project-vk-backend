@@ -1,0 +1,24 @@
+package http
+
+import (
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
+	"github.com/gin-gonic/gin"
+)
+
+// Router returns a new Gin engine with routes and Gin-native middleware.
+func Router(
+	notificationHandlers *NotificationsHandlers,
+	authMw *httputil.AuthMiddleware,
+) *gin.Engine {
+	r := gin.New()
+
+	r.Use(gin.Logger())
+	r.Use(httputil.NewPanicRecoveryMiddleware().Handler())
+	authGroup := r.Group("/")
+	authGroup.Use(authMw.Middleware())
+	{
+		authGroup.GET("/plan/all", notificationHandlers.GetAllUsersPlans)
+	}
+
+	return r
+}

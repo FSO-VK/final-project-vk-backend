@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
@@ -39,6 +40,7 @@ type GetAllPlansCommand struct {
 	UserID string `validate:"required,uuid"`
 }
 
+// PlanItem is a plan item.
 type PlanItem struct {
 	ID             string
 	MedicationID   string
@@ -72,7 +74,7 @@ func (s *GetAllPlansService) Execute(
 	}
 
 	userPlans, err := s.planningRepo.UserPlans(ctx, parsedUser)
-	if err != nil {
+	if err != nil && !(errors.Is(err, plan.ErrNoPlanFound)) {
 		return nil, ErrNoPlan
 	}
 
