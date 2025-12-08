@@ -11,18 +11,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// NotificationsHandlers is a handler for Notifications.
-type NotificationsHandlers struct {
+// PlanningHandlers is a handler for Planning.
+type PlanningHandlers struct {
 	app    *application.PlanningApplication
 	logger *logrus.Entry
 }
 
-// NewHandlers creates a new NotificationsHandlers.
+// NewHandlers creates a new PlanningHandlers.
 func NewHandlers(
 	app *application.PlanningApplication,
 	logger *logrus.Entry,
-) *NotificationsHandlers {
-	return &NotificationsHandlers{
+) *PlanningHandlers {
+	return &PlanningHandlers{
 		app:    app,
 		logger: logger,
 	}
@@ -42,7 +42,7 @@ type GetAllUsersPlansJSONResponse struct {
 }
 
 // GetAllUsersPlans gets all users plans.
-func (h *NotificationsHandlers) GetAllUsersPlans(c *gin.Context) {
+func (h *PlanningHandlers) GetAllUsersPlans(c *gin.Context) {
 	auth, err := httputil.GetAuthFromCtx(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, api.Response[any]{
