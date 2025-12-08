@@ -7,7 +7,7 @@ import (
 
 // Router returns a new Gin engine with routes and Gin-native middleware.
 func Router(
-	notificationHandlers *PlanningHandlers,
+	planningHandlers *PlanningHandlers,
 	authMw *httputil.AuthMiddleware,
 ) *gin.Engine {
 	r := gin.New()
@@ -17,7 +17,7 @@ func Router(
 	authGroup := r.Group("/")
 	authGroup.Use(authMw.Middleware())
 	{
-		authGroup.GET("/plan/all", notificationHandlers.GetAllUsersPlans)
+		authGroup.GET("/plan/all", planningHandlers.GetAllUsersPlans)
 	}
 
 	return r

@@ -28,7 +28,7 @@ func NewHandlers(
 	}
 }
 
-// GetAllUsersPlansItem returns a Box of medications.
+// GetAllUsersPlansItem returns user's plans.
 type GetAllUsersPlansItem struct {
 	// embedded struct
 	PlanObject `json:",inline"`
@@ -36,7 +36,7 @@ type GetAllUsersPlansItem struct {
 	ID string `json:"id"`
 }
 
-// GetAllUsersPlansJSONResponse returns a Box of medications.
+// GetAllUsersPlansJSONResponse returns user's plans.
 type GetAllUsersPlansJSONResponse struct {
 	AllUserPlans []GetAllUsersPlansItem `json:"allUserPlans"`
 }

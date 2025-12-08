@@ -83,6 +83,7 @@ services:
       AUTH_TIMEOUT: "30s"
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      NOTIFICATIONS_TIMEOUT: "10s"
     ports:
       - "8003:8000"
     develop:
