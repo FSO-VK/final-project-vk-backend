@@ -50,7 +50,6 @@ type AddPlanCommand struct {
 	Condition      string   `validate:"omitempty,max=300"`
 	StartDate      string   `validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
 	EndDate        string   `validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
-	Duration       string   `validate:"required"`
 	RecurrenceRule []string `validate:"required"`
 }
 
@@ -84,12 +83,10 @@ func (s *AddPlanService) Execute(
 	if err != nil {
 		return nil, ErrValidationFail
 	}
-
 	newPlan, err := createPlan(req, parsedUser, parsedMedicationID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create plan: %w", err)
 	}
-
 	err = s.planningRepo.Save(ctx, newPlan)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save plan: %w", err)
@@ -119,37 +116,36 @@ func createPlan(req *AddPlanCommand,
 		req.AmountUnit,
 	)
 	if err != nil {
-		return &plan.Plan{}, fmt.Errorf("invalid dosage: %w", err)
+		return nil, fmt.Errorf("invalid dosage: %w", err)
 	}
 
 	parsedStart, err := time.Parse(time.RFC3339, req.StartDate)
 	if err != nil {
-		return &plan.Plan{}, fmt.Errorf("invalid course start: %w", err)
+		return nil, fmt.Errorf("invalid course start: %w", err)
 	}
-
 	parsedEnd, err := time.Parse(time.RFC3339, req.EndDate)
 	if err != nil {
-		return &plan.Plan{}, fmt.Errorf("invalid course end: %w", err)
+		return nil, fmt.Errorf("invalid course end: %w", err)
 	}
 	if len(req.RecurrenceRule) == 0 {
-		return &plan.Plan{}, ErrUnsupportedRrule
+		return nil, ErrUnsupportedRrule
 	}
 	rules := make([]*rrule.RRule, 0, len(req.RecurrenceRule))
 
 	for _, ruleStr := range req.RecurrenceRule {
 		rule, err := rrule.StrToRRule(ruleStr)
 		if err != nil {
-			return &plan.Plan{}, ErrUnsupportedRrule
+			return nil, ErrUnsupportedRrule
 		}
 		rules = append(rules, rule)
 	}
 	schedule, err := plan.NewSchedule(parsedStart, parsedEnd, rules)
 	if err != nil {
-		return &plan.Plan{}, fmt.Errorf("invalid schedule: %w", err)
+		return nil, fmt.Errorf("invalid schedule: %w", err)
 	}
 	id, err := uuid.NewV7()
 	if err != nil {
-		return &plan.Plan{}, fmt.Errorf("failed to generate uuid: %w", err)
+		return nil, fmt.Errorf("failed to generate uuid: %w", err)
 	}
 	newPlan, err := plan.NewPlan(
 		id,
