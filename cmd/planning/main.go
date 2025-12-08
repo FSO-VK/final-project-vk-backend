@@ -69,6 +69,7 @@ func main() {
 	app := &application.PlanningApplication{
 		GetAllPlans: application.NewGetAllPlansService(planRepo, validator),
 		GetPlan:     application.NewGetPlanService(planRepo, validator),
+		AddPlan:     application.NewAddPlanService(planRepo, validator),
 	}
 	planningHandlers := http.NewHandlers(app, logger)
 

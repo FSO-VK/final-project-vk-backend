@@ -18,7 +18,8 @@ func Router(
 	authGroup.Use(authMw.Middleware())
 	{
 		authGroup.GET("/plan/all", planningHandlers.GetAllUsersPlans)
-		authGroup.GET("/plan//:id", planningHandlers.GetPlanByID)
+		authGroup.GET("/plan/:id", planningHandlers.GetPlanByID)
+		authGroup.POST("/plan", planningHandlers.AddPlan)
 	}
 
 	return r

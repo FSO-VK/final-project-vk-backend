@@ -101,6 +101,87 @@ func (h *PlanningHandlers) GetAllUsersPlans(c *gin.Context) {
 	})
 }
 
+// AddPlanJSONRequest is a request for AddPlan.
+type AddPlanJSONRequest struct {
+	// embedded struct
+	PlanObject `json:",inline"`
+}
+
+// AddPlanJSONResponse is a response for AddPlan.
+type AddPlanJSONResponse struct {
+	// embedded struct
+	PlanObject `json:",inline"`
+
+	ID string `json:"id"`
+}
+
+// AddPlan adds a plan.
+func (h *PlanningHandlers) AddPlan(c *gin.Context) {
+	auth, err := httputil.GetAuthFromCtx(c.Request)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, api.Response[any]{
+			StatusCode: http.StatusUnauthorized,
+			Error:      api.MsgUnauthorized,
+			Body:       struct{}{},
+		})
+		return
+	}
+
+	var reqJSON AddPlanJSONRequest
+	if err := c.ShouldBindJSON(&reqJSON); err != nil {
+		h.logger.WithError(err).Error("Failed to bind request body")
+		c.JSON(http.StatusBadRequest, api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		})
+		return
+	}
+
+	command := &application.AddPlanCommand{
+		MedicationID:   reqJSON.MedicationID,
+		UserID:         auth.UserID,
+		AmountValue:    reqJSON.Amount.Value,
+		AmountUnit:     reqJSON.Amount.Unit,
+		Condition:      reqJSON.Condition,
+		StartDate:      reqJSON.StartDate,
+		EndDate:        reqJSON.EndDate,
+		RecurrenceRule: reqJSON.RecurrenceRule,
+	}
+	serviceResponse, err := h.app.AddPlan.Execute(c.Request.Context(), command)
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to add plan")
+		c.JSON(http.StatusInternalServerError, api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToAddPlan,
+		})
+		return
+	}
+
+	response := &AddPlanJSONResponse{
+		PlanObject: PlanObject{
+			MedicationID: serviceResponse.MedicationID,
+			UserID:       serviceResponse.UserID,
+			Amount: AmountObject{
+				Value: serviceResponse.AmountValue,
+				Unit:  serviceResponse.AmountUnit,
+			},
+			Condition:      serviceResponse.Condition,
+			StartDate:      serviceResponse.StartDate,
+			EndDate:        serviceResponse.EndDate,
+			RecurrenceRule: serviceResponse.RecurrenceRule,
+		},
+		ID: serviceResponse.ID,
+	}
+
+	c.JSON(http.StatusOK, api.Response[any]{
+		StatusCode: http.StatusOK,
+		Body:       response,
+		Error:      "",
+	})
+}
+
 // GetPlanByIDJSONResponse is a response for GetPlanByID.
 type GetPlanByIDJSONResponse struct {
 	// embedded struct
