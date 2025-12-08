@@ -74,10 +74,12 @@ func (h *PlanningHandlers) GetAllUsersPlans(c *gin.Context) {
 	for _, p := range plans.Plans {
 		response.AllUserPlans = append(response.AllUserPlans, GetAllUsersPlansItem{
 			PlanObject: PlanObject{
-				MedicationID:   p.MedicationID,
-				UserID:         p.UserID,
-				AmountValue:    p.AmountValue,
-				AmountUnit:     p.AmountUnit,
+				MedicationID: p.MedicationID,
+				UserID:       p.UserID,
+				Amount: AmountObject{
+					Value: p.AmountValue,
+					Unit:  p.AmountUnit,
+				},
 				Condition:      p.Condition,
 				StartDate:      p.StartDate,
 				EndDate:        p.EndDate,

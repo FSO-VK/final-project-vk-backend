@@ -16,14 +16,6 @@ type ServerConfig struct {
 	Port string
 }
 
-// Unexported global variable.
-//
-//nolint:gochecknoglobals
-var defaultServerConfig = &ServerConfig{
-	Host: "",
-	Port: "8000",
-}
-
 // Address returns the full server address in host:port format.
 func (s *ServerConfig) Address() string {
 	return fmt.Sprintf("%s:%s", s.Host, s.Port)
@@ -38,9 +30,6 @@ type NotificationGINServer struct {
 
 // NewGINServer creates a new GIN server instance with the provided configuration and logger.
 func NewGINServer(conf *ServerConfig, l *logrus.Entry) *NotificationGINServer {
-	if conf == nil {
-		conf = defaultServerConfig
-	}
 	return &NotificationGINServer{
 		config: conf,
 		srv: &http.Server{

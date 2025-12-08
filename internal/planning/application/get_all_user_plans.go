@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
@@ -74,7 +73,7 @@ func (s *GetAllPlansService) Execute(
 	}
 
 	userPlans, err := s.planningRepo.UserPlans(ctx, parsedUser)
-	if err != nil && !(errors.Is(err, plan.ErrNoPlanFound)) {
+	if err != nil {
 		return nil, ErrNoPlan
 	}
 
