@@ -100,6 +100,11 @@ func main() {
 			medReference,
 			validator,
 		),
+		InternalGetMedicationByID: application.NewInternalGetMedicationByIDService(
+			medicationRepo,
+			medicationBoxRepo,
+			validator,
+		),
 	}
 
 	medicationHandlers := http.NewHandlers(app, logger)

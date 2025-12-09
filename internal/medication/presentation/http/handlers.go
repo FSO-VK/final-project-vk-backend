@@ -536,6 +536,67 @@ func (h *MedicationHandlers) GetMedicationByID(w http.ResponseWriter, r *http.Re
 	})
 }
 
+// InternalGetMedicationByIDJSONResponse is a response for InternalGetMedicationByID handler.
+type InternalGetMedicationByIDJSONResponse struct {
+	BodyCommonObject `json:",inline"`
+
+	BarCode string `json:"barCode,omitempty"`
+	ID      string `json:"id"`
+}
+
+// InternalGetMedicationByID is a handler for getting medication by its id.
+func (h *MedicationHandlers) InternalGetMedicationByID(w http.ResponseWriter, r *http.Request) {
+	logger := h.getLogger(r)
+
+	vars := mux.Vars(r)
+	id := vars[SlugID]
+
+	command := &application.InternalGetMedicationByIDCommand{
+		ID: id,
+	}
+
+	medication, err := h.app.InternalGetMedicationByID.Execute(r.Context(), command)
+	if err != nil {
+		logger.WithError(err).Error("Failed to get medication by id")
+
+		status, body := h.handleGetByIDServiceError(err)
+
+		w.WriteHeader(status)
+		_ = httputil.NetHTTPWriteJSON(w, body)
+		return
+	}
+
+	response := &InternalGetMedicationByIDJSONResponse{
+		ID: medication.ID,
+		BodyCommonObject: BodyCommonObject{
+			Name:              medication.Name,
+			InternationalName: medication.InternationalName,
+			Amount: AmountObject{
+				Value: medication.AmountValue,
+				Unit:  medication.AmountUnit,
+			},
+			ReleaseForm: medication.ReleaseForm,
+			Group:       medication.Group,
+			Producer: ProducerObject{
+				Name:    medication.ManufacturerName,
+				Country: medication.ManufacturerCountry,
+			},
+			ActiveSubstance: convertToActiveSubstanceObject(medication.ActiveSubstance),
+			Expiration:      medication.Expires,
+			Release:         medication.Release,
+			Commentary:      medication.Commentary,
+		},
+		BarCode: medication.BarCode,
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+		StatusCode: http.StatusOK,
+		Body:       response,
+		Error:      "",
+	})
+}
+
 // InstructionAssistantJSONResponse is a response for InstructionAssistant.
 type InstructionAssistantJSONResponse struct {
 	LLMAnswer string `json:"llmAnswer"`

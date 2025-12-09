@@ -13,11 +13,11 @@ auth:
   cookieDomain: ${COOKIE_DOMAIN:-/}
 
 medication:
-  endpoint: ${MEDICATION_SERVER_ENDPOINT:-https://myhealthbox.ddns.net/api/v1/medication/medication/}
+  endpoint: ${MEDICATION_SERVER_ENDPOINT:-http://medication:8000/internal/medication/}
   method: ${MEDICATION_METHOD:-GET}
   timeout: ${MEDICATION_TIMEOUT:-30s}
 
 notification:
-  endpoint: ${NOTIFICATIONS_SERVER_ENDPOINT:-https://myhealthbox.ddns.net/api/v1/notification/send}
+  endpoint: ${NOTIFICATIONS_SERVER_ENDPOINT:-http://notifications/notification/send}
   method: ${NOTIFICATION_METHOD:-POST}
   timeout: ${NOTIFICATION_TIMEOUT:-30s}

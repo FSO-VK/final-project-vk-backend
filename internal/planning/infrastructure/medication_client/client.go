@@ -73,7 +73,6 @@ func (h *MedicationClient) makeFullRequest(id uuid.UUID) (Body, error) {
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-
 	if resp.StatusCode != http.StatusOK {
 		return Body{}, ErrBadResponse
 	}
@@ -87,6 +86,5 @@ func (h *MedicationClient) makeFullRequest(id uuid.UUID) (Body, error) {
 	if parsedResponse.StatusCode != http.StatusOK {
 		return Body{}, ErrNoMedicationFound
 	}
-
 	return parsedResponse.Body, nil
 }
