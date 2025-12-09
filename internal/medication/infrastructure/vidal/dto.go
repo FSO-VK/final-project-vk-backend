@@ -112,7 +112,7 @@ type Country struct {
 
 // Document represents detailed documentation about the product.
 type Document struct {
-	StorageCondition   *string       `json:"storageCondition"`
+	StorageCondition   string        `json:"storageCondition"`
 	StorageTime        string        `json:"storageTime"`
 	UpdatedAt          string        `json:"updatedAt"`
 	Nozologies         []Nozology    `json:"nozologies"`
