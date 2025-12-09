@@ -12,6 +12,6 @@ import (
 type Config struct {
 	Server       http.ServerConfig
 	Auth         auth.ClientConfig
-	Medication   medication.MedicationClient
-	Notification notification.NotificationClient
+	Medication   medication.ClientConfig
+	Notification notification.ClientConfig
 }

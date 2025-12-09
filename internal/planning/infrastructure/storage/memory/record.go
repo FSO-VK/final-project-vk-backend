@@ -38,8 +38,8 @@ func (s *RecordStorage) Save(
 	if newRecord == nil {
 		return errGotNilIntakeRecord
 	}
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	s.count++
 	s.data.Set(newRecord.ID().String(), newRecord)
@@ -54,8 +54,8 @@ func (s *RecordStorage) SaveBulk(
 	if bulkOfRecords == nil {
 		return errGotNilIntakeRecord
 	}
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	for _, oneRecord := range bulkOfRecords {
 		if oneRecord == nil {
 			return errGotNilIntakeRecord
@@ -85,7 +85,6 @@ func (s *RecordStorage) GetByPlanID(
 ) ([]*record.IntakeRecord, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-
 	var result []*record.IntakeRecord
 	for _, oneRecord := range s.data.GetAll() {
 		if oneRecord.PlanID() == userID {

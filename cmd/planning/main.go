@@ -13,6 +13,7 @@ import (
 	generator "github.com/FSO-VK/final-project-vk-backend/internal/planning/application/generate_record"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/daemon"
+	medClient "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/medication_client"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/presentation/http"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
@@ -25,9 +26,9 @@ import (
 const (
 	creationShift  = 24 * time.Hour
 	batchSize      = 1000
-	tickerInterval = 30 * time.Second
+	tickerInterval = 24 * time.Hour
 	// in docker container need to use UTC time.
-	timeStart = 21*time.Hour + 48*time.Minute
+	timeStart = 21*time.Hour + 0*time.Minute
 )
 
 func main() {
@@ -56,6 +57,7 @@ func main() {
 
 	planRepo := memory.NewPlanStorage()
 	recordsRepo := memory.NewRecordStorage()
+	medicationClient := medClient.NewMedicationClient(conf.Medication, logger)
 
 	// Service and daemon
 	generateRecordsService := generator.NewGenerateRecordService(recordsRepo, planRepo)
@@ -70,11 +72,18 @@ func main() {
 	app := &application.PlanningApplication{
 		GetAllPlans: application.NewGetAllPlansService(planRepo, validator),
 		GetPlan:     application.NewGetPlanService(planRepo, validator),
-		AddPlan:     application.NewAddPlanService(planRepo, validator),
+		AddPlan: application.NewAddPlanService(
+			planRepo,
+			generateRecordsService,
+			validator,
+			medicationClient,
+			creationShift,
+		),
 		ShowSchedule: application.NewShowScheduleService(
 			planRepo,
 			recordsRepo,
 			validator,
+			medicationClient,
 			creationShift,
 		),
 	}
