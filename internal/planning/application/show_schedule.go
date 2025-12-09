@@ -3,6 +3,7 @@ package application
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
@@ -90,13 +91,13 @@ func (s *ShowScheduleService) Execute(
 
 	pastScheduleList := make([]*ScheduleTime, 0, len(userPlans))
 	futureScheduleList := make([]*ScheduleTime, 0, len(userPlans))
-
 	for _, p := range userPlans {
 		amountValue, amountUnit := p.Dosage()
 
 		records, err := s.recordsRepo.GetByPlanID(ctx, p.ID())
 		// if there is an error, it means that the plan has no records
 		// because all of them are in the future and we will calculate them after a while
+		fmt.Println("\nrecords", records)
 		if err == nil {
 			for _, record := range records {
 				if !record.PlannedTime().After(parsedEnd) &&
@@ -123,6 +124,10 @@ func (s *ShowScheduleService) Execute(
 			).Add(s.createdShift),
 			parsedEnd,
 		)
+		fmt.Println("\n future", futureTimes, time.Date(
+			now.Year(), now.Month(), now.Day(),
+			0, 0, 0, 0, now.Location(),
+		).Add(s.createdShift), parsedEnd)
 
 		for _, t := range futureTimes {
 			futureScheduleList = append(futureScheduleList, &ScheduleTime{

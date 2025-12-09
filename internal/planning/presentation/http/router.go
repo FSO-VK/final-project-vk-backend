@@ -19,6 +19,7 @@ func Router(
 	{
 		authGroup.GET("/plan/all", planningHandlers.GetAllUsersPlans)
 		authGroup.POST("/plan", planningHandlers.AddPlan)
+		authGroup.GET("/plan/schedule", planningHandlers.ShowSchedule)
 	}
 
 	return r

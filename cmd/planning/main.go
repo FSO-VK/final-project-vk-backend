@@ -25,8 +25,9 @@ import (
 const (
 	creationShift  = 24 * time.Hour
 	batchSize      = 1000
-	tickerInterval = 24 * time.Hour
-	timeStart      = 0*time.Hour + 0*time.Minute
+	tickerInterval = 30 * time.Second
+	// in docker container need to use UTC time.
+	timeStart = 21*time.Hour + 48*time.Minute
 )
 
 func main() {
@@ -69,6 +70,12 @@ func main() {
 	app := &application.PlanningApplication{
 		GetAllPlans: application.NewGetAllPlansService(planRepo, validator),
 		AddPlan:     application.NewAddPlanService(planRepo, validator),
+		ShowSchedule: application.NewShowScheduleService(
+			planRepo,
+			recordsRepo,
+			validator,
+			creationShift,
+		),
 	}
 	planningHandlers := http.NewHandlers(app, logger)
 

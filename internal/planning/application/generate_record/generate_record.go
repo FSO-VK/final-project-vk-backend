@@ -2,6 +2,7 @@ package generaterecord
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
@@ -67,6 +68,7 @@ func (g *GenerateRecordService) GenerateRecordsForDay(
 	batchSize int,
 	creationShift time.Duration,
 ) error {
+	fmt.Println("gen")
 	seq, err := g.planRepo.ActivePlans(ctx, batchSize)
 	if err != nil {
 		return err
@@ -76,13 +78,16 @@ func (g *GenerateRecordService) GenerateRecordsForDay(
 		now.Year(), now.Month(), now.Day(),
 		0, 0, 0, 0, now.Location(),
 	).Add(creationShift)
-
+	fmt.Println("gen", creationTime)
 	for p := range seq {
 		records, err := p.GenerateIntakeRecords(now, creationTime)
 		if err != nil {
 			return err
 		}
-
+		if len(records) == 0 {
+			continue
+		}
+		fmt.Println("save", *(records[0]))
 		if err := g.recordsRepo.SaveBulk(ctx, records); err != nil {
 			return err
 		}
