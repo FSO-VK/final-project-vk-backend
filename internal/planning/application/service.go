@@ -5,5 +5,6 @@ package application
 // for the planning domain to be injected from main.go.
 type PlanningApplication struct {
 	GetAllPlans GetAllPlans
+	GetPlan     GetPlan
 	AddPlan     AddPlan
 }
