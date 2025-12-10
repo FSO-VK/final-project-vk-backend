@@ -94,7 +94,7 @@ func (s *AddPlanService) Execute(
 	if err != nil {
 		return nil, ErrValidationFail
 	}
-	_, err = s.medicationProvider.MedicationName(parsedMedicationID)
+	_, err = s.medicationProvider.MedicationName(parsedMedicationID, parsedUser)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get medication - plan need to have medication: %w", err)
 	}

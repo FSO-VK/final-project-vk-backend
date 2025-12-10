@@ -17,7 +17,8 @@ import (
 
 const (
 	// SlugID is a slug for id.
-	SlugID = "id"
+	SlugID     = "id"
+	SlugUserID = "user_id"
 )
 
 // MedicationHandlers is a handler for Medication.
@@ -550,12 +551,14 @@ func (h *MedicationHandlers) InternalGetMedicationByID(w http.ResponseWriter, r 
 
 	vars := mux.Vars(r)
 	id := vars[SlugID]
+	userID := vars[SlugUserID]
 
-	command := &application.InternalGetMedicationByIDCommand{
-		ID: id,
+	command := &application.GetMedicationByIDCommand{
+		ID:     id,
+		UserID: userID,
 	}
 
-	medication, err := h.app.InternalGetMedicationByID.Execute(r.Context(), command)
+	medication, err := h.app.GetMedicationByID.Execute(r.Context(), command)
 	if err != nil {
 		logger.WithError(err).Error("Failed to get medication by id")
 

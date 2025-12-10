@@ -135,7 +135,7 @@ func (s *ShowScheduleService) scheduleList(
 		records, err := s.recordsRepo.GetByPlanID(ctx, p.ID())
 		// if there is an error, it means that the plan has no records
 		// because all of them are in the future and we will calculate them after a while
-		medicationName, nameErr := s.medicationProvider.MedicationName(p.MedicationID())
+		medicationName, nameErr := s.medicationProvider.MedicationName(p.MedicationID(), p.UserID())
 		if err == nil && nameErr == nil {
 			for _, record := range records {
 				if !record.PlannedTime().After(parsedEnd) &&

@@ -41,8 +41,9 @@ type Body struct {
 // MedicationName implements MedicationClient interface.
 func (h *MedicationClient) MedicationName(
 	id uuid.UUID,
+	userID uuid.UUID,
 ) (string, error) {
-	parsedResponse, err := h.makeFullRequest(id)
+	parsedResponse, err := h.makeFullRequest(id, userID)
 	if err != nil {
 		return "", err
 	}
@@ -50,7 +51,10 @@ func (h *MedicationClient) MedicationName(
 	return parsedResponse.Name, nil
 }
 
-func (h *MedicationClient) makeFullRequest(id uuid.UUID) (Body, error) {
+func (h *MedicationClient) makeFullRequest(
+	id uuid.UUID,
+	userID uuid.UUID,
+) (Body, error) {
 	ctx := context.Background()
 
 	if h.cfg.Timeout > 0 {
@@ -59,7 +63,7 @@ func (h *MedicationClient) makeFullRequest(id uuid.UUID) (Body, error) {
 		defer cancel()
 	}
 
-	url := h.cfg.Endpoint + id.String()
+	url := h.cfg.Endpoint + id.String() + "/" + userID.String()
 	httpReq, err := http.NewRequestWithContext(ctx, h.cfg.Method, url, nil)
 	if err != nil {
 		return Body{}, err

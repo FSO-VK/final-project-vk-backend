@@ -12,5 +12,4 @@ type MedicationApplication struct {
 	DataMatrixInformation        DataMatrixInformation
 	InstructionAssistant         InstructionAssistant
 	GetInstructionByMedicationID GetInstructionByMedicationID
-	InternalGetMedicationByID    InternalGetMedicationByID
 }
