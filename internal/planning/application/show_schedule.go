@@ -12,6 +12,10 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	futureIntakeStatus = "Запланировано"
+)
+
 // ShowSchedule is an interface for getting a notification.
 type ShowSchedule interface {
 	Execute(
@@ -62,7 +66,7 @@ type ScheduleTime struct {
 	MedicationName string
 	AmountValue    float64
 	AmountUnit     string
-	Status         bool // is taken
+	Status         string // is taken
 	PlannedAt      time.Time
 	TakenAt        time.Time
 }
@@ -146,7 +150,7 @@ func (s *ShowScheduleService) scheduleList(
 						MedicationName: medicationName,
 						AmountValue:    amountValue,
 						AmountUnit:     amountUnit,
-						Status:         record.IsTaken(),
+						Status:         record.StatusString(),
 						PlannedAt:      record.PlannedTime(),
 						TakenAt:        record.TakenAt(),
 					})
@@ -170,7 +174,7 @@ func (s *ShowScheduleService) scheduleList(
 				MedicationName: medicationName,
 				AmountValue:    amountValue,
 				AmountUnit:     amountUnit,
-				Status:         false,
+				Status:         futureIntakeStatus,
 				PlannedAt:      t,
 				TakenAt:        time.Time{},
 			})

@@ -259,7 +259,7 @@ type ShowScheduleItem struct {
 	MedicationID   string       `json:"medicationId"`
 	MedicationName string       `json:"medicationName"`
 	Amount         AmountObject `json:"amount"`
-	Status         bool         `json:"status"`
+	Status         string       `json:"status"`
 	PlannedAt      string       `json:"plannedAt"`
 	TakenAt        string       `json:"takenAt"`
 }
