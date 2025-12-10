@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application"
@@ -547,6 +548,7 @@ type InternalGetMedicationByIDJSONResponse struct {
 
 // InternalGetMedicationByID is a handler for getting medication by its id.
 func (h *MedicationHandlers) InternalGetMedicationByID(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("InternalGetMedicationByID")
 	logger := h.getLogger(r)
 
 	vars := mux.Vars(r)

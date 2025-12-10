@@ -10,7 +10,10 @@ func InternalRouter(
 	medicationHandlers *MedicationHandlers,
 ) *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/medication/{id}/{user_id}", medicationHandlers.GetMedicationByID).Methods("GET")
+	r.HandleFunc(
+		"/internal/medication/{id}/{user_id}",
+		medicationHandlers.InternalGetMedicationByID,
+	).Methods("GET")
 	panicMiddleware := httputil.NewPanicRecoveryMiddleware()
 	r.Use(panicMiddleware.Middleware)
 	return r
