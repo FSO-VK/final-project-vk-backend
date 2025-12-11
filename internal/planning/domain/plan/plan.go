@@ -177,3 +177,8 @@ func (p *Plan) ScheduleIcal() []string {
 	}
 	return rules
 }
+
+// Status returns the status of the plan.
+func (r *Plan) Status() uint {
+	return uint(r.status)
+}

@@ -61,6 +61,7 @@ type AddPlanResponse struct {
 	AmountValue    float64
 	AmountUnit     string
 	Condition      string
+	Status         uint
 	StartDate      string
 	EndDate        string
 	RecurrenceRule []string
@@ -100,6 +101,7 @@ func (s *AddPlanService) Execute(
 		AmountValue:    amountValue,
 		AmountUnit:     amountUnit,
 		Condition:      newPlan.Condition(),
+		Status:         newPlan.Status(),
 		StartDate:      newPlan.CourseStart().Format(time.RFC3339),
 		EndDate:        newPlan.CourseEnd().Format(time.RFC3339),
 		RecurrenceRule: newPlan.ScheduleIcal(),
