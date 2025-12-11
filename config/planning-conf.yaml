@@ -18,6 +18,6 @@ medication:
   timeout: ${MEDICATION_TIMEOUT:-30s}
 
 notification:
-  endpoint: ${NOTIFICATIONS_SERVER_ENDPOINT:-http://notifications:8000/notification/send}
+  endpoint: ${NOTIFICATION_SERVER_ENDPOINT:-http://notifications:8000/notification/send}
   method: ${NOTIFICATION_METHOD:-POST}
   timeout: ${NOTIFICATION_TIMEOUT:-30s}
