@@ -255,13 +255,13 @@ func (h *PlanningHandlers) GetPlanByID(c *gin.Context) {
 	})
 }
 
-// CompletePlanJSONRequest is a response for CompletePlan.
-type CompletePlanJSONRequest struct {
+// FinishPlanJSONRequest is a response for FinishPlan.
+type FinishPlanJSONRequest struct {
 	ID string `json:"id"`
 }
 
-// CompletePlan deactivates plan.
-func (h *PlanningHandlers) CompletePlan(c *gin.Context) {
+// FinishPlan deactivates plan.
+func (h *PlanningHandlers) FinishPlan(c *gin.Context) {
 	auth, err := httputil.GetAuthFromCtx(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, api.Response[any]{
@@ -283,7 +283,7 @@ func (h *PlanningHandlers) CompletePlan(c *gin.Context) {
 		return
 	}
 
-	command := &application.CompletePlanCommand{
+	command := &application.FinishPlanCommand{
 		UserID: auth.UserID,
 		ID:     slugPlanID,
 	}

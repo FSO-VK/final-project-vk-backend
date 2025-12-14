@@ -14,45 +14,45 @@ import (
 // ErrNotOwner is an error when user is not owner of the plan.
 var ErrNotOwner = errors.New("user is not owner of the plan")
 
-// CompletePlan is an interface for completing a notification.
-type CompletePlan interface {
+// FinishPlan is an interface for completing a notification.
+type FinishPlan interface {
 	Execute(
 		ctx context.Context,
-		cmd *CompletePlanCommand,
-	) (*CompletePlanResponse, error)
+		cmd *FinishPlanCommand,
+	) (*FinishPlanResponse, error)
 }
 
-// CompletePlanService is a service for creating a subscription.
-type CompletePlanService struct {
+// FinishPlanService is a service for creating a subscription.
+type FinishPlanService struct {
 	planningRepo plan.Repository
 	validator    validator.Validator
 }
 
-// NewCompletePlanService returns a new CompletePlanService.
-func NewCompletePlanService(
+// NewFinishPlanService returns a new FinishPlanService.
+func NewFinishPlanService(
 	planningRepo plan.Repository,
 	valid validator.Validator,
-) *CompletePlanService {
-	return &CompletePlanService{
+) *FinishPlanService {
+	return &FinishPlanService{
 		planningRepo: planningRepo,
 		validator:    valid,
 	}
 }
 
-// CompletePlanCommand is a request to complete a plan.
-type CompletePlanCommand struct {
+// FinishPlanCommand is a request to finish a plan.
+type FinishPlanCommand struct {
 	ID     string `validate:"required,uuid"`
 	UserID string `validate:"required,uuid"`
 }
 
-// CompletePlanResponse is a response to complete a plan.
-type CompletePlanResponse struct{}
+// FinishPlanResponse is a response to finish a plan.
+type FinishPlanResponse struct{}
 
-// Execute executes the CompletePlan command.
-func (s *CompletePlanService) Execute(
+// Execute executes the FinishPlan command.
+func (s *FinishPlanService) Execute(
 	ctx context.Context,
-	req *CompletePlanCommand,
-) (*CompletePlanResponse, error) {
+	req *FinishPlanCommand,
+) (*FinishPlanResponse, error) {
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
 		return nil, ErrValidationFail
@@ -69,7 +69,7 @@ func (s *CompletePlanService) Execute(
 
 	p, err := s.planningRepo.GetByID(ctx, parsedID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to complete plan: %w", err)
+		return nil, fmt.Errorf("failed to finish plan: %w", err)
 	}
 
 	if p.UserID() != parsedUser {
@@ -78,13 +78,13 @@ func (s *CompletePlanService) Execute(
 
 	newPlan, err := p.Deactivate()
 	if err != nil {
-		return nil, fmt.Errorf("failed to complete plan: %w", err)
+		return nil, fmt.Errorf("failed to finish plan: %w", err)
 	}
 
 	err = s.planningRepo.UpdatePlan(ctx, newPlan)
 	if err != nil {
-		return nil, fmt.Errorf("failed to complete plan: %w", err)
+		return nil, fmt.Errorf("failed to finish plan: %w", err)
 	}
 
-	return &CompletePlanResponse{}, nil
+	return &FinishPlanResponse{}, nil
 }
