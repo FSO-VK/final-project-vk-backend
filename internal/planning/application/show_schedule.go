@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	futureIntakeStatus = "Запланировано"
+	StatusIntakePlanned = "Запланировано"
 )
 
 // ShowSchedule is an interface for getting a notification.
@@ -95,9 +95,12 @@ func (s *ShowScheduleService) Execute(
 	if err != nil {
 		return nil, ErrNoPlan
 	}
-
+	resp, err := s.scheduleList(ctx, userPlans, parsedStart, parsedEnd)
+	if err != nil {
+		return nil, err
+	}
 	response := &ShowScheduleResponse{
-		Schedule: s.scheduleList(ctx, userPlans, parsedStart, parsedEnd),
+		Schedule: resp,
 	}
 	return response, nil
 }
@@ -130,17 +133,19 @@ func (s *ShowScheduleService) scheduleList(
 	userPlans []*plan.Plan,
 	parsedStart time.Time,
 	parsedEnd time.Time,
-) []*ScheduleTime {
+) ([]*ScheduleTime, error) {
 	pastScheduleList := make([]*ScheduleTime, 0, len(userPlans))
 	futureScheduleList := make([]*ScheduleTime, 0, len(userPlans))
 	for _, p := range userPlans {
 		amountValue, amountUnit := p.Dosage()
-
+		medicationName, nameErr := s.medicationProvider.MedicationName(p.MedicationID(), p.UserID())
+		if nameErr != nil {
+			return nil, ErrNoMedicationForPlan
+		}
 		records, err := s.recordsRepo.GetByPlanID(ctx, p.ID())
 		// if there is an error, it means that the plan has no records
 		// because all of them are in the future and we will calculate them after a while
-		medicationName, nameErr := s.medicationProvider.MedicationName(p.MedicationID(), p.UserID())
-		if err == nil && nameErr == nil {
+		if err == nil {
 			for _, record := range records {
 				if !record.PlannedTime().After(parsedEnd) &&
 					!record.PlannedTime().Before(parsedStart) {
@@ -150,7 +155,7 @@ func (s *ShowScheduleService) scheduleList(
 						MedicationName: medicationName,
 						AmountValue:    amountValue,
 						AmountUnit:     amountUnit,
-						Status:         record.StatusString(),
+						Status:         record.Status().String(),
 						PlannedAt:      record.PlannedTime(),
 						TakenAt:        record.TakenAt(),
 					})
@@ -174,11 +179,11 @@ func (s *ShowScheduleService) scheduleList(
 				MedicationName: medicationName,
 				AmountValue:    amountValue,
 				AmountUnit:     amountUnit,
-				Status:         futureIntakeStatus,
+				Status:         StatusIntakePlanned,
 				PlannedAt:      t,
 				TakenAt:        time.Time{},
 			})
 		}
 	}
-	return append(futureScheduleList, pastScheduleList...)
+	return append(futureScheduleList, pastScheduleList...), nil
 }

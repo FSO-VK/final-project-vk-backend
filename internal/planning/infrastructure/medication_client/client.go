@@ -43,7 +43,7 @@ func (h *MedicationClient) MedicationName(
 	id uuid.UUID,
 	userID uuid.UUID,
 ) (string, error) {
-	parsedResponse, err := h.makeFullRequest(id, userID)
+	parsedResponse, err := h.makeRequest(id, userID)
 	if err != nil {
 		return "", err
 	}
@@ -51,11 +51,10 @@ func (h *MedicationClient) MedicationName(
 	return parsedResponse.Name, nil
 }
 
-func (h *MedicationClient) makeFullRequest(
+func (h *MedicationClient) makeRequest(
 	id uuid.UUID,
 	userID uuid.UUID,
 ) (Body, error) {
-	fmt.Println("makeFullRequest")
 	ctx := context.Background()
 
 	if h.cfg.Timeout > 0 {
@@ -65,7 +64,6 @@ func (h *MedicationClient) makeFullRequest(
 	}
 
 	url := h.cfg.Endpoint + id.String() + "/" + userID.String()
-	fmt.Println("url", url)
 	httpReq, err := http.NewRequestWithContext(ctx, h.cfg.Method, url, nil)
 	if err != nil {
 		return Body{}, err
@@ -79,7 +77,6 @@ func (h *MedicationClient) makeFullRequest(
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-	fmt.Println("1", resp.StatusCode)
 	if resp.StatusCode != http.StatusOK {
 		return Body{}, ErrBadResponse
 	}
@@ -89,7 +86,6 @@ func (h *MedicationClient) makeFullRequest(
 		h.logger.WithError(err).Error("failed to decode medication API response")
 		return Body{}, fmt.Errorf("%w: %w", ErrBadResponse, err)
 	}
-	fmt.Println("2", parsedResponse.StatusCode, parsedResponse.Body)
 	if parsedResponse.StatusCode != http.StatusOK {
 		return Body{}, ErrNoMedicationFound
 	}

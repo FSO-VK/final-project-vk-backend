@@ -2,6 +2,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -261,7 +262,7 @@ type ShowScheduleItem struct {
 	Amount         AmountObject `json:"amount"`
 	Status         string       `json:"status"`
 	PlannedAt      string       `json:"plannedAt"`
-	TakenAt        string       `json:"takenAt"`
+	TakenAt        string       `json:"takenAt,omitempty"`
 }
 
 // ShowScheduleJSONResponse returns schedule.
@@ -290,11 +291,8 @@ func (h *PlanningHandlers) ShowSchedule(c *gin.Context) {
 	sh, err := h.app.ShowSchedule.Execute(c.Request.Context(), serviceRequest)
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to get schedule")
-		c.JSON(http.StatusInternalServerError, api.Response[any]{
-			StatusCode: http.StatusInternalServerError,
-			Body:       struct{}{},
-			Error:      MsgFailedToGetPlan,
-		})
+		status, body := h.handleUpdateServiceError(err)
+		c.JSON(status, body)
 		return
 	}
 
@@ -322,4 +320,28 @@ func (h *PlanningHandlers) ShowSchedule(c *gin.Context) {
 		Body:       response,
 		Error:      "",
 	})
+}
+
+// handleUpdateServiceError maps service errors to HTTP status and API responses using switch.
+func (h *PlanningHandlers) handleUpdateServiceError(err error) (int, *api.Response[any]) {
+	switch {
+	case errors.Is(err, application.ErrValidationFail):
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		}
+	case errors.Is(err, application.ErrNoPlan):
+		return http.StatusNotFound, &api.Response[any]{
+			StatusCode: http.StatusNotFound,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetPlan,
+		}
+	default:
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetSchedule,
+		}
+	}
 }

@@ -116,7 +116,7 @@ func main() {
 	server.Router(router)
 
 	// internal router
-	internalRouter := http.InternalRouter(medicationHandlers)
+	internalRouter := http.InternalRouter(medicationHandlers, loggingMw)
 	internalServer := http.NewHTTPServer(&conf.Internal, logger)
 	internalServer.Router(internalRouter)
 

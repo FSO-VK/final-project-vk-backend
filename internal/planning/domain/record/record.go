@@ -88,15 +88,7 @@ func (r *IntakeRecord) TakenAt() time.Time {
 	return r.takenAt
 }
 
-// StatusString returns the status of the record.
-func (r *IntakeRecord) StatusString() string {
-	switch r.status {
-	case StatusDraft:
-		return "Запланировано"
-	case StatusTaken:
-		return "Принято"
-	case StatusMissed:
-		return "Пропущено"
-	}
-	return "Impossible status"
+// Status returns the status of the record.
+func (r *IntakeRecord) Status() Status {
+	return r.status
 }

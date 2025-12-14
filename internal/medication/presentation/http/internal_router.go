@@ -8,6 +8,7 @@ import (
 // InternalRouter returns a new internal router for cross microservice communication.
 func InternalRouter(
 	medicationHandlers *MedicationHandlers,
+	loggingMw *httputil.LoggingMiddleware,
 ) *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc(
@@ -16,5 +17,6 @@ func InternalRouter(
 	).Methods("GET")
 	panicMiddleware := httputil.NewPanicRecoveryMiddleware()
 	r.Use(panicMiddleware.Middleware)
+	r.Use(loggingMw.MiddlewareNetHTTP)
 	return r
 }

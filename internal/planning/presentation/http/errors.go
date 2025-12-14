@@ -9,4 +9,6 @@ const (
 	MsgMissingSlug api.ErrorType = "Missing slug"
 	// MsgFailedToAddPlan is a message for failed to add plan.
 	MsgFailedToAddPlan api.ErrorType = "Failed to add plan"
+	// MsgFailedToGetSchedule is a message for failed to get schedule.
+	MsgFailedToGetSchedule api.ErrorType = "Failed to get schedule"
 )

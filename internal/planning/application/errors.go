@@ -12,4 +12,6 @@ var (
 	ErrNoIntakeRecord = errors.New("no intake record")
 	// ErrPlanNotFound is an error when plan is not belongs to user.
 	ErrPlanNotBelongToUser = errors.New("plan does not belong to user")
+	// ErrNoMedicationForPlan is an error when there is no medication for plan.
+	ErrNoMedicationForPlan = errors.New("no medication for plan")
 )
