@@ -49,7 +49,7 @@ type GetPlanResponse struct {
 	AmountValue    float64
 	AmountUnit     string
 	Condition      string
-	Status         uint
+	Status         string
 	StartDate      string
 	EndDate        string
 	RecurrenceRule []string
@@ -92,7 +92,7 @@ func (s *GetPlanService) Execute(
 		AmountValue:    amountValue,
 		AmountUnit:     amountUnit,
 		Condition:      requestedPlan.Condition(),
-		Status:         requestedPlan.Status(),
+		Status:         requestedPlan.Status().String(),
 		StartDate:      requestedPlan.CourseStart().Format(time.RFC3339),
 		EndDate:        requestedPlan.CourseEnd().Format(time.RFC3339),
 		RecurrenceRule: requestedPlan.ScheduleIcal(),

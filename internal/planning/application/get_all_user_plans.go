@@ -47,7 +47,7 @@ type PlanItem struct {
 	AmountValue    float64
 	AmountUnit     string
 	Condition      string
-	Status         uint
+	Status         string
 	StartDate      string
 	EndDate        string
 	RecurrenceRule []string
@@ -89,7 +89,7 @@ func (s *GetAllPlansService) Execute(
 			AmountValue:    amountValue,
 			AmountUnit:     amountUnit,
 			Condition:      onePlan.Condition(),
-			Status:         onePlan.Status(),
+			Status:         onePlan.Status().String(),
 			StartDate:      onePlan.CourseStart().Format(time.RFC3339),
 			EndDate:        onePlan.CourseEnd().Format(time.RFC3339),
 			RecurrenceRule: onePlan.ScheduleIcal(),

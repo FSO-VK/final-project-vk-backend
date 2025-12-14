@@ -260,8 +260,8 @@ type SoftDeletePlanByIDJSONRequest struct {
 	ID string `json:"id"`
 }
 
-// SoftDeletePlanByID deactivates plan.
-func (h *PlanningHandlers) SoftDeletePlanByID(c *gin.Context) {
+// CompletePlan deactivates plan.
+func (h *PlanningHandlers) CompletePlan(c *gin.Context) {
 	auth, err := httputil.GetAuthFromCtx(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, api.Response[any]{
