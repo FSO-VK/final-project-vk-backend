@@ -17,4 +17,5 @@ type Repository interface {
 	UserPlans(ctx context.Context, userID uuid.UUID) ([]*Plan, error)
 	Save(ctx context.Context, plan *Plan) error
 	ActivePlans(ctx context.Context, batchSize int) (iter.Seq[*Plan], error)
+	UpdatePlan(ctx context.Context, newPlan *Plan) error
 }
