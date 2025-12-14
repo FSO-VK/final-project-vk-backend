@@ -14,45 +14,45 @@ import (
 // ErrNotOwner is an error when user is not owner of the plan.
 var ErrNotOwner = errors.New("user is not owner of the plan")
 
-// DeletePlan is an interface for deleting a notification.
-type DeletePlan interface {
+// CompletePlan is an interface for completing a notification.
+type CompletePlan interface {
 	Execute(
 		ctx context.Context,
-		cmd *DeletePlanCommand,
-	) (*DeletePlanResponse, error)
+		cmd *CompletePlanCommand,
+	) (*CompletePlanResponse, error)
 }
 
-// DeletePlanService is a service for creating a subscription.
-type DeletePlanService struct {
+// CompletePlanService is a service for creating a subscription.
+type CompletePlanService struct {
 	planningRepo plan.Repository
 	validator    validator.Validator
 }
 
-// NewDeletePlanService returns a new DeletePlanService.
-func NewDeletePlanService(
+// NewCompletePlanService returns a new CompletePlanService.
+func NewCompletePlanService(
 	planningRepo plan.Repository,
 	valid validator.Validator,
-) *DeletePlanService {
-	return &DeletePlanService{
+) *CompletePlanService {
+	return &CompletePlanService{
 		planningRepo: planningRepo,
 		validator:    valid,
 	}
 }
 
-// DeletePlanCommand is a request to delete a plan.
-type DeletePlanCommand struct {
+// CompletePlanCommand is a request to complete a plan.
+type CompletePlanCommand struct {
 	ID     string `validate:"required,uuid"`
 	UserID string `validate:"required,uuid"`
 }
 
-// DeletePlanResponse is a response to delete a plan.
-type DeletePlanResponse struct{}
+// CompletePlanResponse is a response to complete a plan.
+type CompletePlanResponse struct{}
 
-// Execute executes the DeletePlan command.
-func (s *DeletePlanService) Execute(
+// Execute executes the CompletePlan command.
+func (s *CompletePlanService) Execute(
 	ctx context.Context,
-	req *DeletePlanCommand,
-) (*DeletePlanResponse, error) {
+	req *CompletePlanCommand,
+) (*CompletePlanResponse, error) {
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
 		return nil, ErrValidationFail
@@ -69,7 +69,7 @@ func (s *DeletePlanService) Execute(
 
 	p, err := s.planningRepo.GetByID(ctx, parsedID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to delete plan: %w", err)
+		return nil, fmt.Errorf("failed to complete plan: %w", err)
 	}
 
 	if p.UserID() != parsedUser {
@@ -78,13 +78,13 @@ func (s *DeletePlanService) Execute(
 
 	newPlan, err := p.Deactivate()
 	if err != nil {
-		return nil, fmt.Errorf("failed to delete plan: %w", err)
+		return nil, fmt.Errorf("failed to complete plan: %w", err)
 	}
 
 	err = s.planningRepo.UpdatePlan(ctx, newPlan)
 	if err != nil {
-		return nil, fmt.Errorf("failed to delete plan: %w", err)
+		return nil, fmt.Errorf("failed to complete plan: %w", err)
 	}
 
-	return &DeletePlanResponse{}, nil
+	return &CompletePlanResponse{}, nil
 }

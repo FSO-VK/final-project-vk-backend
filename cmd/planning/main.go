@@ -70,7 +70,7 @@ func main() {
 		GetAllPlans: application.NewGetAllPlansService(planRepo, validator),
 		GetPlan:     application.NewGetPlanService(planRepo, validator),
 		AddPlan:     application.NewAddPlanService(planRepo, validator),
-		DeletePlan:  application.NewDeletePlanService(planRepo, validator),
+		DeletePlan:  application.NewCompletePlanService(planRepo, validator),
 	}
 	planningHandlers := http.NewHandlers(app, logger)
 

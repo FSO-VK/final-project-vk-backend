@@ -255,8 +255,8 @@ func (h *PlanningHandlers) GetPlanByID(c *gin.Context) {
 	})
 }
 
-// SoftDeletePlanByIDJSONRequest is a response for SoftDeletePlanByID.
-type SoftDeletePlanByIDJSONRequest struct {
+// CompletePlanJSONRequest is a response for CompletePlan.
+type CompletePlanJSONRequest struct {
 	ID string `json:"id"`
 }
 
@@ -283,7 +283,7 @@ func (h *PlanningHandlers) CompletePlan(c *gin.Context) {
 		return
 	}
 
-	command := &application.DeletePlanCommand{
+	command := &application.CompletePlanCommand{
 		UserID: auth.UserID,
 		ID:     slugPlanID,
 	}

@@ -7,5 +7,5 @@ type PlanningApplication struct {
 	GetAllPlans GetAllPlans
 	GetPlan     GetPlan
 	AddPlan     AddPlan
-	DeletePlan  DeletePlan
+	DeletePlan  CompletePlan
 }
