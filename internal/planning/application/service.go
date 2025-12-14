@@ -8,4 +8,5 @@ type PlanningApplication struct {
 	GetPlan      GetPlan
 	AddPlan      AddPlan
 	ShowSchedule ShowSchedule
+	DeletePlan   FinishPlan
 }

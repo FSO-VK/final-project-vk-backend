@@ -98,3 +98,19 @@ func (s *PlanStorage) ActivePlans(
 		}
 	}, nil
 }
+
+// UpdatePlan updates a plan in memory.
+func (s *PlanStorage) UpdatePlan(
+	_ context.Context,
+	newPlan *plan.Plan,
+) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	_, ok := s.data.Get(newPlan.ID().String())
+	if !ok {
+		return plan.ErrNoPlanFound
+	}
+	s.data.Set(newPlan.ID().String(), newPlan)
+	return nil
+}

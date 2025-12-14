@@ -65,7 +65,7 @@ func (h *PlanningHandlers) GetAllUsersPlans(c *gin.Context) {
 	}
 	plans, err := h.app.GetAllPlans.Execute(c.Request.Context(), serviceRequest)
 	if err != nil {
-		h.logger.WithError(err).Error("Failed to get plan")
+		h.logger.WithError(err).Error("Failed to get all plans")
 		c.JSON(http.StatusInternalServerError, api.Response[any]{
 			StatusCode: http.StatusInternalServerError,
 			Body:       struct{}{},
@@ -88,6 +88,7 @@ func (h *PlanningHandlers) GetAllUsersPlans(c *gin.Context) {
 					Unit:  p.AmountUnit,
 				},
 				Condition:      p.Condition,
+				Status:         p.Status,
 				StartDate:      p.StartDate,
 				EndDate:        p.EndDate,
 				RecurrenceRule: p.RecurrenceRule,
@@ -170,6 +171,7 @@ func (h *PlanningHandlers) AddPlan(c *gin.Context) {
 				Unit:  serviceResponse.AmountUnit,
 			},
 			Condition:      serviceResponse.Condition,
+			Status:         serviceResponse.Status,
 			StartDate:      serviceResponse.StartDate,
 			EndDate:        serviceResponse.EndDate,
 			RecurrenceRule: serviceResponse.RecurrenceRule,
@@ -204,9 +206,9 @@ func (h *PlanningHandlers) GetPlanByID(c *gin.Context) {
 		return
 	}
 
-	slugUserID := c.Param(SlugID)
-	if slugUserID == "" {
-		h.logger.Error("Subscription ID not found in path params")
+	slugPlanID := c.Param(SlugID)
+	if slugPlanID == "" {
+		h.logger.Error("Plan ID not found in path params")
 		c.JSON(http.StatusBadRequest, api.Response[any]{
 			StatusCode: http.StatusBadRequest,
 			Error:      MsgMissingSlug,
@@ -217,12 +219,12 @@ func (h *PlanningHandlers) GetPlanByID(c *gin.Context) {
 
 	command := &application.GetPlanCommand{
 		UserID: auth.UserID,
-		ID:     slugUserID,
+		ID:     slugPlanID,
 	}
 
 	p, err := h.app.GetPlan.Execute(c.Request.Context(), command)
 	if err != nil {
-		h.logger.WithError(err).Error("Failed to send notification")
+		h.logger.WithError(err).Error("Failed to get plan by id")
 		c.JSON(http.StatusInternalServerError, api.Response[any]{
 			StatusCode: http.StatusInternalServerError,
 			Body:       struct{}{},
@@ -240,6 +242,7 @@ func (h *PlanningHandlers) GetPlanByID(c *gin.Context) {
 				Unit:  p.AmountUnit,
 			},
 			Condition:      p.Condition,
+			Status:         p.Status,
 			StartDate:      p.StartDate,
 			EndDate:        p.EndDate,
 			RecurrenceRule: p.RecurrenceRule,
@@ -250,6 +253,57 @@ func (h *PlanningHandlers) GetPlanByID(c *gin.Context) {
 	c.JSON(http.StatusOK, api.Response[any]{
 		StatusCode: http.StatusOK,
 		Body:       response,
+		Error:      "",
+	})
+}
+
+// FinishPlanJSONRequest is a response for FinishPlan.
+type FinishPlanJSONRequest struct {
+	ID string `json:"id"`
+}
+
+// FinishPlan deactivates plan.
+func (h *PlanningHandlers) FinishPlan(c *gin.Context) {
+	auth, err := httputil.GetAuthFromCtx(c.Request)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, api.Response[any]{
+			StatusCode: http.StatusUnauthorized,
+			Error:      api.MsgUnauthorized,
+			Body:       struct{}{},
+		})
+		return
+	}
+
+	slugPlanID := c.Param(SlugID)
+	if slugPlanID == "" {
+		h.logger.Error("Plan ID not found in path params")
+		c.JSON(http.StatusBadRequest, api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Error:      MsgMissingSlug,
+			Body:       struct{}{},
+		})
+		return
+	}
+
+	command := &application.FinishPlanCommand{
+		UserID: auth.UserID,
+		ID:     slugPlanID,
+	}
+
+	_, err = h.app.DeletePlan.Execute(c.Request.Context(), command)
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to delete plan")
+		c.JSON(http.StatusInternalServerError, api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetPlan,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, api.Response[struct{}]{
+		StatusCode: http.StatusOK,
+		Body:       struct{}{},
 		Error:      "",
 	})
 }

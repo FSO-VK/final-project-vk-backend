@@ -110,3 +110,15 @@ func (s *schedule) Next(from time.Time) time.Time {
 	}
 	return t
 }
+
+func (s Status) String() string {
+	switch s {
+	case StatusDraft:
+		return "draft"
+	case StatusActive:
+		return "active"
+	case StatusFinished:
+		return "finished"
+	}
+	return ""
+}

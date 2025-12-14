@@ -82,6 +82,12 @@ func (p *Plan) ChangeSchedule(
 	return p, nil
 }
 
+// Deactivate executes business logic for finishing the plan (soft deletion).
+func (p *Plan) Deactivate() (*Plan, error) {
+	p.status = StatusFinished
+	return p, nil
+}
+
 // Schedule returns the schedule of the plan in range [from, to].
 // If there is no records in the range, it returns nil.
 func (p *Plan) Schedule(from, to time.Time) []time.Time {
@@ -169,4 +175,9 @@ func (p *Plan) ScheduleIcal() []string {
 		rules = append(rules, rule.String())
 	}
 	return rules
+}
+
+// Status returns the status of the plan.
+func (r *Plan) Status() Status {
+	return r.status
 }

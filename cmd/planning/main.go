@@ -86,6 +86,7 @@ func main() {
 			medicationClient,
 			creationShift,
 		),
+		DeletePlan: application.NewFinishPlanService(planRepo, validator),
 	}
 	planningHandlers := http.NewHandlers(app, logger)
 

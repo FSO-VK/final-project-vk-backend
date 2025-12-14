@@ -6,6 +6,7 @@ type PlanObject struct {
 	UserID         string       `json:"userId"`
 	Amount         AmountObject `json:"amount"`
 	Condition      string       `json:"condition"`
+	Status         string       `json:"status"`
 	StartDate      string       `json:"startDate"`
 	EndDate        string       `json:"endDate"`
 	RecurrenceRule []string     `json:"recurrenceRule"`
