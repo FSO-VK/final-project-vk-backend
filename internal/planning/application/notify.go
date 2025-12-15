@@ -1,4 +1,4 @@
-package intakenotifications
+package application
 
 import (
 	"context"

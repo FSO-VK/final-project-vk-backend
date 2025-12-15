@@ -10,8 +10,6 @@ import (
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application"
-	generator "github.com/FSO-VK/final-project-vk-backend/internal/planning/application/generate_record"
-	intakeNotify "github.com/FSO-VK/final-project-vk-backend/internal/planning/application/intake_notifications"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/daemon"
 	medClient "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/medication_client"
@@ -71,12 +69,12 @@ func main() {
 	medicationClient := medClient.NewMedicationClient(conf.Medication, logger)
 
 	// Service and daemon for generating records
-	generateRecordsService := generator.NewGenerateRecordService(recordsRepo, planRepo)
+	generateRecordsService := application.NewGenerateRecordService(recordsRepo, planRepo)
 	daemonRecordsGenerator := daemon.NewDaemon(tickerInterval, midnight, logger)
 
 	// Service and daemon for intake notifications
 	notificationProvider := notifyClient.NewNotificationClient(conf.Notification, logger)
-	intakeNotificationService := intakeNotify.NewIntakeNotificationService(
+	intakeNotificationService := application.NewIntakeNotificationService(
 		recordsRepo,
 		planRepo,
 		notificationProvider,
