@@ -16,14 +16,14 @@ type DaemonProvider interface {
 // Daemon implements DaemonProvider.
 type Daemon struct {
 	TickerInterval time.Duration
-	StartAt        *time.Time // nil - start immediately
+	StartAt        time.Time
 	logger         *logrus.Entry
 }
 
 // NewDaemon returns a new Daemon.
 func NewDaemon(
 	interval time.Duration,
-	startAt *time.Time,
+	startAt time.Time,
 	logger *logrus.Entry,
 ) *Daemon {
 	return &Daemon{
@@ -35,20 +35,18 @@ func NewDaemon(
 
 // RunTicker runs the ticker.
 func (t *Daemon) RunTicker(ctx context.Context, tick func(ctx context.Context) error) {
-	if t.StartAt != nil {
-		wait := time.Until(*t.StartAt)
-		if wait > 0 {
-			t.logger.Infof("wait for %s", wait)
-			select {
-			case <-ctx.Done():
-				return
-			case <-time.After(wait):
-			}
+	wait := time.Until(t.StartAt)
+	if wait > 0 {
+		t.logger.Infof("wait for %s", wait)
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(wait):
 		}
-		t.logger.Info("execute func")
-		if err := tick(ctx); err != nil {
-			t.logger.Error("err on func", err)
-		}
+	}
+	t.logger.Info("execute func")
+	if err := tick(ctx); err != nil {
+		t.logger.Error("err on func", err)
 	}
 
 	tk := time.NewTicker(t.TickerInterval)

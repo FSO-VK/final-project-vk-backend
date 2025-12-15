@@ -48,13 +48,14 @@ func main() {
 	logger := logrus.NewEntry(l)
 
 	now := time.Now()
-	// in docker container need to use UTC time.
-	timeStart := time.Date(
-		now.Year(), now.Month(), now.Day(),
-		21, 0, 0, 0,
-		now.Location(),
-	)
-	quicStart := now.Add(2 * time.Minute)
+
+	mskLocation, _ := time.LoadLocation("Europe/Moscow")
+	midnight := time.Date(now.Year(), now.Month(), now.Day(),
+		0, 0, 0, 0,
+		mskLocation,
+	).UTC()
+
+	quickStart := now.Add(2 * time.Minute)
 
 	confPath, err := configuration.ReadConfigPathFlag("config/planning-conf.yaml")
 	if err != nil {
@@ -71,7 +72,7 @@ func main() {
 
 	// Service and daemon for generating records
 	generateRecordsService := generator.NewGenerateRecordService(recordsRepo, planRepo)
-	daemonRecordsGenerator := daemon.NewDaemon(tickerInterval, &timeStart, logger)
+	daemonRecordsGenerator := daemon.NewDaemon(tickerInterval, midnight, logger)
 
 	// Service and daemon for intake notifications
 	notificationProvider := notifyClient.NewNotificationClient(conf.Notification, logger)
@@ -82,7 +83,7 @@ func main() {
 		medicationClient,
 	)
 
-	daemonIntakeNotification := daemon.NewDaemon(notificationsInterval, &quicStart, logger)
+	daemonIntakeNotification := daemon.NewDaemon(notificationsInterval, quickStart, logger)
 
 	// Initial generation
 	if err := generateRecordsService.GenerateRecordsForDay(ctx, batchSize, creationShift); err != nil {
