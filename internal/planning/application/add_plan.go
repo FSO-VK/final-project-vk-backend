@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	generator "github.com/FSO-VK/final-project-vk-backend/internal/planning/application/generate_record"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
@@ -29,7 +28,7 @@ type AddPlan interface {
 // AddPlanService is a service for creating a subscription.
 type AddPlanService struct {
 	planningRepo       plan.Repository
-	generatorProvider  generator.GenerateRecord
+	generatorProvider  GenerateRecord
 	validator          validator.Validator
 	medicationProvider medication.MedicationService
 	creationShift      time.Duration
@@ -38,7 +37,7 @@ type AddPlanService struct {
 // NewAddPlanService returns a new AddPlanService.
 func NewAddPlanService(
 	planningRepo plan.Repository,
-	generatorProvider generator.GenerateRecord,
+	generatorProvider GenerateRecord,
 	valid validator.Validator,
 	medicationProvider medication.MedicationService,
 	creationShift time.Duration,

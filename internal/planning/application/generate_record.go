@@ -1,4 +1,4 @@
-package generaterecord
+package application
 
 import (
 	"context"

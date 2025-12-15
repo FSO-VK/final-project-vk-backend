@@ -3,6 +3,8 @@ package record
 import (
 	"context"
 	"errors"
+	"iter"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -16,4 +18,5 @@ type Repository interface {
 	GetByPlanID(ctx context.Context, planID uuid.UUID) ([]*IntakeRecord, error)
 	Save(ctx context.Context, record *IntakeRecord) error
 	SaveBulk(ctx context.Context, records []*IntakeRecord) error
+	RecordsByTime(ctx context.Context, time time.Time) (iter.Seq[*IntakeRecord], error)
 }

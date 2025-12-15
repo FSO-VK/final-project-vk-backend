@@ -1,9 +1,13 @@
 package notification
 
-import "github.com/google/uuid"
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
 
 type NotificationService interface {
-	SendNotification(notificationInfo NotificationInfo) error
+	SendNotification(ctx context.Context, notificationInfo NotificationInfo) error
 }
 
 type NotificationInfo struct {
