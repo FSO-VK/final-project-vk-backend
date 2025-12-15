@@ -26,11 +26,9 @@ import (
 )
 
 const (
-	creationShift  = 24 * time.Hour
-	batchSize      = 1000
-	tickerInterval = 24 * time.Hour
-	// in docker container need to use UTC time.
-	timeStart             = 21*time.Hour + 0*time.Minute
+	creationShift         = 24 * time.Hour
+	batchSize             = 1000
+	tickerInterval        = 24 * time.Hour
 	notificationsInterval = 1 * time.Minute
 )
 
@@ -49,13 +47,14 @@ func main() {
 	l.SetLevel(logrus.DebugLevel)
 	logger := logrus.NewEntry(l)
 
-	quicStart := time.Duration(
-		time.Now().Hour(),
-	)*time.Hour +
-		time.Duration(time.Now().Minute())*time.Minute +
-		time.Duration(time.Now().Second())*time.Second +
-		time.Duration(time.Now().Nanosecond()) +
-		2*time.Minute
+	now := time.Now()
+	// in docker container need to use UTC time.
+	timeStart := time.Date(
+		now.Year(), now.Month(), now.Day(),
+		21, 0, 0, 0,
+		now.Location(),
+	)
+	quicStart := now.Add(2 * time.Minute)
 
 	confPath, err := configuration.ReadConfigPathFlag("config/planning-conf.yaml")
 	if err != nil {
@@ -72,7 +71,7 @@ func main() {
 
 	// Service and daemon for generating records
 	generateRecordsService := generator.NewGenerateRecordService(recordsRepo, planRepo)
-	daemonRecordsGenerator := daemon.NewDaemon(tickerInterval, timeStart, logger)
+	daemonRecordsGenerator := daemon.NewDaemon(tickerInterval, &timeStart, logger)
 
 	// Service and daemon for intake notifications
 	notificationProvider := notifyClient.NewNotificationClient(conf.Notification, logger)
@@ -83,7 +82,7 @@ func main() {
 		medicationClient,
 	)
 
-	daemonIntakeNotification := daemon.NewDaemon(notificationsInterval, quicStart, logger)
+	daemonIntakeNotification := daemon.NewDaemon(notificationsInterval, &quicStart, logger)
 
 	// Initial generation
 	if err := generateRecordsService.GenerateRecordsForDay(ctx, batchSize, creationShift); err != nil {

@@ -16,14 +16,14 @@ type DaemonProvider interface {
 // Daemon implements DaemonProvider.
 type Daemon struct {
 	TickerInterval time.Duration
-	StartAt        time.Duration
+	StartAt        *time.Time // nil - start immediately
 	logger         *logrus.Entry
 }
 
 // NewDaemon returns a new Daemon.
 func NewDaemon(
 	interval time.Duration,
-	startAt time.Duration,
+	startAt *time.Time,
 	logger *logrus.Entry,
 ) *Daemon {
 	return &Daemon{
@@ -35,17 +35,19 @@ func NewDaemon(
 
 // RunTicker runs the ticker.
 func (t *Daemon) RunTicker(ctx context.Context, tick func(ctx context.Context) error) {
-	if t.StartAt > 0 {
-		wait := waitUntil(t.StartAt)
-		t.logger.Infof("wait for %s", wait)
-		select {
-		case <-ctx.Done():
-			return
-		case <-time.After(wait):
-			t.logger.Info("execute func")
-			if err := tick(ctx); err != nil {
-				t.logger.Error("err on func", err)
+	if t.StartAt != nil {
+		wait := time.Until(*t.StartAt)
+		if wait > 0 {
+			t.logger.Infof("wait for %s", wait)
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(wait):
 			}
+		}
+		t.logger.Info("execute func")
+		if err := tick(ctx); err != nil {
+			t.logger.Error("err on func", err)
 		}
 	}
 
@@ -68,18 +70,4 @@ func (t *Daemon) RunTicker(ctx context.Context, tick func(ctx context.Context) e
 // Run runs the daemon.
 func (d *Daemon) Run(ctx context.Context, f func(ctx context.Context) error) {
 	d.RunTicker(ctx, f)
-}
-
-func waitUntil(target time.Duration) time.Duration {
-	now := time.Now()
-	midnight := time.Date(
-		now.Year(), now.Month(), now.Day(),
-		0, 0, 0, 0, now.Location(),
-	)
-	targetTime := midnight.Add(target)
-
-	if targetTime.Before(now) {
-		targetTime = targetTime.Add(24 * time.Hour)
-	}
-	return time.Until(targetTime)
 }
