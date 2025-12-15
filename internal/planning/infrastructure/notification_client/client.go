@@ -45,9 +45,10 @@ type RequestBody struct {
 }
 
 // SendNotification implements NotificationService interface and sends a notification.
-func (h *NotificationClient) SendNotification(info notification.NotificationInfo) error {
-	ctx := context.Background()
-
+func (h *NotificationClient) SendNotification(
+	ctx context.Context,
+	info notification.NotificationInfo,
+) error {
 	if h.cfg.Timeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, h.cfg.Timeout)
@@ -59,7 +60,6 @@ func (h *NotificationClient) SendNotification(info notification.NotificationInfo
 		Title:  info.Title,
 		Body:   info.Body,
 	}
-
 	jsonBody, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal notification body: %w", err)

@@ -11,9 +11,11 @@ import (
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application"
 	generator "github.com/FSO-VK/final-project-vk-backend/internal/planning/application/generate_record"
+	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application/notify"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/daemon"
 	medClient "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/medication_client"
+	notifyClient "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/notification_client"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/presentation/http"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
@@ -28,7 +30,8 @@ const (
 	batchSize      = 1000
 	tickerInterval = 24 * time.Hour
 	// in docker container need to use UTC time.
-	timeStart = 21*time.Hour + 0*time.Minute
+	timeStart             = 21*time.Hour + 0*time.Minute
+	notificationsInterval = 1 * time.Second
 )
 
 func main() {
@@ -59,9 +62,18 @@ func main() {
 	recordsRepo := memory.NewRecordStorage()
 	medicationClient := medClient.NewMedicationClient(conf.Medication, logger)
 
-	// Service and daemon
+	// Service and daemon for generating records
 	generateRecordsService := generator.NewGenerateRecordService(recordsRepo, planRepo)
 	daemonRecordsGenerator := daemon.NewDaemon(tickerInterval, timeStart, logger)
+
+	// Service and daemon for notifications
+	notificationProvider := notifyClient.NewNotificationClient(conf.Notification, logger)
+	notifyService := notify.NewIntakeNotificationService(
+		recordsRepo,
+		planRepo,
+		*notificationProvider,
+	)
+	daemonNotify := daemon.NewDaemon(notificationsInterval, timeStart, logger)
 
 	// Initial generation
 	if err := generateRecordsService.GenerateRecordsForDay(ctx, batchSize, creationShift); err != nil {
@@ -112,13 +124,23 @@ func main() {
 		}
 	}()
 
-	// Daemon goroutine
+	// Daemon goroutine - generate records
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		logger.Info("Daemon started (notifications generation)")
+		daemonNotify.Run(ctx, func(ctx context.Context) error {
+			return generateRecordsService.GenerateRecordsForDay(ctx, batchSize, creationShift)
+		})
+	}()
+
+	// Daemon goroutine - send notifications
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		logger.Info("Daemon started (records generation)")
 		daemonRecordsGenerator.Run(ctx, func(ctx context.Context) error {
-			return generateRecordsService.GenerateRecordsForDay(ctx, batchSize, creationShift)
+			return notifyService.GenerateNotifications(ctx)
 		})
 	}()
 

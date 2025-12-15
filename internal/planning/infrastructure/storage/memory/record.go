@@ -3,7 +3,9 @@ package memory
 import (
 	"context"
 	"errors"
+	"iter"
 	"sync"
+	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/record"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/cache"
@@ -93,4 +95,26 @@ func (s *RecordStorage) GetByPlanID(
 	}
 
 	return result, nil
+}
+
+// RecordsByTime returns all records with planned at the same time.
+func (s *RecordStorage) RecordsByTime(
+	_ context.Context,
+	t time.Time,
+) (iter.Seq[*record.IntakeRecord], error) {
+	return func(yield func(*record.IntakeRecord) bool) {
+		s.mu.RLock()
+		defer s.mu.RUnlock()
+
+		all := s.data.GetAll()
+		target := t.Truncate(time.Minute)
+
+		for _, rec := range all {
+			if rec.PlannedTime().Truncate(time.Minute).Equal(target) {
+				if !yield(rec) {
+					return
+				}
+			}
+		}
+	}, nil
 }
