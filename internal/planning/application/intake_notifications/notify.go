@@ -1,13 +1,13 @@
-package notify
+package intakenotifications
 
 import (
 	"context"
 	"time"
 
+	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application/notification"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/record"
-	client "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/notification_client"
 )
 
 // IntakeNotification is an interface for generating notifications for intake.
@@ -19,24 +19,27 @@ type IntakeNotification interface {
 type IntakeNotificationService struct {
 	recordsRepo          record.Repository
 	planRepo             plan.Repository
-	notificationProvider client.NotificationClient
+	notificationProvider notification.NotificationService
+	medicationProvider   medication.MedicationService
 }
 
 // NewIntakeNotificationService creates a new IntakeNotificationService.
 func NewIntakeNotificationService(
 	recordsRepo record.Repository,
 	planRepo plan.Repository,
-	notificationProvider client.NotificationClient,
+	notificationProvider notification.NotificationService,
+	medicationProvider medication.MedicationService,
 ) *IntakeNotificationService {
 	return &IntakeNotificationService{
 		recordsRepo:          recordsRepo,
 		planRepo:             planRepo,
 		notificationProvider: notificationProvider,
+		medicationProvider:   medicationProvider,
 	}
 }
 
-// GenerateRecordsForDay generates records for all active plans.
-func (g *IntakeNotificationService) GenerateNotifications(
+// GenerateIntakeNotifications generates notifications for intake.
+func (g *IntakeNotificationService) GenerateIntakeNotifications(
 	ctx context.Context,
 ) error {
 	records, err := g.recordsRepo.RecordsByTime(ctx, time.Now())
@@ -49,9 +52,13 @@ func (g *IntakeNotificationService) GenerateNotifications(
 		if err != nil {
 			continue
 		}
+		medicationName, err := g.medicationProvider.MedicationName(p.MedicationID(), p.UserID())
+		if err != nil {
+			continue
+		}
 		info := notification.NotificationInfo{
 			UserID: p.UserID(),
-			Title:  "Время принять таблетки", // + p.Name()
+			Title:  "Время принять " + medicationName,
 			Body:   p.Condition(),
 		}
 		if err := g.notificationProvider.SendNotification(ctx, info); err != nil {

@@ -11,7 +11,7 @@ import (
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application"
 	generator "github.com/FSO-VK/final-project-vk-backend/internal/planning/application/generate_record"
-	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application/notify"
+	intakeNotify "github.com/FSO-VK/final-project-vk-backend/internal/planning/application/intake_notifications"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/daemon"
 	medClient "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/medication_client"
@@ -31,7 +31,7 @@ const (
 	tickerInterval = 24 * time.Hour
 	// in docker container need to use UTC time.
 	timeStart             = 21*time.Hour + 0*time.Minute
-	notificationsInterval = 1 * time.Second
+	notificationsInterval = 1 * time.Minute
 )
 
 func main() {
@@ -48,6 +48,14 @@ func main() {
 	l.SetReportCaller(true)
 	l.SetLevel(logrus.DebugLevel)
 	logger := logrus.NewEntry(l)
+
+	quicStart := time.Duration(
+		time.Now().Hour(),
+	)*time.Hour +
+		time.Duration(time.Now().Minute())*time.Minute +
+		time.Duration(time.Now().Second())*time.Second +
+		time.Duration(time.Now().Nanosecond()) +
+		2*time.Minute
 
 	confPath, err := configuration.ReadConfigPathFlag("config/planning-conf.yaml")
 	if err != nil {
@@ -66,14 +74,16 @@ func main() {
 	generateRecordsService := generator.NewGenerateRecordService(recordsRepo, planRepo)
 	daemonRecordsGenerator := daemon.NewDaemon(tickerInterval, timeStart, logger)
 
-	// Service and daemon for notifications
+	// Service and daemon for intake notifications
 	notificationProvider := notifyClient.NewNotificationClient(conf.Notification, logger)
-	notifyService := notify.NewIntakeNotificationService(
+	intakeNotificationService := intakeNotify.NewIntakeNotificationService(
 		recordsRepo,
 		planRepo,
-		*notificationProvider,
+		notificationProvider,
+		medicationClient,
 	)
-	daemonNotify := daemon.NewDaemon(notificationsInterval, timeStart, logger)
+
+	daemonIntakeNotification := daemon.NewDaemon(notificationsInterval, quicStart, logger)
 
 	// Initial generation
 	if err := generateRecordsService.GenerateRecordsForDay(ctx, batchSize, creationShift); err != nil {
@@ -124,23 +134,23 @@ func main() {
 		}
 	}()
 
-	// Daemon goroutine - generate records
+	// Daemon goroutine - send intake notifications
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		logger.Info("Daemon started (notifications generation)")
-		daemonNotify.Run(ctx, func(ctx context.Context) error {
+		logger.Info("Daemon started (intake notifications generation)")
+		daemonIntakeNotification.Run(ctx, func(ctx context.Context) error {
 			return generateRecordsService.GenerateRecordsForDay(ctx, batchSize, creationShift)
 		})
 	}()
 
-	// Daemon goroutine - send notifications
+	// Daemon goroutine - generate records
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		logger.Info("Daemon started (records generation)")
 		daemonRecordsGenerator.Run(ctx, func(ctx context.Context) error {
-			return notifyService.GenerateNotifications(ctx)
+			return intakeNotificationService.GenerateIntakeNotifications(ctx)
 		})
 	}()
 

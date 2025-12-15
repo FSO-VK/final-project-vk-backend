@@ -107,10 +107,11 @@ func (s *RecordStorage) RecordsByTime(
 		defer s.mu.RUnlock()
 
 		all := s.data.GetAll()
-		target := t.Truncate(time.Minute)
 
 		for _, rec := range all {
-			if rec.PlannedTime().Truncate(time.Minute).Equal(target) {
+			now := time.Now().Truncate(time.Minute)
+			next := now.Add(time.Minute)
+			if !rec.PlannedTime().Before(now) && rec.PlannedTime().Before(next) {
 				if !yield(rec) {
 					return
 				}
