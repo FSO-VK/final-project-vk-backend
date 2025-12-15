@@ -100,7 +100,7 @@ func NewSchedule(start, end time.Time, rules []*rrule.RRule) (schedule, error) {
 func (s *schedule) Next(from time.Time) time.Time {
 	var t time.Time
 	for _, rules := range s.rules {
-		next := rules.After(from, true)
+		next := rules.After(from, false)
 		if next.IsZero() {
 			continue
 		}

@@ -20,6 +20,7 @@ func Router(
 		authGroup.GET("/plan/all", planningHandlers.GetAllUsersPlans)
 		authGroup.GET("/plan/:id", planningHandlers.GetPlanByID)
 		authGroup.POST("/plan", planningHandlers.AddPlan)
+		authGroup.GET("/plan/schedule", planningHandlers.ShowSchedule)
 		authGroup.DELETE("/plan/:id", planningHandlers.FinishPlan)
 	}
 

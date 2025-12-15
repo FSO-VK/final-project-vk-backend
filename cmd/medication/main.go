@@ -110,35 +110,46 @@ func main() {
 
 	loggingMw := httputil.NewLoggingMiddleware(logger)
 
+	// public router
 	router := http.Router(medicationHandlers, authMw, loggingMw)
-
 	server := http.NewHTTPServer(&conf.Server, logger)
 	server.Router(router)
+
+	// internal router
+	internalRouter := http.InternalRouter(medicationHandlers, loggingMw)
+	internalServer := http.NewHTTPServer(&conf.Internal, logger)
+	internalServer.Router(internalRouter)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	wg := sync.WaitGroup{}
+	wg.Add(2)
 
-	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		<-stop
-
-		logger.Info("Server is shutting down...")
-		err = server.Shutdown(context.Background())
+		err := server.ListenAndServe()
 		if err != nil {
-			logger.Errorf("graceful shutdown failed: %v", err)
+			logger.Fatal(err)
 		}
 	}()
 
-	err = server.ListenAndServe()
-	if err != nil {
-		logger.Fatal(err)
-	}
+	go func() {
+		defer wg.Done()
+		err := internalServer.ListenAndServe()
+		if err != nil {
+			logger.Fatal(err)
+		}
+	}()
+
+	go func() {
+		<-stop
+		logger.Info("Servers are shutting down...")
+
+		_ = server.Shutdown(context.Background())
+		_ = internalServer.Shutdown(context.Background())
+	}()
 
 	wg.Wait()
-
-	logger.Info("Server stopped")
+	logger.Info("All servers stopped")
 }

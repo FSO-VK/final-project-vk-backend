@@ -94,7 +94,6 @@ func (p *Plan) Schedule(from, to time.Time) []time.Time {
 	if from.After(to) {
 		return nil
 	}
-
 	var schedule []time.Time
 	for t := p.schedule.Next(from); t.Before(to) && !t.IsZero(); t = p.schedule.Next(t) {
 		schedule = append(schedule, t)

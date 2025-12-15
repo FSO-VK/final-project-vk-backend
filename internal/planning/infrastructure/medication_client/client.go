@@ -41,8 +41,9 @@ type Body struct {
 // MedicationName implements MedicationClient interface.
 func (h *MedicationClient) MedicationName(
 	id uuid.UUID,
+	userID uuid.UUID,
 ) (string, error) {
-	parsedResponse, err := h.makeFullRequest(id)
+	parsedResponse, err := h.makeRequest(id, userID)
 	if err != nil {
 		return "", err
 	}
@@ -50,7 +51,10 @@ func (h *MedicationClient) MedicationName(
 	return parsedResponse.Name, nil
 }
 
-func (h *MedicationClient) makeFullRequest(id uuid.UUID) (Body, error) {
+func (h *MedicationClient) makeRequest(
+	id uuid.UUID,
+	userID uuid.UUID,
+) (Body, error) {
 	ctx := context.Background()
 
 	if h.cfg.Timeout > 0 {
@@ -59,7 +63,7 @@ func (h *MedicationClient) makeFullRequest(id uuid.UUID) (Body, error) {
 		defer cancel()
 	}
 
-	url := h.cfg.Endpoint + id.String()
+	url := h.cfg.Endpoint + id.String() + "/" + userID.String()
 	httpReq, err := http.NewRequestWithContext(ctx, h.cfg.Method, url, nil)
 	if err != nil {
 		return Body{}, err
@@ -73,7 +77,6 @@ func (h *MedicationClient) makeFullRequest(id uuid.UUID) (Body, error) {
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-
 	if resp.StatusCode != http.StatusOK {
 		return Body{}, ErrBadResponse
 	}
@@ -83,10 +86,8 @@ func (h *MedicationClient) makeFullRequest(id uuid.UUID) (Body, error) {
 		h.logger.WithError(err).Error("failed to decode medication API response")
 		return Body{}, fmt.Errorf("%w: %w", ErrBadResponse, err)
 	}
-
 	if parsedResponse.StatusCode != http.StatusOK {
 		return Body{}, ErrNoMedicationFound
 	}
-
 	return parsedResponse.Body, nil
 }

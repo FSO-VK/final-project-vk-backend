@@ -87,3 +87,8 @@ func (r *IntakeRecord) PlanID() uuid.UUID {
 func (r *IntakeRecord) TakenAt() time.Time {
 	return r.takenAt
 }
+
+// Status returns the status of the record.
+func (r *IntakeRecord) Status() Status {
+	return r.status
+}

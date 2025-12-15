@@ -11,8 +11,16 @@ import (
 
 // GenerateRecord is an interface for generating records.
 type GenerateRecord interface {
-	GenerateRecord(planID uuid.UUID) error
-	GenerateRecordsForDay() error
+	GenerateRecordForPlan(
+		ctx context.Context,
+		planID uuid.UUID,
+		creationShift time.Duration,
+	) error
+	GenerateRecordsForDay(
+		ctx context.Context,
+		batchSize int,
+		creationShift time.Duration,
+	) error
 }
 
 // GenerateRecordService implements GenerateRecord.
@@ -32,8 +40,8 @@ func NewGenerateRecordService(
 	}
 }
 
-// GenerateRecord generates records for a specific plan.
-func (g *GenerateRecordService) GenerateRecord(
+// GenerateRecordForPlan generates records for a specific plan.
+func (g *GenerateRecordService) GenerateRecordForPlan(
 	ctx context.Context,
 	planID uuid.UUID,
 	creationShift time.Duration,
@@ -53,7 +61,6 @@ func (g *GenerateRecordService) GenerateRecord(
 	if err != nil {
 		return err
 	}
-
 	if err := g.recordsRepo.SaveBulk(ctx, records); err != nil {
 		return err
 	}
@@ -76,13 +83,14 @@ func (g *GenerateRecordService) GenerateRecordsForDay(
 		now.Year(), now.Month(), now.Day(),
 		0, 0, 0, 0, now.Location(),
 	).Add(creationShift)
-
 	for p := range seq {
 		records, err := p.GenerateIntakeRecords(now, creationTime)
 		if err != nil {
 			return err
 		}
-
+		if len(records) == 0 {
+			continue
+		}
 		if err := g.recordsRepo.SaveBulk(ctx, records); err != nil {
 			return err
 		}

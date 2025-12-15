@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	generator "github.com/FSO-VK/final-project-vk-backend/internal/planning/application/generate_record"
+	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	"github.com/google/uuid"
@@ -26,18 +28,27 @@ type AddPlan interface {
 
 // AddPlanService is a service for creating a subscription.
 type AddPlanService struct {
-	planningRepo plan.Repository
-	validator    validator.Validator
+	planningRepo       plan.Repository
+	generatorProvider  generator.GenerateRecord
+	validator          validator.Validator
+	medicationProvider medication.MedicationService
+	creationShift      time.Duration
 }
 
 // NewAddPlanService returns a new AddPlanService.
 func NewAddPlanService(
 	planningRepo plan.Repository,
+	generatorProvider generator.GenerateRecord,
 	valid validator.Validator,
+	medicationProvider medication.MedicationService,
+	creationShift time.Duration,
 ) *AddPlanService {
 	return &AddPlanService{
-		planningRepo: planningRepo,
-		validator:    valid,
+		planningRepo:       planningRepo,
+		generatorProvider:  generatorProvider,
+		validator:          valid,
+		medicationProvider: medicationProvider,
+		creationShift:      creationShift,
 	}
 }
 
@@ -84,6 +95,10 @@ func (s *AddPlanService) Execute(
 	if err != nil {
 		return nil, ErrValidationFail
 	}
+	_, err = s.medicationProvider.MedicationName(parsedMedicationID, parsedUser)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get medication - plan need to have medication: %w", err)
+	}
 	newPlan, err := createPlan(req, parsedUser, parsedMedicationID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create plan: %w", err)
@@ -105,6 +120,15 @@ func (s *AddPlanService) Execute(
 		StartDate:      newPlan.CourseStart().Format(time.RFC3339),
 		EndDate:        newPlan.CourseEnd().Format(time.RFC3339),
 		RecurrenceRule: newPlan.ScheduleIcal(),
+	}
+
+	err = s.generatorProvider.GenerateRecordForPlan(
+		ctx,
+		newPlan.ID(),
+		s.creationShift,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate records: %w", err)
 	}
 	return response, nil
 }

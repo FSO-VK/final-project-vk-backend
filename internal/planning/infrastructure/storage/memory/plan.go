@@ -39,8 +39,8 @@ func (s *PlanStorage) Save(
 	if newPlan == nil {
 		return errGotNilPlan
 	}
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	s.count++
 	s.data.Set(newPlan.ID().String(), newPlan)
