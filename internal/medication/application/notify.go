@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/application/notification"
@@ -40,7 +39,6 @@ func (g *ExpirationNotificationService) GenerateExpirationNotifications(
 	ctx context.Context,
 	timeDelta time.Duration,
 ) error {
-	fmt.Println("GenerateExpirationNotifications")
 	medications, err := g.medicationRepo.MedicationByExpiration(ctx, timeDelta)
 	if err != nil {
 		return err
@@ -57,7 +55,6 @@ func (g *ExpirationNotificationService) GenerateExpirationNotifications(
 			Body: "Срок годности препарата " + string(m.GetInternationalName()) +
 				" истекает в " + m.GetExpirationDate().Format(time.RFC3339),
 		}
-		fmt.Println("-----------", info.Title, info.Body)
 		if err := g.notificationProvider.SendNotification(ctx, info); err != nil {
 			return err
 		}
