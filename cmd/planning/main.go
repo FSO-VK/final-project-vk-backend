@@ -8,6 +8,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	_ "time/tzdata"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/config"
@@ -47,11 +48,18 @@ func main() {
 
 	now := time.Now()
 
-	mskLocation, _ := time.LoadLocation("Europe/Moscow")
-	midnight := time.Date(now.Year(), now.Month(), now.Day(),
+	loc, err := time.LoadLocation("Europe/Moscow")
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	nowUTC := time.Now().In(loc)
+
+	midnight := time.Date(
+		nowUTC.Year(), nowUTC.Month(), nowUTC.Day(),
 		0, 0, 0, 0,
-		mskLocation,
-	).UTC()
+		loc,
+	).Add(24 * time.Hour)
 
 	quickStart := now.Add(2 * time.Minute)
 
