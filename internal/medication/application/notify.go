@@ -53,7 +53,7 @@ func (g *ExpirationNotificationService) GenerateExpirationNotifications(
 			UserID: userID,
 			Title:  "Истекает срок годности " + string(m.GetInternationalName()),
 			Body: "Срок годности препарата " + string(m.GetInternationalName()) +
-				" истекает в " + m.GetExpirationDate().Format(time.RFC3339),
+				" истекает " + m.GetExpirationDate().Format("02.01.2006"),
 		}
 		if err := g.notificationProvider.SendNotification(ctx, info); err != nil {
 			return err
