@@ -3,8 +3,8 @@ package config
 
 import (
 	medication "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/medication_client"
-	notification "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/notification_client"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/presentation/http"
+	notification "github.com/FSO-VK/final-project-vk-backend/internal/utils/notification_client"
 	auth "github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
 )
 

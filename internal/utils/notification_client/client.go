@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application/notification"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
@@ -38,7 +37,7 @@ type NotificationExpectedResponse struct {
 
 type Body struct{}
 
-type RequestBody struct {
+type NotificationInfo struct {
 	UserID uuid.UUID `json:"userId"`
 	Title  string    `json:"title"`
 	Body   string    `json:"body"`
@@ -47,7 +46,7 @@ type RequestBody struct {
 // SendNotification implements NotificationService interface and sends a notification.
 func (h *NotificationClient) SendNotification(
 	ctx context.Context,
-	info notification.NotificationInfo,
+	info NotificationInfo,
 ) error {
 	if h.cfg.Timeout > 0 {
 		var cancel context.CancelFunc
@@ -55,12 +54,7 @@ func (h *NotificationClient) SendNotification(
 		defer cancel()
 	}
 
-	payload := RequestBody{
-		UserID: info.UserID,
-		Title:  info.Title,
-		Body:   info.Body,
-	}
-	jsonBody, err := json.Marshal(payload)
+	jsonBody, err := json.Marshal(info)
 	if err != nil {
 		return fmt.Errorf("failed to marshal notification body: %w", err)
 	}
