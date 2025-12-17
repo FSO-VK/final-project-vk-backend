@@ -156,7 +156,7 @@ func (s *ShowScheduleService) scheduleList(
 						AmountValue:    amountValue,
 						AmountUnit:     amountUnit,
 						Status:         record.Status().String(),
-						PlannedAt:      record.PlannedTime(),
+						PlannedAt:      record.PlannedTime().UTC(),
 						TakenAt:        record.TakenAt(),
 					})
 				}
@@ -180,7 +180,7 @@ func (s *ShowScheduleService) scheduleList(
 				AmountValue:    amountValue,
 				AmountUnit:     amountUnit,
 				Status:         StatusIntakePlanned,
-				PlannedAt:      t,
+				PlannedAt:      t.UTC(),
 				TakenAt:        time.Time{},
 			})
 		}
