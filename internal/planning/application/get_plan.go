@@ -93,8 +93,8 @@ func (s *GetPlanService) Execute(
 		AmountUnit:     amountUnit,
 		Condition:      requestedPlan.Condition(),
 		Status:         requestedPlan.Status().String(),
-		StartDate:      requestedPlan.CourseStart().Format(time.RFC3339),
-		EndDate:        requestedPlan.CourseEnd().Format(time.RFC3339),
+		StartDate:      requestedPlan.CourseStart().Format(time.DateOnly),
+		EndDate:        requestedPlan.CourseEnd().Format(time.DateOnly),
 		RecurrenceRule: requestedPlan.ScheduleIcal(),
 	}
 	return response, nil

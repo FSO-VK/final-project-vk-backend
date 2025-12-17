@@ -82,7 +82,6 @@ func (h *PlanningHandlers) GetAllUsersPlans(c *gin.Context) {
 		response.AllUserPlans = append(response.AllUserPlans, GetAllUsersPlansItem{
 			PlanObject: PlanObject{
 				MedicationID: p.MedicationID,
-				UserID:       p.UserID,
 				Amount: AmountObject{
 					Value: p.AmountValue,
 					Unit:  p.AmountUnit,
@@ -165,7 +164,6 @@ func (h *PlanningHandlers) AddPlan(c *gin.Context) {
 	response := &AddPlanJSONResponse{
 		PlanObject: PlanObject{
 			MedicationID: serviceResponse.MedicationID,
-			UserID:       serviceResponse.UserID,
 			Amount: AmountObject{
 				Value: serviceResponse.AmountValue,
 				Unit:  serviceResponse.AmountUnit,
@@ -236,7 +234,6 @@ func (h *PlanningHandlers) GetPlanByID(c *gin.Context) {
 	response := &GetPlanByIDJSONResponse{
 		PlanObject: PlanObject{
 			MedicationID: p.MedicationID,
-			UserID:       p.UserID,
 			Amount: AmountObject{
 				Value: p.AmountValue,
 				Unit:  p.AmountUnit,
