@@ -164,14 +164,24 @@ func (s *ShowScheduleService) scheduleList(
 		}
 		// we are calculating all future records that are not created in db
 		now := time.Now()
-		futureTimes := p.Schedule(
-			time.Date(
-				now.Year(), now.Month(), now.Day(),
-				0, 0, 0, 0, now.Location(),
-			).Add(s.createdShift),
-			parsedEnd,
-		)
-
+		var futureTimes []time.Time
+		if parsedStart.After(now) {
+			futureTimes = p.Schedule(
+				time.Date(
+					parsedStart.Year(), parsedStart.Month(), parsedStart.Day(),
+					0, 0, 0, 0, parsedStart.Location(),
+				).Add(s.createdShift),
+				parsedEnd,
+			)
+		} else {
+			futureTimes = p.Schedule(
+				time.Date(
+					now.Year(), now.Month(), now.Day(),
+					0, 0, 0, 0, now.Location(),
+				).Add(s.createdShift),
+				parsedEnd,
+			)
+		}
 		for _, t := range futureTimes {
 			futureScheduleList = append(futureScheduleList, &ScheduleTime{
 				IntakeRecordID: uuid.Nil,
