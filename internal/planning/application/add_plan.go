@@ -82,7 +82,6 @@ func (s *AddPlanService) Execute(
 	ctx context.Context,
 	req *AddPlanCommand,
 ) (*AddPlanResponse, error) {
-	fmt.Println("Amount execute", req.AmountUnit, req.AmountValue)
 	valErr := s.validator.ValidateStruct(req)
 	if valErr != nil {
 		return nil, ErrValidationFail
@@ -121,7 +120,6 @@ func (s *AddPlanService) Execute(
 		EndDate:        newPlan.CourseEnd().Format(time.DateOnly),
 		RecurrenceRule: newPlan.ScheduleIcal(),
 	}
-	fmt.Println("Amount execute 1", amountValue, amountUnit)
 
 	err = s.generatorProvider.GenerateRecordForPlan(
 		ctx,
@@ -138,7 +136,6 @@ func createPlan(req *AddPlanCommand,
 	userID uuid.UUID,
 	medicationID uuid.UUID,
 ) (*plan.Plan, error) {
-	fmt.Println("Amount execute 3", req.AmountUnit, req.AmountValue)
 	dosage, err := plan.NewDosage(
 		req.AmountValue,
 		req.AmountUnit,
