@@ -139,7 +139,6 @@ func (h *PlanningHandlers) AddPlan(c *gin.Context) {
 		})
 		return
 	}
-
 	command := &application.AddPlanCommand{
 		MedicationID:   reqJSON.MedicationID,
 		UserID:         auth.UserID,
