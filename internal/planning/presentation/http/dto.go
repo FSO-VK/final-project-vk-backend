@@ -3,7 +3,6 @@ package http
 // PlanObject is info about plan.
 type PlanObject struct {
 	MedicationID   string       `json:"medicationId"`
-	UserID         string       `json:"userId"`
 	Amount         AmountObject `json:"amount"`
 	Condition      string       `json:"condition"`
 	Status         string       `json:"status"`

@@ -90,8 +90,8 @@ func (s *GetAllPlansService) Execute(
 			AmountUnit:     amountUnit,
 			Condition:      onePlan.Condition(),
 			Status:         onePlan.Status().String(),
-			StartDate:      onePlan.CourseStart().Format(time.RFC3339),
-			EndDate:        onePlan.CourseEnd().Format(time.RFC3339),
+			StartDate:      onePlan.CourseStart().Format(time.DateOnly),
+			EndDate:        onePlan.CourseEnd().Format(time.DateOnly),
 			RecurrenceRule: onePlan.ScheduleIcal(),
 		})
 	}
