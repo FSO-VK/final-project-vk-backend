@@ -25,10 +25,11 @@ type dosage struct {
 // Units is a list of possible units for dosage.
 //
 //nolint:gochecknoglobals
-var Units = []string{"мг", "шт", "мл"}
+var Units = []string{"мг.", "шт.", "мл."}
 
 // NewDosage creates validated dosage.
 func NewDosage(value float64, unit string) (dosage, error) {
+	fmt.Println("NewDosage", value, unit)
 	err := errors.Join(
 		validation.Positive(value),
 		validation.Required(unit),
@@ -46,7 +47,7 @@ func NewDosage(value float64, unit string) (dosage, error) {
 	if u == "" {
 		return dosage{}, ErrInvalidDosage
 	}
-
+	fmt.Println("NewDosage", value, u)
 	return dosage{
 		value: value,
 		unit:  u,

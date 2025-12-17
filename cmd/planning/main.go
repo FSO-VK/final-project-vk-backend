@@ -140,22 +140,22 @@ func main() {
 		}
 	}()
 
-	// Daemon goroutine - send intake notifications
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		logger.Info("Daemon started (intake notifications generation)")
-		daemonIntakeNotification.Run(ctx, func(ctx context.Context) error {
-			return generateRecordsService.GenerateRecordsForDay(ctx, batchSize, creationShift)
-		})
-	}()
-
 	// Daemon goroutine - generate records
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		logger.Info("Daemon started (records generation)")
 		daemonRecordsGenerator.Run(ctx, func(ctx context.Context) error {
+			return generateRecordsService.GenerateRecordsForDay(ctx, batchSize, creationShift)
+		})
+	}()
+
+	// Daemon goroutine - send intake notifications
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		logger.Info("Daemon started (intake notifications generation)")
+		daemonIntakeNotification.Run(ctx, func(ctx context.Context) error {
 			return intakeNotificationService.GenerateIntakeNotifications(ctx)
 		})
 	}()

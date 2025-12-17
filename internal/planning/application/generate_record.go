@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/plan"
@@ -74,6 +75,7 @@ func (g *GenerateRecordService) GenerateRecordsForDay(
 	batchSize int,
 	creationShift time.Duration,
 ) error {
+	fmt.Println("GenerateRecordsForDay")
 	seq, err := g.planRepo.ActivePlans(ctx, batchSize)
 	if err != nil {
 		return err

@@ -3,6 +3,7 @@ package http
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -139,7 +140,7 @@ func (h *PlanningHandlers) AddPlan(c *gin.Context) {
 		})
 		return
 	}
-
+	fmt.Println("Amount handler", reqJSON.Amount.Value, reqJSON.Amount.Unit)
 	command := &application.AddPlanCommand{
 		MedicationID:   reqJSON.MedicationID,
 		UserID:         auth.UserID,
