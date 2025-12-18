@@ -1,0 +1,49 @@
+# for substitution expressions see:
+# https://github.com/drone/envsubst?tab=readme-ov-file
+
+server:
+  host: ${MEDICATION_SERVER_HOST:-0.0.0.0}
+  port: ${MEDICATION_SERVER_PORT:-8000}
+
+internal:
+  host: ${MEDICATION_INTERNAL_SERVER_HOST:-0.0.0.0}
+  port: ${MEDICATION_INTERNAL_SERVER_PORT:-8001}
+
+scan:
+  host: ${MEDICATION_SCAN_ENDPOINT}
+  timeout: ${SCAN_TIMEOUT:-10s}
+
+auth:
+  authBaseUrl: ${AUTH_BASE_URL:-http://0.0.0.0:8000}
+  path: ${PATH:-/session}
+  timeout: ${AUTH_TIMEOUT:-30s}
+  cookieName: ${COOKIE_NAME:-session_id}
+  cookieDomain: ${COOKIE_DOMAIN:-/}
+vidal:
+  client:
+    endpoint: ${MEDICATION_VIDAL_API_ENDPOINT:-https://www.vidal.ru/api/rest/v1/product/list}
+    api_token: ${MEDICATION_VIDAL_API_TOKEN}
+    timeout: ${MEDICATION_VIDAL_API_TIMEOUT:-10s}
+  storage:
+    host: ${MEDICATION_MONGO_HOST:-mongodb}
+    port: ${MEDICATION_MONGO_PORT:-27017}
+    database: ${MEDICATION_MONGO_DATABASE}
+    user: ${MEDICATION_MONGO_USER}
+    password: ${MEDICATION_MONGO_PASSWORD}
+    log: true
+
+gigachat:
+  llm_base_url: ${GIGACHAT_LLM_BASE_URL:-https://gigachat.devices.sberbank.ru/api/v1/chat/completions}
+  auth_base_url: ${GIGACHAT_AUTH_BASE_URL:-https://ngw.devices.sberbank.ru:9443/api/v2/oauth}
+  client_id: ${GIGACHAT_CLIENT_ID}
+  client_secret: ${GIGACHAT_CLIENT_SECRET}
+  model_name: ${GIGACHAT_MODEL_NAME:-GigaChat}
+  role: ${GIGACHAT_ROLE:-user}
+  temperature: ${GIGACHAT_TEMPERATURE:-0.1}
+  max_tokens: ${GIGACHAT_MAX_TOKENS:-2000}
+  timeout: ${GIGACHAT_TIMEOUT:-30s}
+  base_system_prompt_path: ${GIGACHAT_BASE_SYSTEM_PROMPT_PATH:-./prompt.tmpl}
+
+assistant:
+  select_instruction_field_prompt_path: ${GIGACHAT_SELECT_INSTRUCTION_FIELD_PROMPT_PATH:-./select_instruction_field.tmpl}
+  consulting_prompt_path: ${GIGACHAT_CONSULTING_PROMPT_PATH:-./instruction_consultation.tmpl}

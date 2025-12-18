@@ -1,0 +1,71 @@
+package http
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+)
+
+// ServerConfig holds HTTP server configuration.
+type ServerConfig struct {
+	Host string
+	Port string
+}
+
+// Address returns the full server address in host:port format.
+func (s *ServerConfig) Address() string {
+	return fmt.Sprintf("%s:%s", s.Host, s.Port)
+}
+
+// NotificationGINServer represents an GIN server with configuration, logger and underlying http.Server.
+type NotificationGINServer struct {
+	config *ServerConfig
+	srv    *http.Server
+	logger *logrus.Entry
+}
+
+// NewGINServer creates a new GIN server instance with the provided configuration and logger.
+func NewGINServer(conf *ServerConfig, l *logrus.Entry) *NotificationGINServer {
+	return &NotificationGINServer{
+		config: conf,
+		srv: &http.Server{
+			Addr:                         conf.Address(),
+			Handler:                      nil,
+			ReadHeaderTimeout:            5 * time.Second,
+			DisableGeneralOptionsHandler: false,
+			TLSConfig:                    nil,
+			ReadTimeout:                  0,
+			WriteTimeout:                 0,
+			IdleTimeout:                  0,
+			MaxHeaderBytes:               0,
+			TLSNextProto:                 nil,
+			ConnState:                    nil,
+			ErrorLog:                     nil,
+			BaseContext:                  nil,
+			ConnContext:                  nil,
+			HTTP2:                        nil,
+			Protocols:                    nil,
+		},
+		logger: l,
+	}
+}
+
+// Router sets the HTTP router for the server.
+func (s *NotificationGINServer) Router(router *gin.Engine) {
+	s.srv.Handler = router
+}
+
+// Shutdown gracefully shuts down the server.
+func (s *NotificationGINServer) Shutdown(ctx context.Context) error {
+	return s.srv.Shutdown(ctx)
+}
+
+// ListenAndServe starts the HTTP server.
+func (s *NotificationGINServer) ListenAndServe() error {
+	s.logger.Infof("Server started on %s", s.config.Address())
+	return s.srv.ListenAndServe()
+}

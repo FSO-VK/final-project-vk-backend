@@ -1,0 +1,15 @@
+# .dockerignore
+.github
+.vscode
+.idea
+
+.env
+.gitignore
+.golangci*
+
+*.md
+
+Makefile
+
+# docker volume
+/data

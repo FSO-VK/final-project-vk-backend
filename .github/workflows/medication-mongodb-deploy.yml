@@ -1,0 +1,66 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ master, dev ]
+    paths:
+      - 'build/databases/medication-mongodb.Dockerfile'
+      - 'build/databases/mongo-init.js'
+  pull_request:
+    branches: [ master, dev ]
+    paths:
+      - 'build/databases/medication-mongodb.Dockerfile'
+      - 'build/databases/mongo-init.js'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch to run against (example: dev or master)"
+        required: false
+        default: ""
+
+env:
+  IMAGE_REPO: ghcr.io/fso-vk/fso-medication-mongodb
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-publish:
+    name: Build & Publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Determine Tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "TARGET=handmade" >> $GITHUB_ENV
+          elif [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            echo "TARGET=latest" >> $GITHUB_ENV
+          elif [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+            echo "TARGET=dev" >> $GITHUB_ENV
+          else
+            echo "TARGET=pr-test" >> $GITHUB_ENV
+          fi
+
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./build/databases/medication-mongodb.Dockerfile
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ env.IMAGE_REPO }}:${{ env.TARGET }}
