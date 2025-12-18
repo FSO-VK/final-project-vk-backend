@@ -2,7 +2,9 @@ package memory
 
 import (
 	"context"
+	"iter"
 	"sync"
+	"time"
 
 	medication "github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/cache"
@@ -79,4 +81,30 @@ func (s *MedicationStorage) Delete(_ context.Context, medicationID uuid.UUID) er
 
 	s.data.Delete(medicationID.String())
 	return nil
+}
+
+// MedicationByExpiration returns all medications expiring within timeDelta from now.
+func (s *MedicationStorage) MedicationByExpiration(
+	_ context.Context,
+	timeDelta time.Duration,
+) (iter.Seq[*medication.Medication], error) {
+	return func(yield func(*medication.Medication) bool) {
+		s.mu.RLock()
+		defer s.mu.RUnlock()
+
+		all := s.data.GetAll()
+		now := time.Now()
+		expirationThreshold := now.Add(timeDelta)
+
+		for _, med := range all {
+			exp := med.GetExpirationDate()
+			if !exp.IsZero() &&
+				!exp.Before(now) &&
+				!exp.After(expirationThreshold) {
+				if !yield(med) {
+					return
+				}
+			}
+		}
+	}, nil
 }
