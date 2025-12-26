@@ -1,7 +1,7 @@
 package edge
 
 // Status is a result of a check.
-type Status = int
+type Status int
 
 const (
 	StatusOk = Status(iota)
@@ -9,20 +9,20 @@ const (
 )
 
 // CheckFunc is a function used to check.
-type CheckFunc = func() Status
+type CheckFunc func() Status
 
 // HealthChecker provides health check.
-type HealthChecker = interface {
+type HealthChecker interface {
 	CheckHealth() Status
 }
 
 // ReadinessChecker provides readiness check.
-type ReadinessChecker = interface {
+type ReadinessChecker interface {
 	CheckReadiness() Status
 }
 
 // K8SChecker is a full standard k8s probes checker.
-type K8SChecker = interface {
+type K8SChecker interface {
 	HealthChecker
 	ReadinessChecker
 }
