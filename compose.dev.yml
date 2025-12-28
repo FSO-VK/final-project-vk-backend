@@ -42,7 +42,6 @@ services:
       COOKIE_NAME: "session_id"
       COOKIE_DOMAIN: "auth"
       AUTH_TIMEOUT: "30s"
-      CLIENT_API_HOST: ${CLIENT_API_HOST}
       SCAN_TIMEOUT: "10s"
     ports:
       - "8002:8000"
@@ -155,3 +154,17 @@ services:
       - type: bind
         source: ../data_mongodb
         target: /data/db
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_SUPERUSER}
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERPASS}
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./build/databases/postgresql/init:/docker-entrypoint-initdb.d
+      - ../data_postgres:/var/lib/postgresql/data
