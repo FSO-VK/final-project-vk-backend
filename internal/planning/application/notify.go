@@ -12,7 +12,7 @@ import (
 
 // IntakeNotification is an interface for generating notifications for intake.
 type IntakeNotification interface {
-	GenerateNotifications(ctx context.Context) error
+	GenerateIntakeNotifications(ctx context.Context) error
 }
 
 // IntakeNotificationService implements IntakeNotification.

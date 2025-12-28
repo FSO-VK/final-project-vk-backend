@@ -2,7 +2,7 @@ package medication
 
 import "github.com/google/uuid"
 
-// MedicationService is an interface for getting medication info from medication service.
+// MedicationService provides access to medication data.
 type MedicationService interface {
 	MedicationName(id uuid.UUID, userID uuid.UUID) (string, error)
 }

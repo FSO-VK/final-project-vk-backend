@@ -11,7 +11,7 @@ import (
 
 // ExpirationNotification is an interface for generating notifications for expiration date of medication.
 type ExpirationNotification interface {
-	GenerateNotifications(ctx context.Context) error
+	GenerateExpirationNotifications(ctx context.Context) error
 }
 
 // ExpirationNotificationService implements ExpirationNotification.
