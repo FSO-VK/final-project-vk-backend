@@ -13,7 +13,7 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/config"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/datamatrix"
 	instructionAssistant "github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/llm_chat_bot"
-	notifyAdapter "github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/notification"
+	notifyProvider "github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/notification"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/vidal"
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/infrastructure/vidal/client"
@@ -145,7 +145,7 @@ func main() {
 	).Add(24 * time.Hour)
 	daemonExpirationNotification := daemon.NewDaemon(notificationsInterval, noon, logger)
 	notificationProvider := notifyClient.NewNotificationClient(conf.Notification, logger)
-	notificationAdapter := notifyAdapter.NewAdapter(notificationProvider)
+	notificationAdapter := notifyProvider.NewNotificationProvider(notificationProvider)
 	expirationNotificationService := application.NewExpirationNotificationService(
 		medicationRepo,
 		medicationBoxRepo,

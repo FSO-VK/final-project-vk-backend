@@ -9,8 +9,8 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/medication"
 )
 
-// ExpirationNotification is an interface for generating notifications for expiration date of medication.
-type ExpirationNotification interface {
+// ExpirationNotificationGenerator is an interface for generating notifications for expiration date of medication.
+type ExpirationNotificationGenerator interface {
 	GenerateExpirationNotifications(ctx context.Context) error
 }
 

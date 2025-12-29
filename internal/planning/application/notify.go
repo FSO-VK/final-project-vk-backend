@@ -10,8 +10,8 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/domain/record"
 )
 
-// IntakeNotification is an interface for generating notifications for intake.
-type IntakeNotification interface {
+// IntakeNotificationGenerator is an interface for generating notifications for intake.
+type IntakeNotificationGenerator interface {
 	GenerateIntakeNotifications(ctx context.Context) error
 }
 

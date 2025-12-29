@@ -12,7 +12,7 @@ type NotificationProvider struct {
 	client *client.NotificationClient
 }
 
-func NewAdapter(c *client.NotificationClient) *NotificationProvider {
+func NewNotificationProvider(c *client.NotificationClient) *NotificationProvider {
 	return &NotificationProvider{client: c}
 }
 

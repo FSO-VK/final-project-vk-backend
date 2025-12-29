@@ -13,7 +13,7 @@ import (
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/config"
 	medClient "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/medication_client"
-	notifyAdapter "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/notification"
+	notifyProvider "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/notification"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/presentation/http"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
@@ -83,7 +83,7 @@ func main() {
 
 	// Service and daemon for intake notifications
 	notificationProvider := notifyClient.NewNotificationClient(conf.Notification, logger)
-	notificationAdapter := notifyAdapter.NewAdapter(notificationProvider)
+	notificationAdapter := notifyProvider.NewNotificationProvider(notificationProvider)
 	intakeNotificationService := application.NewIntakeNotificationService(
 		recordsRepo,
 		planRepo,
