@@ -16,4 +16,5 @@ type Repository interface {
 	SetMedicationBox(ctx context.Context, medicationBox *MedicationBox) error
 	CreateMedicationBox(ctx context.Context, medicationBox *MedicationBox) (*MedicationBox, error)
 	GetMedicationBox(ctx context.Context, UserID uuid.UUID) (*MedicationBox, error)
+	GetUserByMedicationID(ctx context.Context, medicationID uuid.UUID) (uuid.UUID, error)
 }

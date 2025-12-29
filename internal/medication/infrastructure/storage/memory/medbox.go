@@ -71,3 +71,19 @@ func (s *MedicationBoxStorage) CreateMedicationBox(
 	s.data.Set(medicationBox.GetID().String(), medicationBox)
 	return medicationBox, nil
 }
+
+// GetUserByMedicationID returns user ID who owns the medication with given ID.
+func (s *MedicationBoxStorage) GetUserByMedicationID(
+	_ context.Context,
+	medicationID uuid.UUID,
+) (uuid.UUID, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, medBox := range s.data.GetAll() {
+		if medBox.HasMedication(medicationID) {
+			return medBox.GetUserID(), nil
+		}
+	}
+	return uuid.Nil, medbox.ErrNoMedicationBoxFound
+}

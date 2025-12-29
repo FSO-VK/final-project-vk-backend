@@ -47,3 +47,8 @@ gigachat:
 assistant:
   select_instruction_field_prompt_path: ${GIGACHAT_SELECT_INSTRUCTION_FIELD_PROMPT_PATH:-./select_instruction_field.tmpl}
   consulting_prompt_path: ${GIGACHAT_CONSULTING_PROMPT_PATH:-./instruction_consultation.tmpl}
+
+notification:
+  endpoint: ${NOTIFICATION_SERVER_ENDPOINT:-http://notifications:8000/notification/send}
+  method: ${NOTIFICATION_METHOD:-POST}
+  timeout: ${NOTIFICATION_TIMEOUT:-30s}

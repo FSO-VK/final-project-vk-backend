@@ -12,13 +12,14 @@ import (
 
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/application"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/config"
-	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/daemon"
 	medClient "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/medication_client"
-	notifyClient "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/notification_client"
+	notifyProvider "github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/notification"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/infrastructure/storage/memory"
 	"github.com/FSO-VK/final-project-vk-backend/internal/planning/presentation/http"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/configuration"
+	"github.com/FSO-VK/final-project-vk-backend/internal/utils/daemon"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/httputil"
+	notifyClient "github.com/FSO-VK/final-project-vk-backend/internal/utils/notification_client"
 	"github.com/FSO-VK/final-project-vk-backend/internal/utils/validator"
 	auth "github.com/FSO-VK/final-project-vk-backend/pkg/auth/client"
 	"github.com/sirupsen/logrus"
@@ -82,10 +83,11 @@ func main() {
 
 	// Service and daemon for intake notifications
 	notificationProvider := notifyClient.NewNotificationClient(conf.Notification, logger)
+	notificationAdapter := notifyProvider.NewNotificationProvider(notificationProvider)
 	intakeNotificationService := application.NewIntakeNotificationService(
 		recordsRepo,
 		planRepo,
-		notificationProvider,
+		notificationAdapter,
 		medicationClient,
 	)
 

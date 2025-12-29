@@ -3,6 +3,8 @@ package medication
 import (
 	"context"
 	"errors"
+	"iter"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -17,4 +19,8 @@ type Repository interface {
 	GetByID(ctx context.Context, medicationID uuid.UUID) (*Medication, error)
 	Update(ctx context.Context, medication *Medication) (*Medication, error)
 	Delete(ctx context.Context, medicationID uuid.UUID) error
+	MedicationByExpiration(
+		ctx context.Context,
+		timeDelta time.Duration,
+	) (iter.Seq[*Medication], error)
 }
