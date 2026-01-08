@@ -27,11 +27,13 @@ func Test_schedule_Next(t *testing.T) {
 			end:   time.Date(2024, 1, 10, 9, 0, 0, 0, time.UTC),
 			rules: func() []*rrule.RRule {
 				rule1, err1 := rrule.NewRRule(rrule.ROption{
-					Freq:   rrule.DAILY,
-					Byhour: []int{9, 19},
+					Dtstart: time.Date(2024, 1, 1, 9, 0, 0, 0, time.UTC),
+					Freq:    rrule.DAILY,
+					Byhour:  []int{9, 19},
 				})
 				rule2, err2 := rrule.NewRRule(rrule.ROption{
 					// friday is a January 5, 2024
+					Dtstart:   time.Date(2024, 1, 1, 9, 0, 0, 0, time.UTC),
 					Byweekday: []rrule.Weekday{rrule.MO, rrule.WE, rrule.FR},
 					Freq:      rrule.WEEKLY,
 					Byhour:    []int{15},
@@ -50,8 +52,9 @@ func Test_schedule_Next(t *testing.T) {
 			end:   time.Date(2024, 1, 3, 9, 0, 0, 0, time.UTC),
 			rules: func() []*rrule.RRule {
 				rule, err := rrule.NewRRule(rrule.ROption{
-					Freq:   rrule.DAILY,
-					Byhour: []int{9},
+					Dtstart: time.Date(2024, 1, 1, 9, 0, 0, 0, time.UTC),
+					Freq:    rrule.DAILY,
+					Byhour:  []int{9},
 				})
 				if err != nil {
 					t.Fatalf("arrange failed: %v", err)
