@@ -33,3 +33,4 @@ go.work.sum
 
 # docker volumes
 /data
+data_*/
