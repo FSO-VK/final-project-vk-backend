@@ -156,7 +156,7 @@ func (s *ShowScheduleService) scheduleList(
 						AmountValue:    amountValue,
 						AmountUnit:     amountUnit,
 						Status:         record.Status().String(),
-						PlannedAt:      record.PlannedTime(),
+						PlannedAt:      record.PlannedTime().UTC(),
 						TakenAt:        record.TakenAt(),
 					})
 				}
@@ -169,7 +169,7 @@ func (s *ShowScheduleService) scheduleList(
 			futureTimes = p.Schedule(
 				time.Date(
 					parsedStart.Year(), parsedStart.Month(), parsedStart.Day(),
-					0, 0, 0, 0, now.Location(),
+					0, 0, 0, 0, time.UTC,
 				).Add(s.createdShift),
 				parsedEnd,
 			)
@@ -177,7 +177,7 @@ func (s *ShowScheduleService) scheduleList(
 			futureTimes = p.Schedule(
 				time.Date(
 					now.Year(), now.Month(), now.Day(),
-					0, 0, 0, 0, now.Location(),
+					0, 0, 0, 0, time.UTC,
 				).Add(s.createdShift),
 				parsedEnd,
 			)
@@ -190,7 +190,7 @@ func (s *ShowScheduleService) scheduleList(
 				AmountValue:    amountValue,
 				AmountUnit:     amountUnit,
 				Status:         StatusIntakePlanned,
-				PlannedAt:      t,
+				PlannedAt:      t.UTC(),
 				TakenAt:        time.Time{},
 			})
 		}
