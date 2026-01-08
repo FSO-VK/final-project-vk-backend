@@ -119,3 +119,25 @@ func (s *RecordStorage) RecordsByTime(
 		}
 	}, nil
 }
+
+// UpdateByID updates an existing record by id.
+func (s *RecordStorage) UpdateByID(
+	ctx context.Context,
+	updatedRecord *record.IntakeRecord,
+) error {
+	if updatedRecord == nil {
+		return errGotNilIntakeRecord
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	id := updatedRecord.ID().String()
+	_, exists := s.data.Get(id)
+	if !exists {
+		return record.ErrNoRecordFound
+	}
+
+	s.data.Set(id, updatedRecord)
+	return nil
+}

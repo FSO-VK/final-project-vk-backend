@@ -17,6 +17,7 @@ type Repository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*IntakeRecord, error)
 	GetByPlanID(ctx context.Context, planID uuid.UUID) ([]*IntakeRecord, error)
 	Save(ctx context.Context, record *IntakeRecord) error
+	UpdateByID(ctx context.Context, record *IntakeRecord) error
 	SaveBulk(ctx context.Context, records []*IntakeRecord) error
 	RecordsByTime(ctx context.Context, time time.Time) (iter.Seq[*IntakeRecord], error)
 }

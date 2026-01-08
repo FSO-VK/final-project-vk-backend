@@ -16,6 +16,8 @@ import (
 const (
 	// SlugID is a slug for id.
 	SlugID = "id"
+	// SlugID is a slug for id.
+	PlanID = "plan_id"
 )
 
 // PlanningHandlers is a handler for Planning.
@@ -372,6 +374,171 @@ func (h *PlanningHandlers) ShowSchedule(c *gin.Context) {
 	})
 }
 
+// TakeMedication makes record taken by time it was planned.
+func (h *PlanningHandlers) TakeMedication(c *gin.Context) {
+	planID, recordID, userID, ok := h.extractMedicationParams(c)
+	if !ok {
+		return
+	}
+
+	command := &application.TakeMedicationCommand{
+		PlanID:   planID,
+		RecordID: recordID,
+		UserID:   userID,
+	}
+
+	_, err := h.app.TakeMedication.Execute(c.Request.Context(), command)
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to take medication")
+		status, body := h.handleTakeMedicationServiceError(err)
+		c.JSON(status, body)
+		return
+	}
+
+	c.JSON(http.StatusOK, api.Response[struct{}]{
+		StatusCode: http.StatusOK,
+		Body:       struct{}{},
+		Error:      "",
+	})
+}
+
+// ChangeTakeMedicationJSONRequest is a request for ChangeTakeMedication.
+type ChangeTakeMedicationJSONRequest struct {
+	TakingTime string `json:"takingTime"`
+}
+
+// ChangeTakeMedication makes record taken by time you set.
+func (h *PlanningHandlers) ChangeTakeMedication(c *gin.Context) {
+	planID, recordID, userID, ok := h.extractMedicationParams(c)
+	if !ok {
+		return
+	}
+
+	var reqJSON ChangeTakeMedicationJSONRequest
+	if err := c.ShouldBindJSON(&reqJSON); err != nil {
+		h.logger.WithError(err).Error("Failed to bind request body")
+		c.JSON(http.StatusBadRequest, api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		})
+		return
+	}
+
+	command := &application.ChangeTakeMedicationCommand{
+		PlanID:   planID,
+		RecordID: recordID,
+		UserID:   userID,
+		TakenAt:  reqJSON.TakingTime,
+	}
+
+	_, err := h.app.ChangeTakeMedication.Execute(c.Request.Context(), command)
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to change medication take time")
+		status, body := h.handleTakeMedicationServiceError(err)
+		c.JSON(status, body)
+		return
+	}
+
+	c.JSON(http.StatusOK, api.Response[struct{}]{
+		StatusCode: http.StatusOK,
+		Body:       struct{}{},
+		Error:      "",
+	})
+}
+
+// CancelMedicationTake makes record not taken.
+func (h *PlanningHandlers) CancelMedicationTake(c *gin.Context) {
+	auth, err := httputil.GetAuthFromCtx(c.Request)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, api.Response[any]{
+			StatusCode: http.StatusUnauthorized,
+			Error:      api.MsgUnauthorized,
+			Body:       struct{}{},
+		})
+		return
+	}
+
+	slugPlanID := c.Param(PlanID)
+	if slugPlanID == "" {
+		h.logger.Error("Plan ID not found in path params")
+		c.JSON(http.StatusBadRequest, api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Error:      MsgMissingSlug,
+			Body:       struct{}{},
+		})
+		return
+	}
+	slugRecordID := c.Param(SlugID)
+	if slugPlanID == "" {
+		h.logger.Error("Record ID not found in path params")
+		c.JSON(http.StatusBadRequest, api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Error:      MsgMissingSlug,
+			Body:       struct{}{},
+		})
+		return
+	}
+
+	command := &application.CancelMedicationTakeCommand{
+		PlanID:   slugPlanID,
+		RecordID: slugRecordID,
+		UserID:   auth.UserID,
+	}
+
+	_, err = h.app.CancelMedicationTake.Execute(c.Request.Context(), command)
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to cancel medication take")
+		status, body := h.handleTakeMedicationServiceError(err)
+		c.JSON(status, body)
+		return
+	}
+
+	c.JSON(http.StatusOK, api.Response[struct{}]{
+		StatusCode: http.StatusOK,
+		Body:       struct{}{},
+		Error:      "",
+	})
+}
+
+func (h *PlanningHandlers) extractMedicationParams(
+	c *gin.Context,
+) (string, string, string, bool) {
+	auth, err := httputil.GetAuthFromCtx(c.Request)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, api.Response[any]{
+			StatusCode: http.StatusUnauthorized,
+			Error:      api.MsgUnauthorized,
+			Body:       struct{}{},
+		})
+		return "", "", "", false
+	}
+
+	slugPlanID := c.Param(PlanID)
+	if slugPlanID == "" {
+		h.logger.Error("Plan ID not found in path params")
+		c.JSON(http.StatusBadRequest, api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Error:      MsgMissingSlug,
+			Body:       struct{}{},
+		})
+		return "", "", "", false
+	}
+
+	slugRecordID := c.Param(SlugID)
+	if slugRecordID == "" { // Исправлена ошибка!
+		h.logger.Error("Record ID not found in path params")
+		c.JSON(http.StatusBadRequest, api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Error:      MsgMissingSlug,
+			Body:       struct{}{},
+		})
+		return "", "", "", false
+	}
+
+	return slugPlanID, slugRecordID, auth.UserID, true
+}
+
 // handleUpdateServiceError maps service errors to HTTP status and API responses using switch.
 func (h *PlanningHandlers) handleUpdateServiceError(err error) (int, *api.Response[any]) {
 	switch {
@@ -392,6 +559,36 @@ func (h *PlanningHandlers) handleUpdateServiceError(err error) (int, *api.Respon
 			StatusCode: http.StatusInternalServerError,
 			Body:       struct{}{},
 			Error:      MsgFailedToGetSchedule,
+		}
+	}
+}
+
+// handleTakeMedicationServiceError maps service errors to HTTP status and API responses using switch.
+func (h *PlanningHandlers) handleTakeMedicationServiceError(err error) (int, *api.Response[any]) {
+	switch {
+	case errors.Is(err, application.ErrValidationFail):
+		return http.StatusBadRequest, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		}
+	case errors.Is(err, application.ErrNoPlan):
+		return http.StatusNotFound, &api.Response[any]{
+			StatusCode: http.StatusNotFound,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetPlan,
+		}
+	case errors.Is(err, application.ErrNoIntakeRecord):
+		return http.StatusNotFound, &api.Response[any]{
+			StatusCode: http.StatusNotFound,
+			Body:       struct{}{},
+			Error:      MsgFailedToGetIntakeRecord,
+		}
+	default:
+		return http.StatusInternalServerError, &api.Response[any]{
+			StatusCode: http.StatusInternalServerError,
+			Body:       struct{}{},
+			Error:      MsgFailedToTakeMedication,
 		}
 	}
 }
