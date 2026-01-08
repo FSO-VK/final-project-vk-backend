@@ -104,7 +104,6 @@ func (p *Plan) Schedule(from, to time.Time) []time.Time {
 // GenerateIntakeRecords is a factory for intake records related to the plan.
 func (p *Plan) GenerateIntakeRecords(from, to time.Time) ([]*intake.IntakeRecord, error) {
 	records := make([]*intake.IntakeRecord, 0)
-
 	times := p.Schedule(from, to)
 	for _, t := range times {
 		record, err := intake.NewIntakeRecord(

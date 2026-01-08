@@ -169,7 +169,7 @@ func (s *ShowScheduleService) scheduleList(
 			futureTimes = p.Schedule(
 				time.Date(
 					parsedStart.Year(), parsedStart.Month(), parsedStart.Day(),
-					0, 0, 0, 0, parsedStart.Location(),
+					0, 0, 0, 0, time.UTC,
 				).Add(s.createdShift),
 				parsedEnd,
 			)
@@ -177,7 +177,7 @@ func (s *ShowScheduleService) scheduleList(
 			futureTimes = p.Schedule(
 				time.Date(
 					now.Year(), now.Month(), now.Day(),
-					0, 0, 0, 0, now.Location(),
+					0, 0, 0, 0, time.UTC,
 				).Add(s.createdShift),
 				parsedEnd,
 			)
@@ -195,5 +195,6 @@ func (s *ShowScheduleService) scheduleList(
 			})
 		}
 	}
-	return append(futureScheduleList, pastScheduleList...), nil
+
+	return append(pastScheduleList, futureScheduleList...), nil
 }

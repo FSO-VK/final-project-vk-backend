@@ -82,7 +82,6 @@ func NewSchedule(start, end time.Time, rules []*rrule.RRule) (schedule, error) {
 			continue
 		}
 		// rule is limited by range
-		rule.DTStart(start)
 		rule.Until(end)
 		r = append(r, rule)
 	}
