@@ -33,4 +33,4 @@ go.work.sum
 
 # docker volumes
 /data
-data_*/
+dev_data/

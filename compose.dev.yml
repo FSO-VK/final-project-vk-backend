@@ -148,11 +148,12 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=user
       - MONGO_INITDB_ROOT_PASSWORD=password
       - MONGO_INITDB_DATABASE=${MEDICATION_MONGO_DATABASE}
+    command: mongod --quiet --logpath /dev/null
     ports:
       - "27017:27017"
     volumes:
       - type: bind
-        source: ./data_mongodb
+        source: ../dev_data/mongodb
         target: /data/db
   postgres:
     image: postgres:16
@@ -166,4 +167,4 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./data_postgres:/var/lib/postgresql/data
+      - ../dev_data/postgresql:/var/lib/postgresql/data

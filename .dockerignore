@@ -13,3 +13,4 @@ Makefile
 
 # docker volume
 /data
+/dev_data
