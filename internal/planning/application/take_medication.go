@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// TakeMedication is an interface for getting a notification.
+// TakeMedication is an interface for getting medication taken.
 type TakeMedication interface {
 	Execute(
 		ctx context.Context,
@@ -38,14 +38,14 @@ func NewTakeMedicationService(
 	}
 }
 
-// TakeMedicationCommand is a request to get a plan.
+// TakeMedicationCommand is a request to make medication taken.
 type TakeMedicationCommand struct {
 	PlanID   string `validate:"required,uuid"`
 	RecordID string `validate:"required,uuid"`
 	UserID   string `validate:"required,uuid"`
 }
 
-// TakeMedicationResponse is a response to get a plan.
+// TakeMedicationResponse is a response to make medication taken.
 type TakeMedicationResponse struct{}
 
 // Execute executes the TakeMedication command.

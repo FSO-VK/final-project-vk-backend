@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// CancelMedicationTake is an interface for getting a notification.
+// CancelMedicationTake is an interface for making a medication not taken.
 type CancelMedicationTake interface {
 	Execute(
 		ctx context.Context,
@@ -18,7 +18,7 @@ type CancelMedicationTake interface {
 	) (*CancelMedicationTakeResponse, error)
 }
 
-// CancelMedicationTakeService is a service for making a medication taken.
+// CancelMedicationTakeService is a service for making a medication not taken.
 type CancelMedicationTakeService struct {
 	recordRepo   record.Repository
 	planningRepo plan.Repository
@@ -38,14 +38,14 @@ func NewCancelMedicationTakeService(
 	}
 }
 
-// CancelMedicationTakeCommand is a request to get a plan.
+// CancelMedicationTakeCommand is a request to cancel medication take.
 type CancelMedicationTakeCommand struct {
 	PlanID   string `validate:"required,uuid"`
 	RecordID string `validate:"required,uuid"`
 	UserID   string `validate:"required,uuid"`
 }
 
-// CancelMedicationTakeResponse is a response to get a plan.
+// CancelMedicationTakeResponse is a response to cancel medication take.
 type CancelMedicationTakeResponse struct{}
 
 // Execute executes the CancelMedicationTake command.

@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// ChangeTakeMedication is an interface for getting a notification.
+// ChangeTakeMedication is an interface for making a medication taken in any time of the day.
 type ChangeTakeMedication interface {
 	Execute(
 		ctx context.Context,
@@ -20,7 +20,7 @@ type ChangeTakeMedication interface {
 	) (*ChangeTakeMedicationResponse, error)
 }
 
-// ChangeTakeMedicationService is a service for making a medication taken.
+// ChangeTakeMedicationService is a service for making a medication taken in any time of the day.
 type ChangeTakeMedicationService struct {
 	recordRepo   record.Repository
 	planningRepo plan.Repository
@@ -40,7 +40,7 @@ func NewChangeTakeMedicationService(
 	}
 }
 
-// ChangeTakeMedicationCommand is a request to get a plan.
+// ChangeTakeMedicationCommand is a request to change medication take time.
 type ChangeTakeMedicationCommand struct {
 	PlanID   string `validate:"required,uuid"`
 	RecordID string `validate:"required,uuid"`
@@ -48,7 +48,7 @@ type ChangeTakeMedicationCommand struct {
 	TakenAt  string `validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
 }
 
-// ChangeTakeMedicationResponse is a response to get a plan.
+// ChangeTakeMedicationResponse is a response to change medication take time.
 type ChangeTakeMedicationResponse struct{}
 
 // Execute executes the ChangeTakeMedication command.
