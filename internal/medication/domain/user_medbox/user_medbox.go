@@ -51,3 +51,16 @@ func New(id, userID uuid.UUID, medications []medication.Medication, createdAt, u
 func (mb *UserMedbox) getMedicationByID(id uuid.UUID) *medication.Medication {
 	return mb.medications[id]
 }
+
+func (mb *UserMedbox) AlreadyHas(m *medication.Medication) bool {
+	dataMatrix := m.DataMatrix()
+	for k, v := range mb.medications {
+		if k == m.ID() {
+			return false
+		}
+		if !dataMatrix.IsEmpty() && dataMatrix == v.DataMatrix() {
+			return false
+		}
+	}
+	return true
+}

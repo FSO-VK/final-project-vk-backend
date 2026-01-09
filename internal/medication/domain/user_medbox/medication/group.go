@@ -25,6 +25,6 @@ func NewGroup(group string) (Group, error) {
 }
 
 // String implements stringer interface for Group.
-func (g Group) GetGroups() string {
+func (g Group) String() string {
 	return string(g)
 }

@@ -1,8 +1,14 @@
 package usermedbox
 
 import (
-	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/user_medbox/medication"
+	"errors"
 	"time"
+
+	"github.com/FSO-VK/final-project-vk-backend/internal/medication/domain/user_medbox/medication"
+)
+
+var (
+	ErrMedicationExist = errors.New("such medication already exists")
 )
 
 type MedicationAddedEvent struct {
@@ -16,6 +22,10 @@ func (mae MedicationAddedEvent) Name() string {
 }
 
 func (mb *UserMedbox) AddMedication(m medication.Medication) error {
+	if mb.AlreadyHas(&m) {
+		return ErrMedicationExist
+	}
+	
 	basicEvent, err := NewBasicEvent()
 	if err != nil {
 		return err

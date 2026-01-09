@@ -43,7 +43,7 @@ func NewMedicationInfo(d MedicationInfoDraft) (MedicationInfo, error) {
 	name, err := NewName(d.Name)
 	allErrors = errors.Join(allErrors, err)
 
-	intertationalname, err := NewInternationalName(d.InternationalName)
+	internationalName, err := NewInternationalName(d.InternationalName)
 	allErrors = errors.Join(allErrors, err)
 
 	groups := make([]Group, 0, len(d.Groups))
@@ -82,7 +82,7 @@ func NewMedicationInfo(d MedicationInfoDraft) (MedicationInfo, error) {
 
 	return MedicationInfo{
 		name:              name,
-		internationalName: intertationalname,
+		internationalName: internationalName,
 		groups:            groups,
 		manufacturer:      manufacturer,
 		releaseForm:       releaseForm,
