@@ -63,22 +63,41 @@ func (m *Medication) UpdateInfo(info MedicationInfo) {
 	m.updatedAt = time.Now()
 }
 
+func (m *Medication) Take(amount float32) error {
+	// Since info is a copy of a real info, changing amount is safe
+	// It is a bad code, but safe enough to ignore
+	info := m.Info()
+	currentAmountValue := info.Amount().value
+	newAmountValue := max(currentAmountValue-amount, 0)
+
+	newAmount, err := NewAmount(
+		AmountDraft{
+			Value: newAmountValue,
+			Unit:  info.Amount().Unit().String(),
+		},
+	)
+	if err != nil {
+		// basically impossible but the linter must be shutted up
+		return err
+	}
+
+	info.amount = newAmount
+
+	m.UpdateInfo(info)
+	return nil
+}
+
+// IsRanOut checks if amount of medication is zero
+func (m *Medication) IsRanOut() bool {
+	return m.info.amount.value == 0
+}
+
 // ID returns the unique identifier of the medication.
 func (m *Medication) ID() uuid.UUID { return m.id }
 
 // Info returns medication info.
 func (m *Medication) Info() MedicationInfo {
 	return m.info
-}
-
-// CreatedAt returns the creation timestamp of the medication.
-func (m *Medication) CreatedAt() time.Time {
-	return m.createdAt
-}
-
-// UpdatedAt returns the last modification timestamp of the medication.
-func (m *Medication) UpdatedAt() time.Time {
-	return m.updatedAt
 }
 
 // BarCode returns the DataMatrix of the medication.
