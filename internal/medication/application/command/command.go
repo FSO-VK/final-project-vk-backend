@@ -14,6 +14,8 @@ import (
 
 const (
 	ValidationErrorName = "ValidationError"
+	DomainErrorName     = "DomainError"
+	RepositoryErrorName = "RepositoryError"
 )
 
 type commandService[T, E any] interface {
@@ -50,8 +52,9 @@ type validationDecorator[T, E any] struct {
 	validator validator.Validator
 }
 
-func (vd validationDecorator[T, E]) Execute(ctx context.Context, cmd T) (resp E, err error) {
-	err = vd.validator.ValidateStruct(cmd)
+func (vd validationDecorator[T, E]) Execute(ctx context.Context, cmd T) (E, error) {
+	err := vd.validator.ValidateStruct(cmd)
+	var resp E
 	if err != nil {
 		return resp, apperror.User(ValidationErrorName, err)
 	}
@@ -131,4 +134,16 @@ func adaptDomainMedicationInfo(info medication.MedicationInfo) MedicationInfo {
 		ReleaseDate:         releaseDate,
 		Commentary:          string(info.Commentary()),
 	}
+}
+
+func adaptActiveSubstancesToDomain(as []ActiveSubstance) []medication.ActiveSubstanceDraft {
+	activeSubstancesDraft := make([]medication.ActiveSubstanceDraft, 0, len(as))
+	for _, activeSubstance := range as {
+		activeSubstancesDraft = append(activeSubstancesDraft, medication.ActiveSubstanceDraft{
+			Name:  activeSubstance.Name,
+			Value: activeSubstance.Value,
+			Unit:  activeSubstance.Unit,
+		})
+	}
+	return activeSubstancesDraft
 }
