@@ -16,9 +16,7 @@ import (
 
 const (
 	IDGenerationErrorName    = "IDGenerationError"
-	RepositoryErrorName      = "RepositoryError"
 	MedicationExistErrorName = "MedicationExistError"
-	DomainErrorName          = "DomainError"
 )
 
 type AddMedicationCommand struct {
@@ -45,7 +43,7 @@ func NewAddMedicationService(repo usermedbox.Repository, log *logrus.Entry, val 
 		panic(fmt.Sprintf("%T is nil", repo))
 	}
 
-	return applyCommandDecorators[*AddMedicationCommand, *AddMedicationResponse](
+	return applyCommandDecorators(
 		&addMedicationService{
 			repo: repo,
 		},
@@ -84,6 +82,7 @@ func (ams *addMedicationService) Execute(ctx context.Context, cmd *AddMedication
 				Unit:  cmd.AmountUnit,
 			},
 			Commentary:     cmd.Commentary,
+			ActiveSubstances: adaptActiveSubstancesToDomain(cmd.ActiveSubstances),
 			ReleaseDate:    releaseDate,
 			ExpirationDate: expirationDate,
 		},
