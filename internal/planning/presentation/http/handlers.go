@@ -16,8 +16,6 @@ import (
 const (
 	// SlugID is a slug for id.
 	SlugID = "id"
-	// SlugID is a slug for id.
-	PlanID = "plan_id"
 )
 
 // PlanningHandlers is a handler for Planning.
@@ -376,13 +374,12 @@ func (h *PlanningHandlers) ShowSchedule(c *gin.Context) {
 
 // TakeMedication makes record taken by time it was planned.
 func (h *PlanningHandlers) TakeMedication(c *gin.Context) {
-	planID, recordID, userID, ok := h.extractMedicationParams(c)
+	recordID, userID, ok := h.extractMedicationParams(c)
 	if !ok {
 		return
 	}
 
 	command := &application.TakeMedicationCommand{
-		PlanID:   planID,
 		RecordID: recordID,
 		UserID:   userID,
 	}
@@ -409,7 +406,7 @@ type ChangeTakeMedicationJSONRequest struct {
 
 // ChangeTakeMedication makes record taken by time you set.
 func (h *PlanningHandlers) ChangeTakeMedication(c *gin.Context) {
-	planID, recordID, userID, ok := h.extractMedicationParams(c)
+	recordID, userID, ok := h.extractMedicationParams(c)
 	if !ok {
 		return
 	}
@@ -426,7 +423,6 @@ func (h *PlanningHandlers) ChangeTakeMedication(c *gin.Context) {
 	}
 
 	command := &application.ChangeTakeMedicationCommand{
-		PlanID:   planID,
 		RecordID: recordID,
 		UserID:   userID,
 		TakenAt:  reqJSON.TakingTime,
@@ -459,18 +455,8 @@ func (h *PlanningHandlers) CancelMedicationTake(c *gin.Context) {
 		return
 	}
 
-	slugPlanID := c.Param(PlanID)
-	if slugPlanID == "" {
-		h.logger.Error("Plan ID not found in path params")
-		c.JSON(http.StatusBadRequest, api.Response[any]{
-			StatusCode: http.StatusBadRequest,
-			Error:      MsgMissingSlug,
-			Body:       struct{}{},
-		})
-		return
-	}
 	slugRecordID := c.Param(SlugID)
-	if slugPlanID == "" {
+	if slugRecordID == "" {
 		h.logger.Error("Record ID not found in path params")
 		c.JSON(http.StatusBadRequest, api.Response[any]{
 			StatusCode: http.StatusBadRequest,
@@ -481,7 +467,6 @@ func (h *PlanningHandlers) CancelMedicationTake(c *gin.Context) {
 	}
 
 	command := &application.CancelMedicationTakeCommand{
-		PlanID:   slugPlanID,
 		RecordID: slugRecordID,
 		UserID:   auth.UserID,
 	}
@@ -503,7 +488,7 @@ func (h *PlanningHandlers) CancelMedicationTake(c *gin.Context) {
 
 func (h *PlanningHandlers) extractMedicationParams(
 	c *gin.Context,
-) (string, string, string, bool) {
+) (string, string, bool) {
 	auth, err := httputil.GetAuthFromCtx(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, api.Response[any]{
@@ -511,18 +496,7 @@ func (h *PlanningHandlers) extractMedicationParams(
 			Error:      api.MsgUnauthorized,
 			Body:       struct{}{},
 		})
-		return "", "", "", false
-	}
-
-	slugPlanID := c.Param(PlanID)
-	if slugPlanID == "" {
-		h.logger.Error("Plan ID not found in path params")
-		c.JSON(http.StatusBadRequest, api.Response[any]{
-			StatusCode: http.StatusBadRequest,
-			Error:      MsgMissingSlug,
-			Body:       struct{}{},
-		})
-		return "", "", "", false
+		return "", "", false
 	}
 
 	slugRecordID := c.Param(SlugID)
@@ -533,10 +507,10 @@ func (h *PlanningHandlers) extractMedicationParams(
 			Error:      MsgMissingSlug,
 			Body:       struct{}{},
 		})
-		return "", "", "", false
+		return "", "", false
 	}
 
-	return slugPlanID, slugRecordID, auth.UserID, true
+	return slugRecordID, auth.UserID, true
 }
 
 // handleUpdateServiceError maps service errors to HTTP status and API responses using switch.

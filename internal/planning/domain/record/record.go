@@ -54,8 +54,8 @@ func (r *IntakeRecord) MarkMissed() *IntakeRecord {
 	return r
 }
 
-// MarkMissed executes business logic for marking the record as draft if user want to cancel taking it.
-func (r *IntakeRecord) MarDefault() *IntakeRecord {
+// Cancel executes business logic for marking the record as draft if user want to cancel taking it.
+func (r *IntakeRecord) Cancel() *IntakeRecord {
 	r.status = StatusDraft
 	return r
 }

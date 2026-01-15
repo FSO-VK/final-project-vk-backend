@@ -40,7 +40,6 @@ func NewCancelMedicationTakeService(
 
 // CancelMedicationTakeCommand is a request to cancel medication take.
 type CancelMedicationTakeCommand struct {
-	PlanID   string `validate:"required,uuid"`
 	RecordID string `validate:"required,uuid"`
 	UserID   string `validate:"required,uuid"`
 }
@@ -57,10 +56,7 @@ func (s *CancelMedicationTakeService) Execute(
 	if valErr != nil {
 		return nil, ErrValidationFail
 	}
-	parsedPlanID, err := uuid.Parse(req.PlanID)
-	if err != nil {
-		return nil, ErrValidationFail
-	}
+
 	parsedRecordID, err := uuid.Parse(req.RecordID)
 	if err != nil {
 		return nil, ErrValidationFail
@@ -71,7 +67,12 @@ func (s *CancelMedicationTakeService) Execute(
 		return nil, ErrValidationFail
 	}
 
-	requestedPlan, err := s.planningRepo.GetByID(ctx, parsedPlanID)
+	requestedRecord, err := s.recordRepo.GetByID(ctx, parsedRecordID)
+	if err != nil {
+		return nil, ErrNoIntakeRecord
+	}
+
+	requestedPlan, err := s.planningRepo.GetByID(ctx, requestedRecord.PlanID())
 	if err != nil {
 		return nil, ErrNoPlan
 	}
@@ -80,12 +81,7 @@ func (s *CancelMedicationTakeService) Execute(
 		return nil, ErrPlanNotBelongToUser
 	}
 
-	requestedRecord, err := s.recordRepo.GetByID(ctx, parsedRecordID)
-	if err != nil {
-		return nil, ErrNoIntakeRecord
-	}
-
-	requestedRecord.MarDefault()
+	requestedRecord.Cancel()
 
 	err = s.recordRepo.UpdateByID(ctx, requestedRecord)
 	if err != nil {

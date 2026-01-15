@@ -42,7 +42,6 @@ func NewChangeTakeMedicationService(
 
 // ChangeTakeMedicationCommand is a request to change medication take time.
 type ChangeTakeMedicationCommand struct {
-	PlanID   string `validate:"required,uuid"`
 	RecordID string `validate:"required,uuid"`
 	UserID   string `validate:"required,uuid"`
 	TakenAt  string `validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
@@ -60,10 +59,7 @@ func (s *ChangeTakeMedicationService) Execute(
 	if valErr != nil {
 		return nil, ErrValidationFail
 	}
-	parsedPlanID, err := uuid.Parse(req.PlanID)
-	if err != nil {
-		return nil, ErrValidationFail
-	}
+
 	parsedRecordID, err := uuid.Parse(req.RecordID)
 	if err != nil {
 		return nil, ErrValidationFail
@@ -74,23 +70,22 @@ func (s *ChangeTakeMedicationService) Execute(
 		return nil, ErrValidationFail
 	}
 
-	requestedPlan, err := s.planningRepo.GetByID(ctx, parsedPlanID)
-	if err != nil {
-		return nil, ErrNoPlan
-	}
-
 	parsedTakenAt, err := time.Parse(time.RFC3339, req.TakenAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid taking time: %w", err)
 	}
 
-	if requestedPlan.UserID() != parsedUser {
-		return nil, ErrPlanNotBelongToUser
-	}
-
 	requestedRecord, err := s.recordRepo.GetByID(ctx, parsedRecordID)
 	if err != nil {
 		return nil, ErrNoIntakeRecord
+	}
+
+	requestedPlan, err := s.planningRepo.GetByID(ctx, requestedRecord.PlanID())
+	if err != nil {
+		return nil, ErrNoPlan
+	}
+	if requestedPlan.UserID() != parsedUser {
+		return nil, ErrPlanNotBelongToUser
 	}
 
 	requestedRecord.MarkTaken(parsedTakenAt)

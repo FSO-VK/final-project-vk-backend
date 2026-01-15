@@ -40,7 +40,6 @@ func NewTakeMedicationService(
 
 // TakeMedicationCommand is a request to make medication taken.
 type TakeMedicationCommand struct {
-	PlanID   string `validate:"required,uuid"`
 	RecordID string `validate:"required,uuid"`
 	UserID   string `validate:"required,uuid"`
 }
@@ -57,10 +56,7 @@ func (s *TakeMedicationService) Execute(
 	if valErr != nil {
 		return nil, ErrValidationFail
 	}
-	parsedPlanID, err := uuid.Parse(req.PlanID)
-	if err != nil {
-		return nil, ErrValidationFail
-	}
+
 	parsedRecordID, err := uuid.Parse(req.RecordID)
 	if err != nil {
 		return nil, ErrValidationFail
@@ -71,18 +67,18 @@ func (s *TakeMedicationService) Execute(
 		return nil, ErrValidationFail
 	}
 
-	requestedPlan, err := s.planningRepo.GetByID(ctx, parsedPlanID)
+	requestedRecord, err := s.recordRepo.GetByID(ctx, parsedRecordID)
+	if err != nil {
+		return nil, ErrNoIntakeRecord
+	}
+
+	requestedPlan, err := s.planningRepo.GetByID(ctx, requestedRecord.PlanID())
 	if err != nil {
 		return nil, ErrNoPlan
 	}
 
 	if requestedPlan.UserID() != parsedUser {
 		return nil, ErrPlanNotBelongToUser
-	}
-
-	requestedRecord, err := s.recordRepo.GetByID(ctx, parsedRecordID)
-	if err != nil {
-		return nil, ErrNoIntakeRecord
 	}
 
 	requestedRecord.MarkTaken(requestedRecord.PlannedTime())

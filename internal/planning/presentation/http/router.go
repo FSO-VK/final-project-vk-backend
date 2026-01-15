@@ -18,15 +18,15 @@ func Router(
 	authGroup.Use(authMw.Middleware())
 	{
 		authGroup.POST(
-			"/plan/action/:plan_id/take/:id",
+			"/intake/:id/take",
 			planningHandlers.TakeMedication,
 		)
 		authGroup.POST(
-			"/plan/action/:plan_id/change-take/:id",
+			"/intake/:id/change",
 			planningHandlers.ChangeTakeMedication,
 		)
 		authGroup.DELETE(
-			"/plan/action/:plan_id/cancel-take/:id",
+			"/intake/:id/cancel",
 			planningHandlers.CancelMedicationTake,
 		)
 		authGroup.GET("/plan/all", planningHandlers.GetAllUsersPlans)
