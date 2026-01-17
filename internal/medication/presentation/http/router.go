@@ -22,6 +22,7 @@ func Router(
 	r.HandleFunc("/medication/{id}/assistant", medicationHandlers.InstructionAssistant).
 		Methods("GET")
 	r.HandleFunc("/medication/{id}/instruction", medicationHandlers.GetInstruction).Methods("GET")
+	r.HandleFunc("/medication/{id}/take", medicationHandlers.TakeMedication).Methods("POST")
 
 	panicMiddleware := httputil.NewPanicRecoveryMiddleware()
 	r.Use(panicMiddleware.Middleware)

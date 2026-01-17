@@ -110,6 +110,11 @@ func main() {
 			medReference,
 			validator,
 		),
+		TakeMedication: application.NewTakeMedicationService(
+			medicationRepo,
+			medicationBoxRepo,
+			validator,
+		),
 	}
 
 	medicationHandlers := http.NewHandlers(app, logger)
