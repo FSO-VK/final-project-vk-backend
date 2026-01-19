@@ -163,22 +163,20 @@ func (s *ShowScheduleService) scheduleList(
 			}
 		}
 		// we are calculating all future records that are not created in db
-		now := time.Now()
+		now := time.Now().UTC()
+		createdAlready := time.Date(
+			now.Year(), now.Month(), now.Day(),
+			0, 0, 0, 0, time.UTC,
+		).Add(s.createdShift)
 		var futureTimes []time.Time
-		if parsedStart.After(now) {
+		if parsedStart.After(createdAlready) {
 			futureTimes = p.Schedule(
-				time.Date(
-					parsedStart.Year(), parsedStart.Month(), parsedStart.Day(),
-					0, 0, 0, 0, time.UTC,
-				).Add(s.createdShift),
+				parsedStart,
 				parsedEnd,
 			)
 		} else {
 			futureTimes = p.Schedule(
-				time.Date(
-					now.Year(), now.Month(), now.Day(),
-					0, 0, 0, 0, time.UTC,
-				).Add(s.createdShift),
+				createdAlready,
 				parsedEnd,
 			)
 		}
