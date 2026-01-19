@@ -117,6 +117,21 @@ func main() {
 			creationShift,
 		),
 		DeletePlan: application.NewFinishPlanService(planRepo, validator),
+		TakeMedication: application.NewTakeMedicationService(
+			recordsRepo,
+			planRepo,
+			validator,
+		),
+		ChangeTakeMedication: application.NewChangeTakeMedicationService(
+			recordsRepo,
+			planRepo,
+			validator,
+		),
+		CancelMedicationTake: application.NewCancelMedicationTakeService(
+			recordsRepo,
+			planRepo,
+			validator,
+		),
 	}
 	planningHandlers := http.NewHandlers(app, logger)
 

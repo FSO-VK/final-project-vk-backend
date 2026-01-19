@@ -54,6 +54,12 @@ func (r *IntakeRecord) MarkMissed() *IntakeRecord {
 	return r
 }
 
+// Cancel executes business logic for marking the record as draft if user want to cancel taking it.
+func (r *IntakeRecord) Cancel() *IntakeRecord {
+	r.status = StatusDraft
+	return r
+}
+
 // Reschedule executes business logic for rescheduling the future record.
 func (r *IntakeRecord) Reschedule(newPlannedTime time.Time) (*IntakeRecord, error) {
 	if r.status != StatusDraft {
