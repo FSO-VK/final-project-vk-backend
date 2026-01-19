@@ -253,7 +253,7 @@ func (h *MedicationHandlers) UpdateMedication(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	response := &UpdateMedicationJSONResponse{
+	response := &TakeMedicationJSONResponse{
 		ID: serviceResponse.ID,
 		BodyCommonObject: BodyCommonObject{
 			Name:              serviceResponse.Name,
@@ -714,6 +714,114 @@ func (h *MedicationHandlers) GetInstruction(w http.ResponseWriter, r *http.Reque
 			HepatoInsuf:            medication.HepatoInsuf,
 			ElderlyInsuf:           medication.ElderlyInsuf,
 			ChildInsuf:             medication.ChildInsuf,
+		},
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+		StatusCode: http.StatusOK,
+		Body:       response,
+		Error:      "",
+	})
+}
+
+// TakeMedicationJSONRequest is a request for TakeMedication.
+type TakeMedicationJSONRequest struct {
+	ID    string  `json:"id"`
+	Value float32 `json:"value"`
+}
+
+// TakeMedicationJSONResponse is a response for TakeMedication.
+type TakeMedicationJSONResponse struct {
+	// embedded struct
+	BodyCommonObject `json:",inline"`
+
+	ID string `json:"id"`
+}
+
+// TakeMedication takes a medication.
+func (h *MedicationHandlers) TakeMedication(w http.ResponseWriter, r *http.Request) {
+	logger := h.getLogger(r)
+
+	auth, err := httputil.GetAuthFromCtx(r)
+	if err != nil {
+		h.writeResponseUnauthorized(w)
+		return
+	}
+	var reqJSON *TakeMedicationJSONRequest
+
+	vars := mux.Vars(r)
+	id := vars[SlugID]
+
+	var body bytes.Buffer
+	_, err = body.ReadFrom(r.Body)
+	defer func() {
+		_ = r.Body.Close()
+	}()
+
+	if err != nil {
+		logger.WithError(err).Error("Failed to read request body")
+		w.WriteHeader(http.StatusBadRequest)
+
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		})
+		return
+	}
+
+	err = json.Unmarshal(body.Bytes(), &reqJSON)
+	if err != nil {
+		logger.WithError(err).Error("Failed to unmarshal request body")
+		w.WriteHeader(http.StatusBadRequest)
+
+		_ = httputil.NetHTTPWriteJSON(w, &api.Response[any]{
+			StatusCode: http.StatusBadRequest,
+			Body:       struct{}{},
+			Error:      api.MsgBadBody,
+		})
+		return
+	}
+	serviceRequest := &application.TakeMedicationCommand{
+		UserID: auth.UserID,
+		ID:     id,
+		Value:  reqJSON.Value,
+	}
+
+	serviceResponse, err := h.app.TakeMedication.Execute(
+		r.Context(),
+		serviceRequest,
+	)
+	if err != nil {
+		logger.WithError(err).Error("Failed to take medication")
+
+		status, body := h.handleUpdateServiceError(err)
+
+		w.WriteHeader(status)
+		_ = httputil.NetHTTPWriteJSON(w, body)
+		return
+	}
+
+	response := &TakeMedicationJSONResponse{
+		ID: serviceResponse.ID,
+		BodyCommonObject: BodyCommonObject{
+			Name:              serviceResponse.Name,
+			InternationalName: serviceResponse.InternationalName,
+			Amount: AmountObject{
+				Value: serviceResponse.AmountValue,
+				Unit:  serviceResponse.AmountUnit,
+			},
+			ReleaseForm: serviceResponse.ReleaseForm,
+			Group:       serviceResponse.Group,
+			Producer: ProducerObject{
+				Name:    serviceResponse.ManufacturerName,
+				Country: serviceResponse.ManufacturerCountry,
+			},
+			ActiveSubstance: convertToActiveSubstanceObject(serviceResponse.ActiveSubstance),
+			Expiration:      serviceResponse.Expires,
+			Release:         serviceResponse.Release,
+			Commentary:      serviceResponse.Commentary,
 		},
 	}
 
